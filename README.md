@@ -1,36 +1,211 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MusMove Backend
 
-## Getting Started
+Next.js API for the MusMove mobile application, backed by Neon PostgreSQL,
+Drizzle ORM, and Neon Auth bearer tokens.
 
-First, run the development server:
+## Mobile API
+
+All routes use `/api/v1`. Private routes require the short-lived JWT obtained
+by the mobile app from Neon Auth:
+
+```http
+Authorization: Bearer <access-token>
+Content-Type: application/json
+```
+
+The server derives account ownership only from the verified token. A client
+must never send a `userId` to select ownership. Current endpoints are:
+
+- `GET /me`
+- `GET /sync/bootstrap`
+- `POST /sync/push`
+- `GET /sync/pull?cursor=...&limit=...`
+- `POST /imports/demo`
+- `GET /workouts?from=YYYY-MM-DD&to=YYYY-MM-DD`
+- `GET /catalog/exercises` (public and versioned)
+- `GET /catalog/equipment?q=dambel` (public equipment catalog/name aliases)
+- `GET /equipment/exercises?equipmentIds=dumbbell,bench&mode=gym` (public equipment matches and missing tools)
+- `POST /equipment/recognize` (private multipart photo; self-hosted SigLIP 2, candidates require confirmation)
+- `GET /catalog/programs` (public template catalog)
+- `GET /programs/recommendations` (private selection using saved preferences)
+- `GET /catalog/meals?q=tempe&foodGroup=legumes&limit=50&offset=0` (public, paginated TKPI reference foods; demos hidden by default)
+- `GET /catalog/places` (public Jakarta catalog, category/access filters and optional distance)
+- `GET /places` (private catalog with the current account's `isFavorite` flags)
+- `GET /nutrition/targets` (private, stored profile-versioned estimates)
+- `GET /meals?date=YYYY-MM-DD&limit=50&offset=0` (private daily journal/summary)
+- `POST /account/deletion-requests`
+
+The sync contract is offline-first. `operationId` makes retries idempotent,
+`baseVersion` detects concurrent edits, per-user sequence numbers order the
+change stream, and signed cursors bind a position to its account. All `bigint`
+versions and sequences are returned as decimal strings so Dart and JavaScript
+clients do not lose precision. See [`docs/openapi.yaml`](docs/openapi.yaml) for
+the transport contract.
+
+Example push:
+
+```json
+{
+  "schemaVersion": 1,
+  "deviceId": "mobile-installation-id",
+  "operations": [
+    {
+      "operationId": "d45ca67e-f881-4ec6-85d5-e18cf49fabca",
+      "entityType": "profile",
+      "entityId": "profile",
+      "action": "upsert",
+      "baseVersion": "0",
+      "payload": {
+        "displayName": "MusMover",
+        "motivationEnabled": true,
+        "setupCompleted": false
+      }
+    }
+  ]
+}
+```
+
+For one-per-user records, use stable IDs `profile`, `training_preferences`,
+`user_preferences`, and `legacy_user_metadata`. Mutations for synchronized
+entities must go through `/sync/push`; there are no parallel CRUD routes that
+bypass versions, receipts, or the change log.
+
+## Database
+
+The reviewed migrations create 24 application tables for identities, profiles,
+training preferences, programs, exercises, workouts, private user data,
+synchronization state/change logs, idempotency receipts, and demo imports.
+
+Before Vercel deployment, follow the [security audit and deployment checklist](docs/security-vercel.md).
+Production uses shared PostgreSQL rate limits and refuses incomplete security
+configuration. `vercel.json` blocks deployment until `npm run security:check`
+passes; do not bypass it with owner credentials or placeholder secrets.
+
+`equipment_catalog` contains 28 canonical tools and name aliases. Exercise
+links reuse existing `requirements` AND/OR groups; reference protection
+prevents dangling keys. The private photo API validates/normalizes uploads
+and calls a separate pinned SigLIP 2 Python service, without storing photos.
+See the [equipment scan setup, API and limitations](docs/equipment-scan.md).
+
+`place_catalog` contains 18 researched Jakarta places: 10 FIT HUB branches,
+3 FTL branches, 2 local gyms with publisher-reported per-visit access, and
+3 outdoor training locations. Addresses, coordinates, Maps links, access
+models, sources and the research date are stored in Neon. Category
+and access model are separate; an unknown day-pass flag is not false.
+See the [places contract and research notes](docs/places.md). Existing mobile
+demo favorites are preserved, not remapped to unrelated real-world locations.
+
+The global exercise catalog is stored in `exercise_catalog` with 117 seeded
+entries across gym and calisthenics. Existing IDs are preserved within each
+mode. The public API reads active records from Neon; catalog edits automatically
+advance `catalogVersion` through a database trigger. Exercise requirements are
+equipment keys; each inner array is one acceptable combination. The catalog
+uses repetition-based exercises compatible with the current mobile editor.
+
+Every exercise has explicitly reviewed, nonempty `movement_tags` for body-region
+and movement restrictions. Database constraints reject missing, empty, null-item
+or unknown tags. These are conservative product annotations, not medical clearance
+or muscle-target labels. See [movement-tag definitions and full mapping](docs/exercise-movement-tags.md).
+
+`workout_program_catalog` and `workout_program_exercises` hold 12 curated
+templates: four full-body options and eight focus-specific options. Selection
+uses saved training mode, equipment, profile focus (`full`, `leg`, `chest`,
+`back`, `arm`), and maximum session duration. Missing preferences return 409;
+no matching template returns an empty list with `NO_MATCHING_PROGRAM`.
+Prescriptions reference the catalog but use template-specific sets/reps.
+Core templates use repetition-based dead bug/bird dog instead of timed planks.
+Recommendations personalize prescriptions using the profile training level,
+goal, age, bodyweight evidence, reported equipment height limits, mobility,
+recovery and health context, optional exercise capability assessments and up
+to 20 completed workouts from the last 30 days. Gender is stored independently
+from the nutrition-formula sex field. See [personalization contract](docs/program-personalization.md)
+for supported fields, defaults, load handling and scope.
+
+Mobile should sync preferences, call `/programs/recommendations`, then persist
+the selected exercises as `exerciseSnapshot` when starting a workout through
+sync push. Existing workout snapshots stay independent of later catalog edits.
+This backend change does not yet switch the Flutter application to these routes.
+
+`meal_catalog` stores 1,145 TKPI 2017 reference foods across 13 food groups,
+with source codes/pages, 100 g edible portions, energy, protein, carbohydrates,
+fat, fiber, sodium and available micronutrients. Source-derived/imputed values
+stay labeled, missing values remain null, and flagged source outliers are
+withheld for review. These are traceable reference values, not independently
+lab-tested individual meals. The three existing mobile demo meals remain stored
+but are hidden unless `includeDemo=true`; no history is deleted. See the
+[food catalog coverage, verification and API](docs/food-catalog.md).
+`meal_entries` supports portions, consumption timestamps, local
+dates and immutable nutrition snapshots. `nutrition_estimates` stores input and
+output snapshots per profile/formula version atomically on profile writes.
+The v2 formula retains the mobile maintenance baseline and adds explicit goal
+targets: bulk approximately +10% (cap 300 kcal), cut -15% (cap 500 kcal), and
+maintenance unchanged. Protein is 2 g/kg for cut and 1.6 for bulk/maintenance.
+These are starting product heuristics with review guards, not clinical targets.
+Both baseline and final targets are stored; old v1 snapshots are preserved.
+Demo nutrients are excluded from real daily
+progress. See [meals/nutrition contract](docs/meals-nutrition.md) for payloads,
+guards, sources, shared Dart/TypeScript fixtures and remaining scope.
+
+Important database guarantees include account ownership foreign keys,
+`bigint` versions and sequences, tombstones, one live scheduled program per
+mode/weekday, and one live active workout per account.
+
+Copy the environment template and add the restricted Neon pooled connection,
+Neon Auth endpoint, and independent random signing/rate-limit secrets. Keep the
+admin `DATABASE_URL_DIRECT` exclusively in ignored `.env.migrations.local` for
+local migration tooling, or supply it via a secure migration-only CI job:
+
+```bash
+cp .env.example .env.local
+npm run db:migrate
+npm run db:backfill-nutrition
+```
+
+Runtime uses `DATABASE_URL`; migrations prefer `DATABASE_URL_DIRECT` and never
+run on application startup. Only migration tooling explicitly loads
+`.env.migrations.local`; Next.js does not load that filename. Do not copy this
+file or its admin credential into Vercel. Use a non-owner runtime role.
+
+## Local development
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+For the backend together with the local model service (after Python setup/model
+download in the equipment-scan guide), use `npm run dev:vision`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The public catalog is at
+`http://localhost:3000/api/v1/catalog/exercises`. Private routes return `401`
+until a valid Neon Auth bearer token is supplied.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Verification
 
-## Learn More
+```bash
+npm run lint
+npm run typecheck
+npm run db:test-schema
+npm run db:test-api
+npm run test:programs
+npm run test:movement-tags
+npm run db:test-movement-tags
+npm run test:nutrition
+npm run test:places
+npm run db:test-places
+npm run test:equipment
+npm run db:test-equipment
+npm run test:vision
+npm run test:vision-real # requires downloaded model; runs real CPU inference
+npm run db:test-nutrition
+npm run test:nutrition-dart # optional: Dart SDK and ../musmove required
+npm run build -- --webpack
+npm audit
+```
 
-To learn more about Next.js, take a look at the following resources:
+`db:test-api` uses the configured Neon database, creates isolated synthetic
+accounts, validates sync transactions/idempotency/conflicts/import, and removes
+those accounts in a `finally` block.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The backend still needs deployment-level distributed rate limiting and a
+separate non-owner Neon runtime credential before production rollout.
+# musmove-backend
