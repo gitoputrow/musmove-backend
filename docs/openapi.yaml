@@ -1,0 +1,839 @@
+openapi: 3.1.0
+info:
+  title: MusMove Mobile API
+  version: 1.0.0
+  description: Offline-first MusMove API. Private endpoints require a short-lived verified Neon JWT; cookies are not authentication. Production shared limits apply (IP180/min, account120/min, mutations30/min, scans5/min, bootstrap5/min, demo import2/10min); 429 includes Retry-After, unavailable protection returns503. JSON bodies at most1MiB, depth32; operation/import payloads64KiB, response3MiB. See docs/security-vercel.md.
+servers:
+  - url: /api/v1
+security:
+  - bearerAuth: []
+paths:
+  /catalog/equipment:
+    get:
+      operationId: getEquipmentCatalog
+      security: []
+      description: Canonical equipment IDs/names/aliases from the database. Exact normalized aliases resolve as exact; partial results require selection. Initial 28 tools. See docs/equipment-scan.md.
+      parameters:
+        - { in: query, name: q, schema: { type: string, minLength: 2, maxLength: 120 } }
+      responses:
+        "200":
+          description: Versioned catalog or name-search candidates.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [catalogVersion, matchType, equipment]
+                properties:
+                  catalogVersion: { $ref: "#/components/schemas/DecimalVersion" }
+                  matchType: { type: string, enum: [catalog, exact, candidates, no_match] }
+                  equipment: { type: array, items: { $ref: "#/components/schemas/EquipmentItem" } }
+        "400": { $ref: "#/components/responses/Error" }
+  /equipment/exercises:
+    get:
+      operationId: getEquipmentExercises
+      security: []
+      description: Related exercises grouped by complete equipment requirements vs missing tools. Inner requirement arrays are AND groups, outer arrays are OR alternatives. Equipment match is not personalized workout advice. Mat is optional and currently has no explicit required-exercise mappings.
+      parameters:
+        - in: query
+          name: equipmentIds
+          required: true
+          style: form
+          explode: false
+          schema:
+            type: array
+            minItems: 1
+            maxItems: 32
+            uniqueItems: true
+            items: { type: string, pattern: "^[a-z][a-z0-9_]{0,79}$" }
+        - { in: query, name: mode, schema: { type: string, enum: [gym, calisthenics] } }
+      responses:
+        "200":
+          description: Current catalog versions, selected tools, ready and needsMoreEquipment.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [equipmentCatalogVersion, exerciseCatalogVersion, selectedEquipment, ready, needsMoreEquipment, warnings]
+                properties:
+                  equipmentCatalogVersion: { $ref: "#/components/schemas/DecimalVersion" }
+                  exerciseCatalogVersion: { $ref: "#/components/schemas/DecimalVersion" }
+                  selectedEquipment: { type: array, items: { $ref: "#/components/schemas/EquipmentItem" } }
+                  ready: { type: array, items: { $ref: "#/components/schemas/EquipmentExercise" } }
+                  needsMoreEquipment: { type: array, items: { $ref: "#/components/schemas/EquipmentExercise" } }
+                  warnings: { type: array, items: { type: string } }
+        "400": { $ref: "#/components/responses/Error" }
+  /equipment/recognize:
+    post:
+      operationId: recognizeEquipmentPhoto
+      description: Authenticated photo recognition using a private self-hosted pinned SigLIP 2 service. One photo file only, JPEG/PNG/static WebP, at most 4 MiB and 16 Mi-pixels. Photos remain in memory. All candidates require human confirmation; scores are uncalibrated similarities, not accuracy. Focus on one tool. No photo URL or mobile base64 accepted.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [photo]
+              properties:
+                photo: { type: string, format: binary, description: JPEG, PNG or static WebP file; 4 MiB limit. }
+      responses:
+        "200":
+          description: Needs-confirmation candidates or unknown with an empty candidate array. No automatic preference writes.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EquipmentRecognition" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "408": { $ref: "#/components/responses/Error" }
+        "413": { $ref: "#/components/responses/Error" }
+        "415": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /catalog/places:
+    get:
+      operationId: getPlaceCatalog
+      security: []
+      description: Public catalog. Initial 18 Jakarta entries researched on 2026-10-11, not on-site verified. Category and access model are independent; null day-pass availability is unknown. See docs/places.md.
+      parameters:
+        - { $ref: "#/components/parameters/PlacesArea" }
+        - { $ref: "#/components/parameters/PlacesCity" }
+        - { $ref: "#/components/parameters/PlacesMode" }
+        - { $ref: "#/components/parameters/PlacesGymCategory" }
+        - { $ref: "#/components/parameters/PlacesBrand" }
+        - { $ref: "#/components/parameters/PlacesAccessModel" }
+        - { $ref: "#/components/parameters/PlacesDayPass" }
+        - { $ref: "#/components/parameters/PlacesLatitude" }
+        - { $ref: "#/components/parameters/PlacesLongitude" }
+        - { $ref: "#/components/parameters/PlacesRadius" }
+        - { $ref: "#/components/parameters/PlacesLimit" }
+        - { $ref: "#/components/parameters/PlacesOffset" }
+      responses:
+        "200":
+          description: Versioned active places, access provenance, optional straight-line distances and pagination. Response is no-store.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PlaceCatalogResponse" }
+        "400": { $ref: "#/components/responses/Error" }
+  /places:
+    get:
+      operationId: listPlacesWithFavorites
+      description: Same catalog and filters with isFavorite for the verified account only. Tombstones and other accounts are excluded. Mutate favorites through sync/push place_favorite, never this route.
+      parameters:
+        - { $ref: "#/components/parameters/PlacesArea" }
+        - { $ref: "#/components/parameters/PlacesCity" }
+        - { $ref: "#/components/parameters/PlacesMode" }
+        - { $ref: "#/components/parameters/PlacesGymCategory" }
+        - { $ref: "#/components/parameters/PlacesBrand" }
+        - { $ref: "#/components/parameters/PlacesAccessModel" }
+        - { $ref: "#/components/parameters/PlacesDayPass" }
+        - { $ref: "#/components/parameters/PlacesLatitude" }
+        - { $ref: "#/components/parameters/PlacesLongitude" }
+        - { $ref: "#/components/parameters/PlacesRadius" }
+        - { $ref: "#/components/parameters/PlacesLimit" }
+        - { $ref: "#/components/parameters/PlacesOffset" }
+      responses:
+        "200":
+          description: Versioned active places, access provenance, optional straight-line distances and pagination. Response is no-store.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PlaceCatalogResponse" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+  /catalog/meals:
+    get:
+      operationId: getMealCatalog
+      security: []
+      description: Paginated, source-traceable TKPI reference foods, default excluding demos. 1145 usable source foods across 13 groups, each per100g edible portion. Missing nutrients are null; imputed/borrowed fields remain labeled; flagged micronutrient outliers are withheld, retaining original values for review. Not independently lab-tested individual foods or dietary recommendations. See docs/food-catalog.md.
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string, minLength: 1, maxLength: 120 }
+          description: Literal case-insensitive substring in Indonesian/English name or source code.
+        - name: foodGroup
+          in: query
+          schema: { $ref: "#/components/schemas/FoodGroup" }
+        - name: foodKind
+          in: query
+          schema: { type: string, enum: [single, processed_or_composite] }
+        - name: includeDemo
+          in: query
+          schema: { type: boolean, default: false }
+          description: true includes the three legacy demo examples; they remain excluded from nutrition progress.
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 50 }
+        - name: offset
+          in: query
+          schema: { type: integer, minimum: 0, maximum: 100000, default: 0 }
+      responses:
+        "200":
+          description: Active meal catalog.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [catalogVersion, meals, warning, warnings, total, hasMore, nextOffset]
+                properties:
+                  catalogVersion: { $ref: "#/components/schemas/DecimalVersion" }
+                  warning: { type: string }
+                  warnings: { type: array, items: { type: string } }
+                  total: { type: integer, minimum: 0 }
+                  hasMore: { type: boolean }
+                  nextOffset: { type: [integer, "null"], minimum: 0 }
+                  meals:
+                    type: array
+                    items: { $ref: "#/components/schemas/MealCatalogItem" }
+        "400": { $ref: "#/components/responses/Error" }
+  /nutrition/targets:
+    get:
+      operationId: getNutritionTargets
+      description: Server-stored goal-adjusted estimate for the current live profile/formula version. Bulk approximately +10% capped at +300 kcal; cut approximately -15% capped at -500 kcal; maintenance unchanged. Cut protein 2 g/kg, others 1.6 g/kg. Starting product heuristics, not clinical prescriptions. GET does not write. See docs/meals-nutrition.md for rounding, aliases and safety gates.
+      responses:
+        "200":
+          description: Estimate or explicit profile/rebuild reason; numbers null for incomplete, unsupportedAge or needsReview.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/NutritionTargets" }
+        "401": { $ref: "#/components/responses/Error" }
+  /meals:
+    get:
+      operationId: listMeals
+      description: Owned non-deleted consumption log on a user-local calendar date. Totals cover all entries for that date, independent of pagination. Demo totals are separate and excluded from remaining-target progress. Mutations use sync/push meal_entry; see MealEntryPayload.
+      parameters:
+        - { in: query, name: date, required: true, schema: { type: string, format: date } }
+        - { in: query, name: limit, schema: { type: integer, minimum: 1, maximum: 100, default: 50 } }
+        - { in: query, name: offset, schema: { type: integer, minimum: 0, maximum: 100000, default: 0 } }
+      responses:
+        "200":
+          description: Daily consumption entries, full-day totals and current profile targets.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [date, entries, hasMore, nextOffset, summary, targets, warnings]
+                properties:
+                  date: { type: string, format: date }
+                  entries:
+                    type: array
+                    items: { $ref: "#/components/schemas/MealLogItem" }
+                  hasMore: { type: boolean }
+                  nextOffset: { type: [integer, "null"] }
+                  targets: { $ref: "#/components/schemas/NutritionTargets" }
+                  warnings: { type: array, items: { type: string } }
+                  summary:
+                    type: object
+                    required: [entryCount, reportedTotals, demoTotals, demoEntryCount, undatedLegacyEntryCount, remaining]
+                    properties:
+                      entryCount: { type: integer }
+                      reportedTotals: { $ref: "#/components/schemas/MealNutrients" }
+                      demoTotals: { $ref: "#/components/schemas/MealNutrients" }
+                      demoEntryCount: { type: integer }
+                      undatedLegacyEntryCount: { type: integer, description: All owned live entries without a local date; not included in the daily totals. }
+                      remaining:
+                        anyOf:
+                          - { $ref: "#/components/schemas/MealNutrients" }
+                          - { type: "null" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+  /catalog/programs:
+    get:
+      operationId: getProgramCatalog
+      security: []
+      responses:
+        "200":
+          description: Versioned curated templates with ordered exercise prescriptions.
+  /programs/recommendations:
+    get:
+      operationId: recommendPrograms
+      description: Personalizes curated templates using saved mode, focus, equipment, goal, age, trainingLevel, exerciseCapabilities, gender/health/mobility/recovery context, bodyweight evidence, verified equipment height limits and recent completed workouts. See docs/program-personalization.md for rules and profile sync fields. Gender alone is not a strength estimate.
+      responses:
+        "200":
+          description: Personalized programs, catalog versions, preferences, personalization metadata, rejectedPrograms and reason. Reasons include AGE_REQUIRED, ADULT_PROGRAMS_ONLY, NO_MATCHING_PROGRAM, PROFESSIONAL_GUIDANCE_REQUIRED, SPECIALIZED_PROGRAM_REQUIRED and RECOVERY_REQUIRED.
+        "409": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+  /me:
+    get:
+      operationId: getMe
+      responses:
+        "200":
+          description: Authenticated internal account.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [user]
+                properties:
+                  user:
+                    type: object
+                    required: [id, email, status]
+                    properties:
+                      id: { type: string, format: uuid }
+                      email: { type: [string, "null"], format: email }
+                      status: { const: active }
+        "401": { $ref: "#/components/responses/Error" }
+  /sync/bootstrap:
+    get:
+      operationId: bootstrapSync
+      description: Consistent single-response snapshot. Guarded at500 live records per entity type and1.5MB source-row JSON budget; oversized accounts return413 BOOTSTRAP_LIMIT without deleting/truncating data. This legacy contract is not paginated bootstrap; large-account snapshot pagination remains future work.
+      responses:
+        "200":
+          description: Consistent account snapshot and initial signed cursor.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Bootstrap"
+        "401": { $ref: "#/components/responses/Error" }
+        "413": { $ref: "#/components/responses/Error" }
+  /sync/push:
+    post:
+      operationId: pushSyncOperations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PushRequest"
+      responses:
+        "200":
+          description: Per-operation result. Validation and version conflicts do not fail the batch.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [schemaVersion, results]
+                properties:
+                  schemaVersion: { const: 1 }
+                  results:
+                    type: array
+                    items: { $ref: "#/components/schemas/OperationResult" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "415": { $ref: "#/components/responses/Error" }
+  /sync/pull:
+    get:
+      operationId: pullSyncChanges
+      parameters:
+        - in: query
+          name: cursor
+          required: true
+          schema: { type: string, maxLength: 2048 }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 200, default: 100 }
+      responses:
+        "200":
+          description: Ordered page of committed changes.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PullResponse"
+        "400": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+  /imports/demo:
+    post:
+      operationId: importDemoSnapshot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [schemaVersion, importId, entities]
+              properties:
+                schemaVersion: { const: 1 }
+                importId: { type: string, format: uuid }
+                entities:
+                  type: array
+                  minItems: 1
+                  maxItems: 100
+                  items: { $ref: "#/components/schemas/ImportEntity" }
+      responses:
+        "201": { description: Snapshot imported atomically. }
+        "200": { description: Identical importId and snapshot was already imported. }
+        "409": { $ref: "#/components/responses/Error" }
+  /workouts:
+    get:
+      operationId: listWorkouts
+      parameters:
+        - { in: query, name: from, schema: { type: string, format: date } }
+        - { in: query, name: to, schema: { type: string, format: date } }
+        - { in: query, name: cursor, schema: { type: string } }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 25 }
+      responses:
+        "200":
+          description: Owned non-deleted workout snapshots.
+        "400": { $ref: "#/components/responses/Error" }
+  /catalog/exercises:
+    get:
+      operationId: getExerciseCatalog
+      security: []
+      responses:
+        "200":
+          description: Public versioned exercise catalog.
+  /account/deletion-requests:
+    post:
+      operationId: requestAccountDeletion
+      responses:
+        "202":
+          description: Account marked deletion_requested and future API access rejected.
+        "401": { $ref: "#/components/responses/Error" }
+components:
+  parameters:
+    PlacesArea:
+      in: query
+      name: area
+      description: Exact case-insensitive region; initial data uses Jakarta.
+      schema: { type: string, minLength: 1, maxLength: 120 }
+    PlacesCity:
+      in: query
+      name: city
+      description: Exact case-insensitive administrative city, e.g. Jakarta Selatan.
+      schema: { type: string, minLength: 1, maxLength: 120 }
+    PlacesMode:
+      in: query
+      name: mode
+      description: Calisthenics includes outdoor fitness.
+      schema: { type: string, enum: [gym, calisthenics] }
+    PlacesGymCategory:
+      in: query
+      name: gymCategory
+      description: Cannot combine with calisthenics mode.
+      schema: { type: string, enum: [brand, conventional] }
+    PlacesBrand:
+      in: query
+      name: brand
+      description: Case-insensitive key, initially fithub or ftl; gym only.
+      schema: { type: string, minLength: 1, maxLength: 80 }
+    PlacesAccessModel:
+      in: query
+      name: accessModel
+      description: Exact access model; membership is a primary offer, not proof that day passes are forbidden.
+      schema: { type: string, enum: [membership, per_visit, membership_or_per_visit, public, unknown] }
+    PlacesDayPass:
+      in: query
+      name: dayPassAvailable
+      description: Explicit true or false. Unknown/null records do not match either value.
+      schema: { type: boolean }
+    PlacesLatitude:
+      in: query
+      name: latitude
+      description: Request origin; must be paired with longitude. Not stored.
+      schema: { type: number, minimum: -90, maximum: 90 }
+    PlacesLongitude:
+      in: query
+      name: longitude
+      description: Request origin; must be paired with latitude. Not stored.
+      schema: { type: number, minimum: -180, maximum: 180 }
+    PlacesRadius:
+      in: query
+      name: radiusKm
+      description: Requires origin coordinates; straight-line radius filtered before pagination.
+      schema: { type: number, exclusiveMinimum: 0, maximum: 100 }
+    PlacesLimit:
+      in: query
+      name: limit
+      description: Page size.
+      schema: { type: integer, minimum: 1, maximum: 100, default: 50 }
+    PlacesOffset:
+      in: query
+      name: offset
+      description: Page offset.
+      schema: { type: integer, minimum: 0, maximum: 100000, default: 0 }
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    Error:
+      description: Structured API error.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorEnvelope" }
+  schemas:
+    EquipmentItem:
+      type: object
+      required: [id, name, aliases]
+      properties:
+        id: { type: string, pattern: "^[a-z][a-z0-9_]{0,79}$" }
+        name: { type: string }
+        aliases: { type: array, items: { type: string } }
+    EquipmentExercise:
+      type: object
+      required: [id, mode, idLabel, enLabel, defaultSets, defaultReps, requirements, missingEquipmentOptions]
+      properties:
+        id: { type: string }
+        mode: { type: string, enum: [gym, calisthenics] }
+        idLabel: { type: string }
+        enLabel: { type: string }
+        defaultSets: { type: integer }
+        defaultReps: { type: integer }
+        requirements:
+          type: array
+          items: { type: array, items: { type: string } }
+        missingEquipmentOptions:
+          type: array
+          description: Empty for ready; otherwise alternative minimal sets of additional equipment IDs.
+          items: { type: array, items: { type: string } }
+    EquipmentRecognition:
+      type: object
+      required: [modelId, modelRevision, status, candidates, equipmentCatalogVersion, requiresConfirmation, warnings]
+      properties:
+        modelId: { const: google/siglip2-base-patch16-224 }
+        modelRevision: { const: 75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2 }
+        status: { type: string, enum: [needs_confirmation, unknown] }
+        candidates:
+          type: array
+          maxItems: 3
+          items:
+            allOf:
+              - { $ref: "#/components/schemas/EquipmentItem" }
+              - type: object
+                required: [score]
+                properties:
+                  score: { type: number, minimum: 0, maximum: 1, description: Similarity score; NOT calibrated recognition accuracy. }
+        equipmentCatalogVersion: { $ref: "#/components/schemas/DecimalVersion" }
+        requiresConfirmation: { const: true }
+        warnings: { type: array, items: { type: string } }
+    PlaceCatalogResponse:
+      type: object
+      required: [catalogVersion, places, total, hasMore, nextOffset, distanceType, warnings]
+      properties:
+        catalogVersion: { $ref: "#/components/schemas/DecimalVersion" }
+        places:
+          type: array
+          items: { $ref: "#/components/schemas/PlaceCatalogItem" }
+        total: { type: integer, minimum: 0, description: Total filtered rows before pagination. }
+        hasMore: { type: boolean }
+        nextOffset: { type: [integer, "null"] }
+        distanceType: { type: [string, "null"], enum: [straight_line, null] }
+        warnings: { type: array, items: { type: string } }
+    PlaceCatalogItem:
+      type: object
+      required: [id, name, mode, gymCategory, brand, accessModel, dayPassAvailable, area, city, address, latitude, longitude, googleMapsUrl, sources, checkedAt, active, version, updatedAt, distanceKm]
+      properties:
+        id: { type: string, maxLength: 255 }
+        name: { type: string }
+        mode: { type: string, enum: [gym, calisthenics] }
+        gymCategory: { type: [string, "null"], enum: [brand, conventional, null] }
+        brand: { type: [string, "null"] }
+        accessModel: { type: string, enum: [membership, per_visit, membership_or_per_visit, public, unknown] }
+        dayPassAvailable: { type: [boolean, "null"], description: Null means unknown, not unavailable. }
+        area: { type: string }
+        city: { type: string }
+        address: { type: string }
+        latitude: { type: number, minimum: -90, maximum: 90 }
+        longitude: { type: number, minimum: -180, maximum: 180 }
+        googleMapsUrl: { type: string, format: uri }
+        sources:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [url, kind, fields]
+            properties:
+              url: { type: string, format: uri }
+              kind: { type: string, enum: [operator, publisher, map, community] }
+              fields: { type: array, items: { type: string, enum: [identity, location, access] } }
+        checkedAt: { type: string, format: date, description: Web research date, not on-site verification. }
+        active: { type: boolean }
+        version: { $ref: "#/components/schemas/DecimalVersion" }
+        updatedAt: { type: string, format: date-time }
+        distanceKm: { type: [number, "null"], description: Great-circle distance rounded to 0.001 km; null without origin. Not travel distance. }
+        isFavorite: { type: boolean, description: Present only on the private /places response. }
+    MealNutrients:
+      type: object
+      additionalProperties: false
+      required: [caloriesKcal, proteinGrams]
+      properties:
+        caloriesKcal: { type: number, minimum: 0 }
+        proteinGrams: { type: number, minimum: 0 }
+        carbohydrateGrams: { type: [number, "null"], minimum: 0 }
+        fatGrams: { type: [number, "null"], minimum: 0 }
+        fiberGrams: { type: [number, "null"], minimum: 0, description: TKPI does not distinguish fiber methods per food. }
+        sodiumMg: { type: [number, "null"], minimum: 0 }
+    FoodGroup:
+      type: string
+      enum: [cereals, tubers, legumes, vegetables, fruits, meat_poultry, fish_seafood, eggs, dairy, fats_oils, sugars_confectionery, condiments, beverages]
+    FoodSourceDetails:
+      type: object
+      required: [dataset, pdfPage, printedPage, originalReference, ediblePercent, imputedOrBorrowedFields, additionalNutrients, withheldNutrients]
+      properties:
+        dataset: { type: string, example: TKPI_2017 }
+        pdfPage: { type: integer, minimum: 1, description: 1-based page in the pinned source PDF. }
+        printedPage: { type: integer, minimum: 1 }
+        originalReference: { type: string, description: Original SUMBER column, not a claim that all values were analyzed by that source. }
+        ediblePercent: { type: [number, "null"], minimum: 0, maximum: 100 }
+        imputedOrBorrowedFields:
+          type: array
+          items: { type: string }
+          description: Source blue-shaded nutrient cells. Other values are not necessarily lab analyzed either.
+        additionalNutrients:
+          type: object
+          additionalProperties: { type: [number, "null"], minimum: 0 }
+          description: Per100g edible portion, not log totals. Field names specify Grams/Mg/Mcg. Missing or withheld amounts are null.
+        withheldNutrients:
+          type: object
+          description: Source outliers held for editorial review, not medical thresholds or guessed corrections.
+          additionalProperties:
+            type: object
+            required: [sourceValue, reason]
+            properties:
+              sourceValue: { type: number }
+              reason: { type: string, enum: [SOURCE_OUTLIER_REQUIRES_REVIEW] }
+    MealCatalogItem:
+      type: object
+      required: [id, idLabel, enLabel, mealType, portionLabel, portionGrams, foodGroup, foodKind, caloriesKcal, proteinGrams, carbohydrateGrams, fatGrams, fiberGrams, sodiumMg, sourceType, sourceNote, sourceUrl, sourceCode, sourceCheckedAt, sourceDetails, samplePriceRupiah, active, version, updatedAt]
+      properties:
+        id: { type: string }
+        idLabel: { type: string }
+        enLabel: { type: [string, "null"], description: Only source-provided translations; fallback to idLabel. }
+        mealType: { type: [string, "null"], enum: [breakfast, lunch, dinner, snack, null], description: Reference foods are not assigned a meal time. User chooses mealType when logging. }
+        portionLabel: { type: string }
+        portionGrams: { type: [number, "null"], exclusiveMinimum: 0, description: 100g edible portion for TKPI; demo gram weights unknown. servings 1.5 therefore means150g, not1.5 plates. }
+        foodGroup:
+          oneOf: [{ $ref: "#/components/schemas/FoodGroup" }, { type: "null" }]
+        foodKind: { type: [string, "null"], enum: [single, processed_or_composite, null] }
+        caloriesKcal: { type: number, minimum: 0, maximum: 10000 }
+        proteinGrams: { type: number, minimum: 0, maximum: 1000 }
+        carbohydrateGrams: { type: [number, "null"], minimum: 0, maximum: 1000 }
+        fatGrams: { type: [number, "null"], minimum: 0, maximum: 1000 }
+        fiberGrams: { type: [number, "null"], minimum: 0, maximum: 1000 }
+        sodiumMg: { type: [number, "null"], minimum: 0, maximum: 100000 }
+        samplePriceRupiah: { type: [integer, "null"], minimum: 0 }
+        sourceType: { type: string, enum: [demo, reference] }
+        sourceNote: { type: string }
+        sourceUrl: { type: [string, "null"] }
+        sourceCode: { type: [string, "null"], example: AP001 }
+        sourceCheckedAt: { type: [string, "null"], format: date }
+        sourceDetails:
+          oneOf: [{ $ref: "#/components/schemas/FoodSourceDetails" }, { type: "null" }]
+        active: { type: boolean }
+        version: { $ref: "#/components/schemas/DecimalVersion" }
+        updatedAt: { type: string, format: date-time }
+    MealEntryPayload:
+      type: object
+      additionalProperties: false
+      required: [menuName, note, samplePriceRupiah, snapshot]
+      description: Legacy entries omit all structured fields. Structured entries need servings, consumedAt, recordedOn, mealType and catalogId or per-serving nutrition. Omitted new fields preserve existing values; explicitly null all structured fields to clear. Catalog nutrition is server-authoritative and historical snapshots do not refresh on edits. snapshot.nutritionDetails is server-owned.
+      properties:
+        menuName: { type: [string, "null"], minLength: 1, maxLength: 120 }
+        note: { type: [string, "null"], maxLength: 2000 }
+        samplePriceRupiah: { type: [integer, "null"], minimum: 0 }
+        snapshot: { type: object, additionalProperties: true }
+        catalogId: { type: [string, "null"], minLength: 1, maxLength: 255 }
+        servings: { type: [number, "null"], minimum: 0.01, maximum: 20, multipleOf: 0.01 }
+        consumedAt: { type: [string, "null"], format: date-time }
+        recordedOn: { type: [string, "null"], format: date }
+        mealType: { type: [string, "null"], enum: [breakfast, lunch, dinner, snack, null] }
+        nutrition:
+          description: Per serving, not total. Required for custom meals. Catalog values overwrite client values.
+          anyOf:
+            - type: object
+              additionalProperties: false
+              required: [caloriesKcal, proteinGrams]
+              properties:
+                caloriesKcal: { type: number, minimum: 0, maximum: 10000 }
+                proteinGrams: { type: number, minimum: 0, maximum: 1000 }
+                carbohydrateGrams: { type: [number, "null"], minimum: 0, maximum: 1000 }
+                fatGrams: { type: [number, "null"], minimum: 0, maximum: 1000 }
+                fiberGrams: { type: [number, "null"], minimum: 0, maximum: 1000 }
+                sodiumMg: { type: [number, "null"], minimum: 0, maximum: 100000 }
+            - { type: "null" }
+    MealLogItem:
+      type: object
+      required: [id, menuName, note, samplePriceRupiah, snapshot, catalogId, servings, consumedAt, recordedOn, mealType, nutritionPerServing, caloriesKcal, proteinGrams, version, updatedAt]
+      properties:
+        id: { type: string }
+        menuName: { type: [string, "null"] }
+        note: { type: [string, "null"] }
+        samplePriceRupiah: { type: [integer, "null"] }
+        snapshot: { type: object }
+        catalogId: { type: [string, "null"] }
+        servings: { type: [number, "null"] }
+        consumedAt: { type: [string, "null"], format: date-time }
+        recordedOn: { type: [string, "null"], format: date }
+        mealType: { type: [string, "null"] }
+        nutritionPerServing:
+          anyOf:
+            - { $ref: "#/components/schemas/MealNutrients" }
+            - { type: "null" }
+        caloriesKcal: { type: [number, "null"] }
+        proteinGrams: { type: [number, "null"] }
+        version: { $ref: "#/components/schemas/DecimalVersion" }
+        updatedAt: { type: string, format: date-time }
+    NutritionTargets:
+      type: object
+      required: [formulaVersion, profileVersion, estimate, reason, caloriePolicy, goalAdjustmentApplied, activityFactors, goalPolicies, cutGuards, sources, warnings]
+      properties:
+        formulaVersion: { const: mifflin-pal-goals-v2 }
+        profileVersion: { type: [string, "null"] }
+        caloriePolicy: { const: goal_adjusted_v2 }
+        goalAdjustmentApplied: { type: boolean, description: True only for ready nonzero calorie adjustment. }
+        goalPolicies:
+          type: object
+          required: [bulk, cut, maintenance]
+          additionalProperties:
+            type: object
+            properties:
+              calorieRatio: { type: number }
+              maxAdjustmentKcal: { type: integer }
+              proteinFactor: { type: number }
+              proteinMinFactor: { type: number }
+              proteinMaxFactor: { type: number }
+        cutGuards:
+          type: object
+          properties:
+            minimumTargetKcal: { const: 1500 }
+            minimumBmi: { const: 20 }
+        reason: { type: [string, "null"], enum: [PROFILE_REQUIRED, ESTIMATE_REBUILD_REQUIRED, null] }
+        activityFactors:
+          type: object
+          properties:
+            light: { const: 1.55 }
+            moderate: { const: 1.85 }
+            vigorous: { const: 2.2 }
+        sources:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              url: { type: string, format: uri }
+        warnings: { type: array, items: { type: string } }
+        estimate:
+          anyOf:
+            - type: "null"
+            - type: object
+              required: [status, reasonCodes, restingKcal, calories, proteinGrams, proteinMin, proteinMax, normalizedGoal, maintenanceCalories, calorieAdjustmentKcal, proteinFactor, inputSnapshot, calculatedAt]
+              properties:
+                status: { type: string, enum: [ready, incomplete, unsupportedAge, needsReview] }
+                reasonCodes: { type: array, items: { type: string } }
+                restingKcal: { type: [number, "null"] }
+                calories: { type: [integer, "null"], description: Final goal-adjusted daily target; do not apply another adjustment on the client. }
+                normalizedGoal: { type: [string, "null"], enum: [bulk, cut, maintenance, null] }
+                maintenanceCalories: { type: [integer, "null"] }
+                calorieAdjustmentKcal: { type: [integer, "null"], minimum: -500, maximum: 300 }
+                proteinFactor: { type: [number, "null"] }
+                proteinGrams: { type: [integer, "null"] }
+                proteinMin: { type: [integer, "null"] }
+                proteinMax: { type: [integer, "null"] }
+                inputSnapshot: { type: object }
+                calculatedAt: { type: string, format: date-time }
+    DecimalVersion:
+      type: string
+      pattern: "^(0|[1-9][0-9]*)$"
+      description: PostgreSQL bigint serialized as a decimal string.
+    EntityType:
+      type: string
+      enum:
+        - profile
+        - training_preferences
+        - custom_program
+        - user_exercise
+        - workout_session
+        - user_preferences
+        - place_favorite
+        - meal_entry
+        - social_draft
+        - legacy_user_metadata
+    PushRequest:
+      type: object
+      additionalProperties: false
+      required: [schemaVersion, deviceId, operations]
+      properties:
+        schemaVersion: { const: 1 }
+        deviceId: { type: string, minLength: 1, maxLength: 255 }
+        operations:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items: { $ref: "#/components/schemas/SyncOperation" }
+    SyncOperation:
+      type: object
+      additionalProperties: false
+      required: [operationId, entityType, entityId, action, baseVersion]
+      properties:
+        operationId: { type: string, format: uuid }
+        entityType: { $ref: "#/components/schemas/EntityType" }
+        entityId: { type: string, minLength: 1, maxLength: 255 }
+        action: { type: string, enum: [upsert, delete] }
+        baseVersion: { $ref: "#/components/schemas/DecimalVersion" }
+        payload:
+          description: Required for upsert and forbidden for delete; shape depends on entityType.
+    OperationResult:
+      type: object
+      required: [operationId, status]
+      properties:
+        operationId: { type: string, format: uuid }
+        status: { type: string, enum: [applied, duplicate, conflict, rejected] }
+        entityType: { $ref: "#/components/schemas/EntityType" }
+        entityId: { type: string }
+        version: { $ref: "#/components/schemas/DecimalVersion" }
+        sequence: { $ref: "#/components/schemas/DecimalVersion" }
+        result: { type: object }
+        conflict: { type: object }
+        error: { type: object }
+    ImportEntity:
+      type: object
+      additionalProperties: false
+      required: [entityType, entityId, payload]
+      properties:
+        entityType: { $ref: "#/components/schemas/EntityType" }
+        entityId: { type: string, minLength: 1, maxLength: 255 }
+        payload: {}
+    SnapshotItem:
+      type: object
+      required: [entityId, version, updatedAt, payload]
+      properties:
+        entityId: { type: string }
+        version: { $ref: "#/components/schemas/DecimalVersion" }
+        updatedAt: { type: string, format: date-time }
+        payload: {}
+    Bootstrap:
+      type: object
+      required: [schemaVersion, cursor, entities]
+      properties:
+        schemaVersion: { const: 1 }
+        cursor: { type: string }
+        entities:
+          type: object
+          additionalProperties:
+            type: array
+            items: { $ref: "#/components/schemas/SnapshotItem" }
+    PullResponse:
+      type: object
+      required: [schemaVersion, changes, hasMore, nextCursor]
+      properties:
+        schemaVersion: { const: 1 }
+        hasMore: { type: boolean }
+        nextCursor: { type: string }
+        changes:
+          type: array
+          items:
+            type: object
+            required: [sequence, entityType, entityId, version, operation, payload]
+            properties:
+              sequence: { $ref: "#/components/schemas/DecimalVersion" }
+              entityType: { $ref: "#/components/schemas/EntityType" }
+              entityId: { type: string }
+              version: { $ref: "#/components/schemas/DecimalVersion" }
+              operation: { type: string, enum: [upsert, delete] }
+              payload: {}
+    ErrorEnvelope:
+      type: object
+      required: [error, requestId]
+      properties:
+        requestId: { type: string }
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { type: string }
+            message: { type: string }
+            details: {}

@@ -1,0 +1,14 @@
+{
+  "formulaVersion": "mifflin-pal-protein-v1",
+  "description": "Portable numeric fixtures matching musmove/test/nutrition_test.dart. Dart adapter maps formulaSex to sex and dailyActivity to activity. Safety-context cases are separately tested on the server.",
+  "cases": [
+    {"name":"male-light", "input":{"ageYears":25,"weightKg":70,"heightCm":175,"formulaSex":"male","dailyActivity":"light"},"expected":{"status":"ready","restingKcal":1673.75,"calories":2590,"proteinGrams":112,"proteinMin":98,"proteinMax":140}},
+    {"name":"female-light", "input":{"ageYears":25,"weightKg":70,"heightCm":175,"formulaSex":"female","dailyActivity":"light"},"expected":{"status":"ready","restingKcal":1507.75,"calories":2340,"proteinGrams":112,"proteinMin":98,"proteinMax":140}},
+    {"name":"male-moderate", "input":{"ageYears":25,"weightKg":70,"heightCm":175,"formulaSex":"male","dailyActivity":"moderate"},"expected":{"status":"ready","restingKcal":1673.75,"calories":3100,"proteinGrams":112,"proteinMin":98,"proteinMax":140}},
+    {"name":"male-vigorous", "input":{"ageYears":25,"weightKg":70,"heightCm":175,"formulaSex":"male","dailyActivity":"vigorous"},"expected":{"status":"ready","restingKcal":1673.75,"calories":3680,"proteinGrams":112,"proteinMin":98,"proteinMax":140}},
+    {"name":"missing-sex", "input":{"ageYears":25,"weightKg":70,"heightCm":175,"formulaSex":null,"dailyActivity":"light"},"expected":{"status":"incomplete","restingKcal":null,"calories":null,"proteinGrams":null,"proteinMin":null,"proteinMax":null}},
+    {"name":"under-19", "input":{"ageYears":18,"weightKg":70,"heightCm":175,"formulaSex":"male","dailyActivity":"light"},"expected":{"status":"unsupportedAge","restingKcal":null,"calories":null,"proteinGrams":null,"proteinMin":null,"proteinMax":null}},
+    {"name":"over-78", "input":{"ageYears":79,"weightKg":70,"heightCm":175,"formulaSex":"male","dailyActivity":"light"},"expected":{"status":"unsupportedAge","restingKcal":null,"calories":null,"proteinGrams":null,"proteinMin":null,"proteinMax":null}},
+    {"name":"body-review", "input":{"ageYears":25,"weightKg":100,"heightCm":175,"formulaSex":"male","dailyActivity":"light"},"expected":{"status":"needsReview","restingKcal":null,"calories":null,"proteinGrams":null,"proteinMin":null,"proteinMax":null}}
+  ]
+}

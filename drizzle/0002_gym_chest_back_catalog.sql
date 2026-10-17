@@ -1,0 +1,81 @@
+-- Existing IDs represent equivalent exercises; keep their labels and defaults.
+WITH requested(id, en_label, requirements) AS (
+VALUES
+('bench_press', 'Barbell Bench Press', '[["barbell","bench"]]'::jsonb),
+('incline_barbell_bench_press', 'Incline Barbell Bench Press', '[["barbell","bench"]]'::jsonb),
+('decline_barbell_bench_press', 'Decline Barbell Bench Press', '[["barbell","bench"]]'::jsonb),
+('paused_barbell_bench_press', 'Paused Barbell Bench Press', '[["barbell","bench"]]'::jsonb),
+('barbell_floor_press', 'Barbell Floor Press', '[["barbell"]]'::jsonb),
+('flat_dumbbell_bench_press', 'Flat Dumbbell Bench Press', '[["dumbbell","bench"]]'::jsonb),
+('incline_dumbbell_press', 'Incline Dumbbell Bench Press', '[["dumbbell","bench"]]'::jsonb),
+('decline_dumbbell_bench_press', 'Decline Dumbbell Bench Press', '[["dumbbell","bench"]]'::jsonb),
+('neutral_grip_dumbbell_bench_press', 'Neutral-Grip Dumbbell Bench Press', '[["dumbbell","bench"]]'::jsonb),
+('dumbbell_squeeze_press', 'Dumbbell Squeeze Press', '[["dumbbell","bench"]]'::jsonb),
+('single_arm_dumbbell_bench_press', 'Single-Arm Dumbbell Bench Press', '[["dumbbell","bench"]]'::jsonb),
+('alternating_dumbbell_bench_press', 'Alternating Dumbbell Bench Press', '[["dumbbell","bench"]]'::jsonb),
+('dumbbell_fly', 'Flat Dumbbell Fly', '[["dumbbell","bench"]]'::jsonb),
+('incline_dumbbell_fly', 'Incline Dumbbell Fly', '[["dumbbell","bench"]]'::jsonb),
+('decline_dumbbell_fly', 'Decline Dumbbell Fly', '[["dumbbell","bench"]]'::jsonb),
+('press', 'Dumbbell Floor Press', '[["dumbbell"]]'::jsonb),
+('dumbbell_floor_fly', 'Dumbbell Floor Fly', '[["dumbbell"]]'::jsonb),
+('standing_cable_chest_press', 'Standing Cable Chest Press', '[["cable_machine"]]'::jsonb),
+('single_arm_cable_chest_press', 'Single-Arm Cable Chest Press', '[["cable_machine"]]'::jsonb),
+('standing_cable_fly', 'Standing Cable Fly', '[["cable_machine"]]'::jsonb),
+('high_to_low_cable_fly', 'High-to-Low Cable Fly', '[["cable_machine"]]'::jsonb),
+('low_to_high_cable_fly', 'Low-to-High Cable Fly', '[["cable_machine"]]'::jsonb),
+('flat_bench_cable_chest_press', 'Flat Bench Cable Chest Press', '[["cable_machine","bench"]]'::jsonb),
+('incline_bench_cable_chest_press', 'Incline Bench Cable Chest Press', '[["cable_machine","bench"]]'::jsonb),
+('flat_bench_cable_fly', 'Flat Bench Cable Fly', '[["cable_machine","bench"]]'::jsonb),
+('incline_bench_cable_fly', 'Incline Bench Cable Fly', '[["cable_machine","bench"]]'::jsonb),
+('seated_chest_press_machine', 'Seated Chest Press Machine', '[["chest_press_machine"]]'::jsonb),
+('incline_chest_press_machine', 'Incline Chest Press Machine', '[["incline_chest_press_machine"]]'::jsonb),
+('decline_chest_press_machine', 'Decline Chest Press Machine', '[["decline_chest_press_machine"]]'::jsonb),
+('pec_deck_butterfly_machine', 'Pec Deck / Butterfly Machine', '[["pec_deck_machine"]]'::jsonb),
+('smith_machine_bench_press', 'Smith Machine Bench Press', '[["smith_machine","bench"]]'::jsonb),
+('smith_machine_incline_bench_press', 'Smith Machine Incline Bench Press', '[["smith_machine","bench"]]'::jsonb),
+('smith_machine_decline_bench_press', 'Smith Machine Decline Bench Press', '[["smith_machine","bench"]]'::jsonb),
+('barbell_row', 'Bent-Over Barbell Row', '[["barbell"]]'::jsonb),
+('underhand_barbell_row', 'Underhand Barbell Row', '[["barbell"]]'::jsonb),
+('pendlay_row', 'Pendlay Row', '[["barbell"]]'::jsonb),
+('t_bar_row', 'T-Bar Row', '[["barbell","landmine"]]'::jsonb),
+('meadows_row', 'Meadows Row', '[["barbell","landmine"]]'::jsonb),
+('landmine_single_arm_row', 'Landmine Single-Arm Row', '[["barbell","landmine"]]'::jsonb),
+('barbell_seal_row', 'Barbell Seal Row', '[["barbell","bench"]]'::jsonb),
+('barbell_pullover', 'Barbell Pullover', '[["barbell","bench"]]'::jsonb),
+('row', 'Single-Arm Dumbbell Row', '[["dumbbell"]]'::jsonb),
+('bent_over_dumbbell_row', 'Bent-Over Dumbbell Row', '[["dumbbell"]]'::jsonb),
+('dumbbell_renegade_row', 'Dumbbell Renegade Row', '[["dumbbell"]]'::jsonb),
+('chest_supported_dumbbell_row', 'Chest-Supported Dumbbell Row', '[["dumbbell","bench"]]'::jsonb),
+('incline_bench_dumbbell_row', 'Incline Bench Dumbbell Row', '[["dumbbell","bench"]]'::jsonb),
+('dumbbell_seal_row', 'Dumbbell Seal Row', '[["dumbbell","bench"]]'::jsonb),
+('dumbbell_pullover', 'Dumbbell Pullover', '[["dumbbell","bench"]]'::jsonb),
+('seated_cable_row', 'Seated Cable Row', '[["cable_machine"]]'::jsonb),
+('wide_grip_seated_cable_row', 'Wide-Grip Seated Cable Row', '[["cable_machine"]]'::jsonb),
+('underhand_seated_cable_row', 'Underhand Seated Cable Row', '[["cable_machine"]]'::jsonb),
+('single_arm_cable_row', 'Single-Arm Cable Row', '[["cable_machine"]]'::jsonb),
+('standing_cable_row', 'Standing Cable Row', '[["cable_machine"]]'::jsonb),
+('straight_arm_cable_pulldown', 'Straight-Arm Cable Pulldown', '[["cable_machine"]]'::jsonb),
+('face_pull', 'Cable Face Pull', '[["cable_machine"]]'::jsonb),
+('lat_pulldown', 'Lat Pulldown', '[["lat_pulldown_machine"]]'::jsonb),
+('wide_grip_lat_pulldown', 'Wide-Grip Lat Pulldown', '[["lat_pulldown_machine"]]'::jsonb),
+('close_grip_lat_pulldown', 'Close-Grip Lat Pulldown', '[["lat_pulldown_machine"]]'::jsonb),
+('neutral_grip_lat_pulldown', 'Neutral-Grip Lat Pulldown', '[["lat_pulldown_machine"]]'::jsonb),
+('reverse_grip_lat_pulldown', 'Reverse-Grip Lat Pulldown', '[["lat_pulldown_machine"]]'::jsonb),
+('single_arm_lat_pulldown', 'Single-Arm Lat Pulldown', '[["lat_pulldown_machine"]]'::jsonb),
+('chest_supported_row_machine', 'Chest-Supported Row Machine', '[["chest_supported_row_machine"]]'::jsonb),
+('high_row_machine', 'High Row Machine', '[["high_row_machine"]]'::jsonb),
+('low_row_machine', 'Low Row Machine', '[["low_row_machine"]]'::jsonb),
+('iso_lateral_row_machine', 'Iso-Lateral Row Machine', '[["iso_lateral_row_machine"]]'::jsonb),
+('pullover_machine', 'Pullover Machine', '[["pullover_machine"]]'::jsonb),
+('assisted_pull_up_machine', 'Assisted Pull-Up Machine', '[["assisted_pullup_machine"]]'::jsonb)
+)
+INSERT INTO exercise_catalog (id, mode, id_label, en_label, default_sets, default_reps, requirements)
+SELECT requested.id, 'gym', requested.en_label, requested.en_label, 3, 10, requested.requirements
+FROM requested
+WHERE NOT EXISTS (
+  SELECT 1 FROM exercise_catalog existing
+  WHERE existing.mode = 'gym'
+    AND (existing.id = requested.id OR lower(trim(existing.en_label)) = lower(trim(requested.en_label)))
+)
+ON CONFLICT (mode, id) DO NOTHING;
+
