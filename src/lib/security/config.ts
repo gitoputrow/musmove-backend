@@ -11,6 +11,19 @@ export function isStrongSecret(value: string | undefined) {
     && !Array.from(value).some((character) => character.charCodeAt(0) < 32 || character.charCodeAt(0) === 127);
 }
 
+// Kept separate so an incomplete auth rollout fails auth closed without taking
+// existing JWT/data endpoints offline. Deployment preflight checks both sets.
+export function authProxyConfigurationIssues(env: Environment = process.env): string[] {
+  const issues: string[] = [];
+  if (!isStrongSecret(env.AUTH_SECRET)) issues.push("AUTH_SECRET: strong independent secret required for native auth sessions");
+  if (env.AUTH_SECRET && [env.SYNC_CURSOR_SECRET, env.API_RATE_LIMIT_SECRET].includes(env.AUTH_SECRET)) issues.push("AUTH_SECRET: must differ from sync and rate-limit secrets");
+  try {
+    const url = new URL(env.AUTH_PUBLIC_ORIGIN ?? "https://musmove-backend.vercel.app");
+    if (url.protocol !== "https:" || url.username || url.password || url.toString() !== `${url.origin}/`) throw new Error();
+  } catch { issues.push("AUTH_PUBLIC_ORIGIN: exact HTTPS application origin required"); }
+  return issues;
+}
+
 export function productionConfigurationIssues(env: Environment = process.env): string[] {
   const issues: string[] = [];
   if (env.NEON_AUTH_ADMIN_COOKIE) issues.push("NEON_AUTH_ADMIN_COOKIE: operational admin sessions must not be present in the public runtime");

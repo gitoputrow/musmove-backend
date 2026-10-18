@@ -9,8 +9,10 @@ Panduan berbahasa Indonesia untuk struktur database, penggunaan endpoint,
 alur Neon Auth native, dan sync offline tersedia di
 [`docs/mobile-integration.md`](docs/mobile-integration.md).
 
-All routes use `/api/v1`. Private routes require the short-lived JWT obtained
-by the mobile app from Neon Auth:
+All API routes use `/api/v1`. Mobile signs in through the Next.js auth proxy,
+not directly to Neon. See [the auth handoff](docs/frontend-follow-up-auth-proxy.md)
+for `Authorization: Session` on auth endpoints. Private data routes require the
+short-lived Neon JWT obtained through `GET /auth/token`:
 
 ```http
 Authorization: Bearer <access-token>
@@ -22,6 +24,10 @@ must never send a `userId` to select ownership. Current endpoints are:
 
 - `GET /me`
 - `GET /meta` (public implementation capabilities; not provider readiness)
+- `POST /auth/sign-up/email` and `POST /auth/sign-in/email` (strict JSON; no Authorization)
+- `GET /auth/get-session` and `GET /auth/token` (native encrypted session; Authorization: Session)
+- `POST /auth/sign-out` (Authorization: Session; no body)
+- `POST /auth/request-password-reset` (email only; server-owned callback)
 - `GET /sync/bootstrap`
 - `POST/GET/DELETE /sync/snapshots` (additive immutable paginated bootstrap v2)
 - `POST /sync/push`

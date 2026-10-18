@@ -11,6 +11,10 @@ yang sebelumnya diperiksa sudah memuat source ini. Kontrak lengkap beserta
 request/response, error dan rollout ada di
 [hasil follow-up backend](backend-follow-up-result.md).
 
+Pembaruan auth terbaru: Flutter memakai endpoint `/api/v1/auth/*` pada Next.js,
+bukan Neon langsung. Kontrak token/session dan checklist migrasi frontend ada di
+[follow-up auth proxy](frontend-follow-up-auth-proxy.md); instruksi ini menggantikan alur direct-provider lama.
+
 Daftar isi:
 
 - [Alamat layanan dan status integrasi](#1-ringkasan-dan-alamat-layanan)
@@ -27,11 +31,8 @@ Daftar isi:
 ## 1. Ringkasan dan alamat layanan
 
 ```text
-Mobile ──login/session──> Neon Auth
-   │                        │
-   │<──── JWT pengguna ─────┘
-   │
-   └── HTTPS + Bearer JWT ──> Next.js API di Vercel ──> Neon PostgreSQL
+Mobile ── /auth/* + Session ──> Next.js API ──> Neon Auth
+Mobile ── API data + Bearer JWT ──> Next.js API ──> Neon PostgreSQL
 ```
 
 Mobile tidak terhubung langsung ke PostgreSQL atau Neon Data API. Seluruh
@@ -41,12 +42,11 @@ identitas dan session. Backend memverifikasi JWT sebelum memilih data akun.
 | Konfigurasi mobile | Nilai/keterangan |
 | --- | --- |
 | `API_BASE_URL` | `https://musmove-backend.vercel.app/api/v1` |
-| `NEON_AUTH_BASE_URL` | URL Auth dari project/branch Neon yang sama dengan backend; contoh bentuk: `https://AUTH_HOST/neondb/auth` |
 | `deviceId` | ID acak yang dibuat sekali per instalasi, bukan ID akun atau nomor perangkat keras |
 
-`NEON_AUTH_BASE_URL` adalah alamat layanan, bukan connection string database.
-Isi nilai sebenarnya melalui konfigurasi build mobile. Jangan menggandakan
-akhiran `/auth`: contoh URL di atas sudah berakhir dengan `/auth`.
+`NEON_AUTH_BASE_URL` sekarang hanya konfigurasi backend, tidak diperlukan oleh
+mobile. Untuk auth tambahkan `/auth/...` pada `API_BASE_URL`; jangan mengganti
+alamat API dengan URL provider.
 
 Jangan menggunakan URL dashboard Vercel atau URL deployment ber-ID sebagai
 base URL mobile. Gunakan domain production HTTPS yang stabil di atas.
@@ -64,8 +64,10 @@ JWT milik pengguna diperoleh setelah login, bukan ditanam dalam aplikasi.
   18 places, dan 1.145 makanan referensi. Jumlah dapat berubah; jangan hardcode.
 - Login pengguna asli, refresh session Flutter, dan operasi tulis production
   belum diuji end-to-end. Contoh di sini bukan klaim integrasi mobile sudah jadi.
-- Repository ini tidak menyediakan adapter Auth Flutter siap pakai atau
-  endpoint `/api/v1/login`, `/register`, `/refresh`, maupun `/logout`.
+- Repository menyediakan endpoint proxy `/api/v1/auth/*` dan kontrak native,
+  bukan SDK Flutter siap pakai. Endpoint singkat `/api/v1/login`, `/register`,
+  `/refresh`, atau `/logout` tetap tidak ada. Deployment proxy dan auth nyata
+  harus dikonfirmasi; tes lokal sintetis bukan bukti provider production siap.
 
 ## 2. Database dan kepemilikan data
 
@@ -182,45 +184,34 @@ provider menjelaskan session cookie dan pengambilan JWT untuk layanan eksternal.
 Lihat [alur Auth](https://neon.com/docs/auth/authentication-flow) dan
 [JWT provider](https://neon.com/docs/auth/guides/plugins/jwt).
 
-**Penting:** pada REST Auth, field `token` hasil sign-in adalah **session token**;
-jangan langsung menganggapnya JWT. `GET /token` menghasilkan field `token`
-berupa JWT. Pada SDK tertentu, hasilnya dapat dibungkus sebagai
-`data.session.access_token`. Ikuti kontrak adapter/provider yang benar-benar
-dipakai, bukan mencampur bentuk respons REST dan SDK.
+**Kontrak MusMove:** `sessionToken` hasil login adalah envelope terenkripsi untuk
+endpoint auth Next.js, dikirim sebagai `Authorization: Session <sessionToken>`.
+`GET /auth/token` menghasilkan `accessToken`, yaitu JWT untuk API data,
+dikirim sebagai `Authorization: Bearer <accessToken>`. Jangan memakai session
+envelope sebagai JWT atau menyalin bentuk respons SDK/provider langsung.
 
 ### 3.2 Endpoint Auth dan kontrak native
 
-Path berikut ditambahkan ke **`NEON_AUTH_BASE_URL`**, bukan `API_BASE_URL`.
-Keberadaan path/metode/field diperiksa secara read-only melalui OpenAPI Auth
-instance yang dikonfigurasi; tidak ada signup/login pengguna yang dijalankan.
+Path berikut ditambahkan ke **`API_BASE_URL`**. Tidak ada request langsung ke
+Neon dari mobile. Contoh lengkap ada di [follow-up auth](frontend-follow-up-auth-proxy.md).
 
 | Metode dan path Auth | Kegunaan |
 | --- | --- |
-| `POST /sign-up/email` | Body wajib `name`, `email`, `password`; session mungkin belum ada bila perlu verifikasi email |
-| `POST /sign-in/email` | Body wajib `email`, `password`; membentuk session |
-| `GET /get-session` | Memeriksa session yang sedang dibawa client |
-| `GET /token` | Mengambil JWT untuk session yang masih valid; respons REST `{ "token": "..." }` |
-| `POST /sign-out` | Mengakhiri session Auth yang sedang dibawa client |
+| `POST /auth/sign-up/email` | Body `name`, `email`, `password`; tanpa Authorization. Session mungkin null sesuai kebijakan provider. |
+| `POST /auth/sign-in/email` | Body `email`, `password`; tanpa Authorization. |
+| `GET /auth/get-session` | Header Session; memeriksa session dan mengembalikan envelope terbaru. |
+| `GET /auth/token` | Header Session; menghasilkan `accessToken` JWT dan envelope session terbaru. |
+| `POST /auth/sign-out` | Header Session; tanpa body/query, mencabut session provider. |
+| `POST /auth/request-password-reset` | Body `email`; tanpa Authorization. Callback ditentukan backend. |
 
-Referensi Auth instance tersedia di `NEON_AUTH_BASE_URL + "/reference"`;
-schema di `NEON_AUTH_BASE_URL + "/open-api/generate-schema"`.
-Lihat [OpenAPI Auth resmi](https://neon.com/docs/auth/guides/plugins/openapi).
-Security scheme pada schema bukan bukti bahwa token sembarang diterima saat
-login; ikuti deskripsi endpoint dan uji mekanisme session pada staging.
-
-Untuk Flutter native, buat `AuthRepository`/adapter yang mengelola request
-Auth dan session secara eksplisit. Jika memakai cookie, simpan cookie session
-sesuai Domain/Path/Secure/expiry, tangani rotasinya, dan gunakan penyimpanan
-aman OS untuk material session yang perlu bertahan setelah aplikasi ditutup.
-Jangan mengasumsikan `package:http` atau `HttpClient` otomatis menyimpan dan
-mengirim ulang cookie lintas request. Cookie Auth tidak boleh diteruskan ke
-domain API MusMove atau domain lain.
-
-Repo ini belum menentukan library Auth Flutter atau menguji dukungan native
-session secara menyeluruh. Jika adapter memakai session bearer yang didukung
-provider, verifikasi dukungannya dari reference/staging; jangan mengarang header,
-endpoint refresh, atau `refresh_token`. Jangan mencoba menyelesaikan keterbatasan
-cookie dengan menambahkan secret admin ke aplikasi.
+Gunakan `AuthRepository` untuk menyimpan envelope pada secure storage OS,
+menangani single-flight restore/pengambilan JWT, dan mengganti `sessionToken`
+secara atomik setiap respons sukses yang memuatnya. Client tidak mengelola
+cookie Neon; proxy tidak mengirim Set-Cookie. Jangan mengirim token lewat query,
+menambahkan secret server/admin ke aplikasi, atau membuat endpoint refresh sendiri.
+Field `callbackURL`, `redirectTo`, role, dan URL provider pilihan client ditolak.
+Server menetapkan Origin/callback HTTPS dari konfigurasi tepercaya. Error
+MISSING_ORIGIN tidak diperbaiki dengan Origin localhost palsu pada Flutter.
 
 OAuth perlu konfigurasi callback/allowlist dan alur native tersendiri. Gunakan
 browser sistem serta mekanisme callback yang didukung provider; jangan menaruh
@@ -230,9 +221,9 @@ web reset password; pengiriman email dan allowlist tetap konfigurasi provider.
 
 ### 3.3 Login pertama sampai onboarding
 
-1. Mobile melakukan signup/sign-in ke Neon Auth; selesaikan verifikasi yang
+1. Mobile melakukan signup/sign-in ke `/auth/*` Next.js; selesaikan verifikasi yang
    diwajibkan konfigurasi provider.
-2. Adapter mempertahankan session Auth secara aman dan mengambil JWT.
+2. Adapter menyimpan `sessionToken` secara aman dan mengambil JWT lewat `/auth/token`.
 3. Mobile memanggil `GET /me` dengan `Authorization: Bearer <JWT>`.
 4. Backend memverifikasi tanda tangan EdDSA, issuer/audience dari origin Auth
    yang dipin, umur/expiry token, `sub`, `role: authenticated`, dan `banned: false`.
@@ -263,15 +254,15 @@ jangan mencoba mengatasinya dengan loop refresh JWT.
 
 ### 3.4 Refresh, logout, dan pergantian akun
 
-- JWT berumur pendek; backend membatasi umur sekitar 15 menit. Gunakan session
-  provider yang masih valid untuk mendapatkan JWT baru, bukan menandatangani
+- JWT berumur pendek; backend membatasi umur sekitar 15 menit. Gunakan envelope
+  melalui `/auth/token` dengan header Session untuk mendapatkan JWT baru, bukan menandatangani
   JWT di HP dan bukan memakai secret backend.
 - Saat API 401, lakukan satu proses pengambilan JWT baru untuk semua request
   bersamaan (*single-flight*), lalu retry request semula paling banyak sekali.
   Untuk push, body dan `operationId` harus tetap sama pada retry tersebut.
 - Jika session tidak berlaku/refresh tetap 401, hentikan sync dan tampilkan login.
   Kegagalan jaringan bukan alasan langsung menghapus data offline.
-- Logout: hentikan sync, sign-out pada provider, hapus JWT/material session,
+- Logout: hentikan sync, POST `/auth/sign-out` melalui Next.js, hapus JWT/material session,
   lalu tutup penyimpanan privat akun. Jika sign-out gagal karena offline,
   penghapusan lokal tidak membuktikan session provider telah dicabut.
 - Pisahkan cache privat, outbox, version, dan cursor per akun dan environment.
@@ -312,6 +303,12 @@ Key payload memakai camelCase; nama kolom SQL snake_case bukan kontrak request.
 | Metode | Path | Akses | Tujuan |
 | --- | --- | --- | --- |
 | GET | `/meta` | Publik | Versi API/capability source dan flag publishing, bukan bukti provider siap |
+| POST | `/auth/sign-up/email` | Publik | Register melalui Next.js; body name/email/password |
+| POST | `/auth/sign-in/email` | Publik | Login melalui Next.js; body email/password |
+| GET | `/auth/get-session` | Session | Restore dan envelope session terbaru |
+| GET | `/auth/token` | Session | JWT akses data dan envelope session terbaru |
+| POST | `/auth/sign-out` | Session | Logout provider; tanpa body/query |
+| POST | `/auth/request-password-reset` | Publik | Permintaan reset email dengan callback server-owned |
 | GET | `/catalog/exercises` | Publik | Semua exercise aktif dan versi katalog |
 | GET | `/catalog/programs` | Publik | Template program, bukan hasil personalisasi |
 | GET | `/catalog/equipment` | Publik | Semua alat atau pencarian `q` |
@@ -770,8 +767,8 @@ bukan komentar. Role admin dari mobile tidak diterima; moderasi melalui tooling
 operasional. Publikasi/feed default403 SOCIAL_NOT_ENABLED sampai flag dan
 moderator siap. Batas publikasi3/10menit, laporan10/10menit plus limiter IP/akun.
 
-Untuk reset, mobile meminta email ke provider `/request-password-reset` dengan
-email dan redirectTo HTTPS `/auth/reset-password`. Halaman baru menerima
+Untuk reset, mobile POST `/auth/request-password-reset` pada Next.js dengan
+email saja; backend menetapkan redirectTo HTTPS `/auth/reset-password`. Halaman baru menerima
 capability reset, membuang query dari history, dan POST JSON ke path yang sama
 untuk diteruskan hanya ke Auth yang dipin. Tidak mengembalikan JWT lewat deep link.
 Password8–128 karakter, tetap tunduk pada kebijakan provider. Link expired/used,
@@ -863,8 +860,9 @@ seluruh state aplikasi tanpa memetakan field kontrak yang didukung.
 ## 9. Urutan implementasi dan checklist pengujian
 
 1. Konfigurasi base URL per environment; buat API client dan model error.
-2. Implementasikan adapter Neon Auth native: signup, verifikasi, login,
-   persist/restore session, ambil JWT, refresh, dan logout. Uji di staging.
+2. Implementasikan AuthRepository untuk proxy Next.js: signup/login,
+   persist/restore envelope session, ambil JWT, single-flight, dan logout.
+   Uji dengan akun uji yang disetujui setelah deployment/provider siap.
 3. Integrasikan `/me`; pisahkan database lokal/outbox per akun.
 4. Implementasikan bootstrap/pull/push, receipt, conflict, tombstone, dan retry.
 5. Integrasikan onboarding, katalog, recommendations, workout, meals/nutrition,

@@ -2,12 +2,154 @@ openapi: 3.1.0
 info:
   title: MusMove Mobile API
   version: 1.1.0
-  description: Offline-first MusMove API. Private endpoints require a short-lived verified Neon JWT; cookies are not authentication. Production shared limits apply (IP180/min, account120/min, mutations30/min, scans5/min, bootstrap5/min, demo import2/10min); 429 includes Retry-After, unavailable protection returns503. JSON bodies at most1MiB, depth32; operation/import payloads64KiB, response3MiB. See docs/security-vercel.md.
+  description: Offline-first MusMove API. Private data endpoints require a short-lived verified Neon JWT; cookies are not authentication. Native auth is proxied through /auth endpoints with an encrypted Session credential distinct from the Bearer JWT. Production shared limits apply (IP180/min, account120/min, mutations30/min, scans5/min, bootstrap5/min, demo import2/10min); auth has additional dedicated IP limits.429 includes Retry-After, unavailable protection returns503. JSON bodies at most1MiB (auth8KiB), depth32; operation/import payloads64KiB, response3MiB. See docs/security-vercel.md and docs/frontend-follow-up-auth-proxy.md.
 servers:
   - url: /api/v1
 security:
   - bearerAuth: []
 paths:
+  /auth/sign-up/email:
+    post:
+      operationId: nativeAuthSignUp
+      security: []
+      description: Register via the pinned Neon upstream. No Authorization or query parameters.10 attempts/10min/IP plus provider limits. Callback/Origin are server-owned; callbackURL, rememberMe, role and arbitrary upstream fields are rejected. Verification policy unchanged. HTTP200 does not guarantee a session or delivered email; inspect status. Credentials are not stored in application tables or logged. Mutations may have succeeded on upstream timeout; try sign-in before retrying registration.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NativeAuthSignUp" }
+      responses:
+        "200":
+          description: Session established, or verification/sign-in required without a session.
+          content:
+            application/json:
+              schema:
+                oneOf: [{ $ref: "#/components/schemas/NativeAuthSession" }, { $ref: "#/components/schemas/NativeAuthNoSession" }]
+        "400": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "413": { $ref: "#/components/responses/Error" }
+        "415": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /auth/sign-in/email:
+    post:
+      operationId: nativeAuthSignIn
+      security: []
+      description: Email/password login through Next.js. No Authorization or query.10 attempts/10min/IP. Returns an encrypted native session, NOT an access JWT or provider cookie. Store sessionToken securely; use /auth/token next, then /me. Error messages are sanitized.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NativeAuthSignIn" }
+      responses:
+        "200":
+          description: Authenticated session. No Set-Cookie or upstream headers are forwarded.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/NativeAuthSession" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "413": { $ref: "#/components/responses/Error" }
+        "415": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /auth/get-session:
+    get:
+      operationId: nativeAuthGetSession
+      security: [{ nativeSession: [] }]
+      description: No query/body.60 attempts/min/IP. Checks the live provider session with the allowlisted encrypted cookie, not just envelope validity. Always replace stored sessionToken atomically from successful replies; use single-flight with /auth/token to avoid rotation races.401 AUTH_SESSION_INVALID means sign-in again; never erase offline data on transient network errors.
+      responses:
+        "200":
+          description: Restored user and renewed session envelope.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/NativeAuthSession" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /auth/token:
+    get:
+      operationId: nativeAuthGetAccessToken
+      security: [{ nativeSession: [] }]
+      description: No query/body.60 attempts/min/IP. Checks live provider session and verifies upstream JWT signature/issuer/audience/claims and subject before returning accessToken for private DATA APIs. Does not create the application user mapping; /me does that. Session header is not a Bearer JWT. Store the new sessionToken too; sessionExpiresAt is not JWT expiry.
+      responses:
+        "200":
+          description: Short-lived access JWT and updated native session envelope.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/NativeAuthTokens" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /auth/sign-out:
+    post:
+      operationId: nativeAuthSignOut
+      security: [{ nativeSession: [] }]
+      description: No body (not even empty JSON) or query.60 attempts/min/IP. Requires provider acknowledgment before returning signed_out. Only current session, no admin operations. Local logout during network failure is not proof of provider revocation. Already-issued access JWTs may remain usable until expiry.
+      responses:
+        "200":
+          description: Provider acknowledged logout.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status: { const: signed_out }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /auth/request-password-reset:
+    post:
+      operationId: nativeAuthRequestPasswordReset
+      security: []
+      description: Email only; no Authorization/query.5 attempts/10min/IP. Callback is AUTH_PUBLIC_ORIGIN plus /auth/reset-password; redirectTo from client rejected. Generic acceptance is not confirmation of account existence or email delivery. Existing web callback completes reset; no native verification/OAuth flow added.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [email]
+              properties:
+                email: { type: string, format: email, maxLength: 254 }
+      responses:
+        "200":
+          description: Generic acknowledgment; email delivery depends on provider configuration.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, message]
+                properties:
+                  status: { const: accepted }
+                  message: { type: string }
+        "400": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "413": { $ref: "#/components/responses/Error" }
+        "415": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /auth/mobile:
+    servers: [{ url: / }]
+    get:
+      operationId: nativeAuthLandingPage
+      security: []
+      description: Root web landing page for server-owned signup/login callback, NOT /api/v1/auth/mobile. Simply asks user to return to app and sign in. No arbitrary redirect, session exchange, query echo, OAuth, or new email-verification implementation.
+      responses:
+        "200":
+          description: No-store minimal HTML.
+          content:
+            text/html:
+              schema: { type: string }
   /meta:
     get:
       operationId: getApiCapabilities
@@ -642,6 +784,10 @@ components:
       description: Page offset.
       schema: { type: integer, minimum: 0, maximum: 100000, default: 0 }
   securitySchemes:
+    nativeSession:
+      type: http
+      scheme: Session
+      description: Opaque encrypted native session envelope from Next.js sign-in. Send Authorization with Session scheme, NOT Bearer. Only auth session/token/sign-out endpoints accept it; no cookies or query tokens.
     bearerAuth:
       type: http
       scheme: bearer
@@ -653,6 +799,53 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/ErrorEnvelope" }
   schemas:
+    NativeAuthSignIn:
+      type: object
+      additionalProperties: false
+      required: [email, password]
+      properties:
+        email: { type: string, format: email, maxLength: 254 }
+        password: { type: string, minLength: 1, maxLength: 128, writeOnly: true }
+    NativeAuthSignUp:
+      type: object
+      additionalProperties: false
+      required: [name, email, password]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120, description: Trimmed; must not be empty. }
+        email: { type: string, format: email, maxLength: 254 }
+        password: { type: string, minLength: 8, maxLength: 128, writeOnly: true }
+    NativeAuthUser:
+      type: object
+      required: [id, email, name, emailVerified]
+      properties:
+        id: { type: string, description: Provider user ID/JWT subject, NOT necessarily the application users.id returned by /me. }
+        email: { type: string, format: email }
+        name: { type: string }
+        emailVerified: { type: boolean }
+    NativeAuthSession:
+      type: object
+      required: [status, user, sessionToken, sessionExpiresAt]
+      properties:
+        status: { const: authenticated }
+        user: { $ref: "#/components/schemas/NativeAuthUser" }
+        sessionToken: { type: string, maxLength: 8192, description: Encrypted opaque session. Always atomically replace the previous value; store in OS secure storage; never log or put in URLs. }
+        sessionExpiresAt: { type: string, format: date-time, description: Envelope expiry capped at30 days/provider expiry; NOT access JWT expiry. }
+    NativeAuthNoSession:
+      type: object
+      required: [status, user, sessionToken, sessionExpiresAt]
+      properties:
+        status: { type: string, enum: [verification_required, sign_in_required] }
+        user: { $ref: "#/components/schemas/NativeAuthUser" }
+        sessionToken: { type: "null" }
+        sessionExpiresAt: { type: "null" }
+    NativeAuthTokens:
+      allOf:
+        - { $ref: "#/components/schemas/NativeAuthSession" }
+        - type: object
+          required: [accessToken, tokenType]
+          properties:
+            accessToken: { type: string, maxLength: 8192, description: Verified short-lived provider JWT for Authorization Bearer on private data endpoints. }
+            tokenType: { const: Bearer }
     SyncSnapshotMetadata:
       type: object
       required: [schemaVersion, snapshotId, total, expiresAt]

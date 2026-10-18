@@ -16,6 +16,7 @@
     "social:moderate": "NODE_OPTIONS='--conditions=react-server' tsx scripts/moderate-social.ts",
     "catalogs:audit": "NODE_OPTIONS='--conditions=react-server' tsx scripts/audit-catalogs.ts",
     "test:follow-up": "NODE_OPTIONS='--conditions=react-server' tsx --test tests/api/follow-up.test.ts",
+    "test:auth": "NODE_OPTIONS='--conditions=react-server' tsx --test tests/api/auth-proxy.test.ts",
     "test:security": "NODE_OPTIONS='--conditions=react-server' tsx --test tests/api/security.test.ts tests/db/migration-env.test.ts",
     "db:test-security": "NODE_OPTIONS='--conditions=react-server' tsx tests/api/security-integration.ts",
     "db:migrate": "tsx src/db/migrate.ts",

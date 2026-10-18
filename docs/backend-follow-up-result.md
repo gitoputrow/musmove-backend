@@ -5,6 +5,12 @@ Tanggal source: **18 Oktober 2026**. Acuan: dokumen follow-up frontend dan
 [OpenAPI v1.1](openapi.yaml). Ini catatan implementasi dan batas verifikasi,
 bukan pernyataan bahwa semua konfigurasi provider/production sudah selesai.
 
+**Pembaruan auth:** register/login/session/logout dan permintaan reset kini
+disediakan lewat `/api/v1/auth/*` pada Next.js. Lihat
+[follow-up auth proxy](frontend-follow-up-auth-proxy.md) untuk kontrak Session
+vs Bearer JWT, konfigurasi, dan status deployment. Ini menggantikan alur
+direct-provider pada versi dokumen sebelumnya.
+
 ## Keputusan dan cakupan
 
 - Pengguna meminta semua tindak lanjut selain **scan foto AI** dan
@@ -22,7 +28,7 @@ bukan pernyataan bahwa semua konfigurasi provider/production sudah selesai.
 | Item | Implementasi backend | Verifikasi/operasional yang masih dibutuhkan |
 | --- | --- | --- |
 | Auth/sync P0 | Verifikasi JWT, request ID, isolasi, retry/conflict/tombstone dipertahankan; suite end-to-end backend lokal ditambah | Tim mobile + pengelola: login/restore/logout dan dua perangkat terhadap layanan hidup dengan akun uji yang disetujui |
-| Reset password | Halaman callback HTTPS dan proxy reset terikat Auth; validasi, rate limit, CSP/no-store/no-referrer | Pengelola provider: pengirim email dan allowlist; mobile: redirectTo, uji email nyata dan password lama ditolak |
+| Reset password | Halaman callback HTTPS, proxy permintaan email dan penyelesaian reset terikat Auth; validasi, rate limit, CSP/no-store/no-referrer | Pengelola provider: pengirim email dan allowlist; mobile: email saja melalui proxy, uji email nyata dan password lama ditolak |
 | Bootstrap besar | Snapshot v2 immutable, pagination/resume, expiry, budget, handoff stream | Mobile mengintegrasikan kontrak baru; legacy tetap kompatibel |
 | Penghapusan akun | Request/status idempotent, antrean 7 hari, provider-first purge, retry/checkpoint, revoked-identity guard | Pengelola menjadwalkan worker privat dan menyediakan session admin provider yang valid; retensi backup perlu dikonfirmasi |
 | Kualitas katalog | Audit read-only struktur/provenance/unknown; harga makanan ditambahkan terpisah pada migrasi0018 sebagai estimasi berlabel | Harga per produk/lokasi pengguna tidak dijamin; detail dan batas ada pada [harga makanan](food-prices.md). Audit operator places tetap terpisah |
@@ -280,8 +286,9 @@ Callback web setelah redeploy:
 https://musmove-backend.vercel.app/auth/reset-password
 ```
 
-Mobile tetap meminta email pada **provider** `/request-password-reset`, body
-email dan redirectTo URL di atas. Jangan menambahkan `/api/v1` pada callback.
+Mobile meminta email melalui **Next.js** `/api/v1/auth/request-password-reset`,
+body `email` saja. Backend menetapkan redirectTo URL di atas; client tidak
+mengirimnya. Jangan menambahkan `/api/v1` pada alamat callback web.
 Pengelola harus mengizinkan domain/redirect dan mengonfirmasi pengirim email.
 Dokumentasi: [reset password Neon](https://neon.com/docs/auth/guides/password-reset).
 

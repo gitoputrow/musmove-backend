@@ -57,8 +57,7 @@ function authConfiguration() {
   return { audience: issuer, issuer, jwks: remoteKeys.jwks };
 }
 
-export async function verifyIdentity(request: Request, options: { allowInactive?: boolean } = {}): Promise<Identity> {
-  const token = bearerToken(request);
+export async function verifyAccessToken(token: string) {
   const configuration = authConfiguration();
 
   let payload;
@@ -80,17 +79,22 @@ export async function verifyIdentity(request: Request, options: { allowInactive?
     throw unauthorized("The access token cannot access this API");
   }
 
+  return { issuer: configuration.issuer, subject: payload.sub, email: typeof payload.email === "string" ? payload.email : null };
+}
+
+export async function verifyIdentity(request: Request, options: { allowInactive?: boolean } = {}): Promise<Identity> {
+  const claims = await verifyAccessToken(bearerToken(request));
   const database = getDatabase();
   const user = await database.transaction(async (transaction) => {
-    const hash = identityHash(configuration.issuer, payload.sub!);
+    const hash = identityHash(claims.issuer, claims.subject);
     await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtextextended(${hash},0))`);
     const [revoked] = await transaction.select().from(revokedIdentities).where(and(eq(revokedIdentities.identityHash, hash), sql`${revokedIdentities.expiresAt} > now()`)).limit(1);
     if (revoked) throw unauthorized("The identity has been deleted");
     const [mappedUser] = await transaction
       .insert(users)
       .values({
-        issuer: configuration.issuer,
-        subject: payload.sub!,
+        issuer: claims.issuer,
+        subject: claims.subject,
       })
       .onConflictDoNothing({
         target: [users.issuer, users.subject],
@@ -98,7 +102,7 @@ export async function verifyIdentity(request: Request, options: { allowInactive?
       .returning({ id: users.id, status: users.status });
 
     const mapped = mappedUser ?? (await transaction.select({ id: users.id, status: users.status }).from(users)
-      .where(and(eq(users.issuer, configuration.issuer), eq(users.subject, payload.sub!))).limit(1))[0];
+      .where(and(eq(users.issuer, claims.issuer), eq(users.subject, claims.subject))).limit(1))[0];
     if (!mapped) throw unauthorized();
 
     await transaction
@@ -113,11 +117,10 @@ export async function verifyIdentity(request: Request, options: { allowInactive?
     throw forbidden("ACCOUNT_INACTIVE", `The account is ${user.status}`);
   }
 
-  const email = typeof payload.email === "string" ? payload.email : null;
   return {
-    email,
+    email: claims.email,
     internalUserId: user.id,
-    issuer: configuration.issuer,
-    subject: payload.sub,
+    issuer: claims.issuer,
+    subject: claims.subject,
   };
 }

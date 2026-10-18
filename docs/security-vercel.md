@@ -94,6 +94,12 @@ Ini belum merupakan pengujian token mobile pengguna pada deployment Vercel.
    dan Preview, dengan konfigurasi berbeda:
    - `DATABASE_URL`: URL **pooled** role runtime dan `sslmode=verify-full`.
    - `NEON_AUTH_BASE_URL`: URL HTTPS branch/project Auth yang sesuai.
+   - `AUTH_SECRET`: random kuat minimal32 karakter untuk envelope session auth
+     native, berbeda dari dua secret berikut. Rotasi memerlukan login ulang.
+   - `AUTH_PUBLIC_ORIGIN`: origin HTTPS API/callback; default domain production
+     MusMove. Tambahkan origin ini pada trusted domains Neon. Auth native memakai
+     header Session, bukan autentikasi cookie browser. Lihat
+     [rollout auth proxy](frontend-follow-up-auth-proxy.md).
    - `SYNC_CURSOR_SECRET`: random minimal32 karakter.
    - `API_RATE_LIMIT_SECRET`: random berbeda, minimal32 karakter.
    - Opsional `APP_ORIGIN`: origin web HTTPS persis, tanpa slash/path.

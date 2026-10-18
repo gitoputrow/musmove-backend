@@ -1,12 +1,12 @@
 import { loadEnvConfig } from "@next/env";
 import { Pool } from "pg";
 import { normalizeDatabaseUrl } from "../src/db/connection";
-import { productionConfigurationIssues } from "../src/lib/security/config";
+import { authProxyConfigurationIssues, productionConfigurationIssues } from "../src/lib/security/config";
 
 loadEnvConfig(process.cwd());
 
 async function main() {
-  const issues = productionConfigurationIssues();
+  const issues = [...productionConfigurationIssues(), ...authProxyConfigurationIssues()];
   if (process.env.DATABASE_URL_DIRECT) issues.push("DATABASE_URL_DIRECT: remove migration credentials from the deployment runtime");
   if (process.env.VERCEL === "1" && Number(process.versions.node.split(".")[0]) !== 24) issues.push("Node.js: select supported 24.x runtime");
   if (process.env.DATABASE_URL && !issues.some((issue) => issue.startsWith("DATABASE_URL:"))) {

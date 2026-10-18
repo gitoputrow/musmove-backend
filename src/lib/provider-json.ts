@@ -1,6 +1,6 @@
 // Provider replies are untrusted input too; do not buffer an unbounded body or
 // log it. The caller's fetch AbortSignal also bounds all stream reads.
-export async function readProviderJson(response: Response, limit = 16384): Promise<Record<string, unknown>> {
+export async function readProviderValue(response: Response, limit = 16384): Promise<unknown> {
   if (!response.body) throw new Error("Empty provider response");
   const reader = response.body.getReader(); const chunks: Uint8Array[] = []; let size = 0;
   try {
@@ -11,7 +11,11 @@ export async function readProviderJson(response: Response, limit = 16384): Promi
       chunks.push(next.value);
     }
   } finally { reader.releaseLock(); }
-  const value: unknown = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(Buffer.concat(chunks, size)));
+  return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(Buffer.concat(chunks, size)));
+}
+
+export async function readProviderJson(response: Response, limit = 16384): Promise<Record<string, unknown>> {
+  const value = await readProviderValue(response, limit);
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Invalid provider response");
   return value as Record<string, unknown>;
 }
