@@ -20,7 +20,6 @@ export async function getMealCatalog(query: MealCatalogQuery = mealCatalogQueryS
     const filter = and(eq(mealCatalog.active, true),
       query.includeDemo ? undefined : eq(mealCatalog.sourceType, "reference"),
       query.foodGroup ? eq(mealCatalog.foodGroup, query.foodGroup) : undefined,
-      query.foodKind ? eq(mealCatalog.foodKind, query.foodKind) : undefined,
       query.q ? sql`strpos(lower(concat_ws(' ', ${mealCatalog.idLabel}, ${mealCatalog.enLabel}, ${mealCatalog.sourceCode})), lower(${query.q})) > 0` : undefined);
     const [{ total }] = await transaction.select({ total: sql<number>`count(*)::integer` }).from(mealCatalog).where(filter);
     const rows = await transaction.select().from(mealCatalog).where(filter).orderBy(asc(mealCatalog.idLabel), asc(mealCatalog.id))
@@ -36,6 +35,8 @@ export async function getMealCatalog(query: MealCatalogQuery = mealCatalogQueryS
       warnings: [
         "REFERENCE_VALUES_ARE_NOT_INDIVIDUAL_FOOD_LAB_TESTS", "TKPI_FIBER_METHOD_NOT_DISTINGUISHED",
         "MISSING_NUTRIENTS_ARE_NULL_NOT_ZERO", "FLAGGED_SOURCE_NUTRIENTS_WITHHELD_FOR_REVIEW",
+        "FOOD_PRICES_ARE_ESTIMATES_PER_100G_EDIBLE_NOT_LIVE_OFFERS",
+        "PRICE_PROXIES_ARE_NOT_INDIVIDUALLY_OBSERVED_FOOD_PRICES",
         ...(query.includeDemo ? ["DEMO_ENTRIES_ARE_NOT_VERIFIED_NUTRITION_OR_PRICES"] : []),
       ],
     };

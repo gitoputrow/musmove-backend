@@ -1,0 +1,33 @@
+name: Backend isolated checks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: backend-checks-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  local-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - run: npm ci
+      - run: npm run security:secrets
+      - run: npm run test:follow-up
+      - run: npm run test:security
+      - run: npm run db:test-schema
+      - run: npm run test:food-prices
+      - run: npm run test:programs && npm run test:nutrition && npm run test:food-catalog && npm run test:movement-tags && npm run test:places && npm run test:equipment
+      - run: npm run lint
+      - run: npm run build -- --webpack
+      - run: npm run typecheck
+      # No production DB/Auth/cloud secrets. No db:test-* live integration,
+      # migration, deletion worker, deployment or pull_request_target execution.

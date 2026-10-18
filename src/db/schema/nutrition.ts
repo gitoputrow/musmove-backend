@@ -3,18 +3,16 @@ import { bigint, boolean, check, date, integer, jsonb, numeric, pgTable, primary
 import { users } from "./users";
 import type { JsonObject } from "./types";
 import type { FoodSourceDetails } from "@/src/modules/meals/types";
+import type { FoodPriceDetails } from "@/src/modules/meals/prices";
+import { foodPriceDetailsCheckSql } from "@/src/modules/meals/prices";
 import { foodGroups } from "@/src/modules/meals/types";
 
 export const mealCatalog = pgTable("meal_catalog", {
   id: varchar("id", { length: 255 }).primaryKey(),
   idLabel: varchar("id_label", { length: 120 }).notNull(),
   enLabel: varchar("en_label", { length: 120 }),
-  // A food/ingredient is not inherently breakfast, lunch or dinner.
-  mealType: varchar("meal_type", { length: 20 }),
-  portionLabel: varchar("portion_label", { length: 120 }).notNull(),
   portionGrams: numeric("portion_grams", { mode: "number", precision: 10, scale: 2 }),
   foodGroup: varchar("food_group", { length: 32 }).$type<typeof foodGroups[number]>(),
-  foodKind: varchar("food_kind", { length: 32 }).$type<"single" | "processed_or_composite">(),
   caloriesKcal: numeric("calories_kcal", { mode: "number", precision: 10, scale: 2 }).notNull(),
   proteinGrams: numeric("protein_grams", { mode: "number", precision: 10, scale: 2 }).notNull(),
   carbohydrateGrams: numeric("carbohydrate_grams", { mode: "number", precision: 10, scale: 2 }),
@@ -22,6 +20,7 @@ export const mealCatalog = pgTable("meal_catalog", {
   fiberGrams: numeric("fiber_grams", { mode: "number", precision: 10, scale: 2 }),
   sodiumMg: numeric("sodium_mg", { mode: "number", precision: 12, scale: 2 }),
   samplePriceRupiah: integer("sample_price_rupiah"),
+  priceDetails: jsonb("price_details").$type<FoodPriceDetails>(),
   sourceType: varchar("source_type", { length: 20 }).notNull(),
   sourceNote: text("source_note").notNull(),
   sourceUrl: text("source_url"),
@@ -34,15 +33,15 @@ export const mealCatalog = pgTable("meal_catalog", {
 }, (table) => [
   check("meal_catalog_nutrients", sql`${table.caloriesKcal} between 0 and 10000 and ${table.proteinGrams} between 0 and 1000`),
   check("meal_catalog_source", sql`${table.sourceType} in ('demo', 'reference') and (${table.sourceType} = 'demo' or ${table.sourceUrl} is not null)`),
-  check("meal_catalog_type", sql`${table.mealType} in ('breakfast', 'lunch', 'dinner', 'snack')`),
   check("meal_catalog_price", sql`${table.samplePriceRupiah} is null or ${table.samplePriceRupiah} >= 0`),
+  check("meal_catalog_price_details", sql.raw(foodPriceDetailsCheckSql)),
+  check("meal_catalog_reference_price_metadata", sql`${table.sourceType} <> 'reference' or ${table.priceDetails} is not null`),
   check("meal_catalog_version", sql`${table.version} > 0`),
   check("meal_catalog_portion_grams", sql`${table.portionGrams} > 0 and ${table.portionGrams} <= 10000`),
   check("meal_catalog_macros", sql`(${table.carbohydrateGrams} is null or ${table.carbohydrateGrams} between 0 and 1000) and (${table.fatGrams} is null or ${table.fatGrams} between 0 and 1000) and (${table.fiberGrams} is null or ${table.fiberGrams} between 0 and 1000) and (${table.sodiumMg} is null or ${table.sodiumMg} between 0 and 100000)`),
   check("meal_catalog_food_group", sql`${table.foodGroup} in (${sql.join(foodGroups.map((group) => sql.raw(`'${group}'`)), sql`, `)})`),
-  check("meal_catalog_food_kind", sql`${table.foodKind} in ('single', 'processed_or_composite')`),
   check("meal_catalog_source_details", sql`${table.sourceDetails} is null or jsonb_typeof(${table.sourceDetails}) = 'object'`),
-  check("meal_catalog_reference_metadata", sql`${table.sourceType} <> 'reference' or (num_nonnulls(${table.portionGrams}, ${table.foodGroup}, ${table.foodKind}, ${table.sourceCode}, ${table.sourceCheckedAt}, ${table.sourceDetails}) = 6 and length(trim(${table.sourceCode})) > 0 and length(trim(${table.sourceUrl})) > 0)`),
+  check("meal_catalog_reference_metadata", sql`${table.sourceType} <> 'reference' or (num_nonnulls(${table.portionGrams}, ${table.foodGroup}, ${table.sourceCode}, ${table.sourceCheckedAt}, ${table.sourceDetails}) = 5 and length(trim(${table.sourceCode})) > 0 and length(trim(${table.sourceUrl})) > 0)`),
   uniqueIndex("meal_catalog_source_code_unique").on(table.sourceUrl, table.sourceCode),
 ]);
 

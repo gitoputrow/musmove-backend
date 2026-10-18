@@ -10,6 +10,14 @@ lama tidak dihapus, dirotasi, atau dicabut haknya.
 
 ## Status
 
+Pembaruan source **18 Oktober 2026**: migration0016 dan reviewed runtime grants
+telah diterapkan ke database terhubung (30 tabel aplikasi). Snapshot v2,
+penghapusan 7 hari/provider-first worker, social teks/moderasi, dan callback reset
+ditambahkan; lihat [hasil follow-up](backend-follow-up-result.md). Preflight
+lokal lolos. Source belum dipush/redeploy oleh agent; worker/jadwal/admin session
+provider belum diaktifkan dan publikasi social default nonaktif. Scan foto serta
+email verification dikecualikan sesuai permintaan pengguna.
+
 **Preflight konfigurasi lokal sekarang lolos pada Node24.** Tiga blocker awal
 telah diperbaiki pada database yang terhubung ke workspace:
 
@@ -22,9 +30,14 @@ telah diperbaiki pada database yang terhubung ke workspace:
   oleh migration tooling. File ini bukan file environment yang dimuat Next.js.
   Kedua file secret lokal berizin0600, diabaikan Git dan dikecualikan upload Vercel.
 
-**Vercel belum dikonfigurasi atau diverifikasi.** Workspace belum terhubung ke
-project Vercel. Hasil lolos lokal bukan bukti environment dashboard sudah benar;
-Production/Preview tetap perlu dikonfigurasi terpisah dan diuji setelah deploy.
+**Pengguna telah melakukan deployment Vercel.** Pemeriksaan read-only pada
+`https://musmove-backend.vercel.app` mendapatkan HTTP200 untuk lima katalog,
+HTTP401 tanpa token pada `/me` dan `/nutrition/targets`, redirect HTTP ke HTTPS,
+serta header keamanan API. URL deployment ber-ID masih diarahkan ke login Vercel.
+Dashboard environment, WAF, dan pemisahan Production/Preview belum diinspeksi;
+login/refresh mobile serta operasi tulis production belum diuji. Hasil ini
+bukan pengganti audit konfigurasi dashboard atau pengujian autentikasi nyata.
+Lihat [panduan database/API/Auth mobile](mobile-integration.md).
 
 Verifikasi ulang dengan role runtime baru:10 tes keamanan, integrasi keamanan
 JWT/antar-akun, sync, dan nutrisi lolos, begitu juga lint/typecheck. Percobaan
@@ -34,7 +47,7 @@ saja dan terpisah dari runtime. Tes loader memastikan file admin tidak dimuat
 oleh loader environment runtime atau ketika VERCEL=1. Tidak ada data pengguna
 yang dihapus atau diubah oleh setup; hanya data sintetis regresi yang dibersihkan.
 
-Migrasi0015 untuk limiter bersama sudah diterapkan ke Neon. Preflight hanya
+Migrasi0015 untuk limiter bersama dan0016 untuk follow-up sudah diterapkan ke Neon. Preflight hanya
 mencetak nama pemeriksaan, tidak mencetak URL, password, token atau isi `.env`.
 `vercel.json` menjalankan `security:check` sebelum build dan memblokir kondisi
 tidak aman jika muncul lagi. Jangan menghapus pemeriksaan untuk meloloskan deploy.
@@ -149,18 +162,19 @@ load test: pengguna seluler di balik NAT dapat berbagi IP.
   seketika, perlu desain event sinkronisasi/introspection yang diverifikasi.
 - Login/signup, reset password, MFA, email verification, captcha dan proteksi
   abuse Auth provider perlu dikonfigurasi di Neon; audit tidak mengubahnya.
-- Snapshot bootstrap **belum paginated**. Guard mencegah crash/resource export
-  tidak terbatas, tetapi akun besar menerima413. Sebelum mendukung histori
-  besar, implementasikan kontrak snapshot pagination/resume; jangan menghapus
-  histori pengguna untuk melewati guard. `/workouts` dan `/meals` sudah paginated.
+- Snapshot bootstrap **legacy** tetap satu respons dengan guard lama. Source
+  baru menyediakan `/sync/snapshots` v2 immutable, berhalaman/resumable dengan
+  cutoff stream yang konsisten, TTL/budget dan cursor terikat akun. Mobile perlu
+  beralih kontrak; akun besar tidak boleh diatasi dengan menghapus histori.
 - Tidak ada RLS per-user di koneksi backend saat ini; isolasi ditegakkan oleh
   API dan diuji lintas akun. Jangan mengekspos koneksi/role backend sebagai
   Data API atau memberi kredensialnya ke mobile. RLS tambahan membutuhkan
   desain tenant context per-transaksi yang teruji, bukan sekadar ENABLE RLS.
 - Retention change-log/receipt, account deletion final, backup/restore,
   observability tanpa token/foto/health data, serta incident response perlu
-  dijalankan operasional. Request deletion sekarang menonaktifkan akses;
-  bukan bukti data/Auth provider sudah dihapus fisik.
+  dijalankan operasional. Lifecycle deletion 7 hari/provider-first telah dibuat,
+  tetapi202 bukan bukti purge: worker privat, session admin dan jadwal harus
+  dipasang/diamati. Backup penyedia tidak dijanjikan terhapus otomatis.
 - Tidak dilakukan load test volumetric, fuzz semua dependency, scan penuh git
   history, penetrasi infrastruktur Vercel/Neon, atau pemeriksaan dashboard cloud.
   Temuan0 dependency bukan berarti0 risiko aplikasi/konfigurasi.
@@ -170,9 +184,7 @@ load test: pengguna seluler di balik NAT dapat berbagi IP.
 ```bash
 npm run security:secrets
 npm run test:security
-npm run db:test-security
-npm run db:test-api
-npm run db:test-nutrition
+npm run test:follow-up
 npm run db:test-schema
 npm run test:equipment
 npm run test:vision
@@ -183,6 +195,12 @@ npm audit
 services/equipment-vision/.venv/bin/pip-audit --progress-spinner off
 npm run security:check
 ```
+
+User memilih tanpa staging; tes tulis baru memakai PGlite lokal dan JWKS
+sintetis, diblokir dari fetch eksternal/Neon pool. Suite lama db:test-security,
+db:test-api, db:test-nutrition dan integration lain menggunakan DB terkonfigurasi;
+jangan menjalankannya terhadap production. CI baru tidak mendapat secret DB/Auth
+dan tidak menjalankan migration/purge atau suite live tersebut.
 
 Jalankan build/typecheck secara berurutan karena build meregenerasi `.next/types`.
 Gunakan Node24 untuk menyamakan runtime target Vercel. Test database membuat

@@ -41,6 +41,24 @@ async function main() {
           'nutrition_estimates','api_rate_limits']) tables(name)
           CROSS JOIN unnest(ARRAY['SELECT','INSERT','UPDATE','DELETE']) permissions(name)`)).rows[0];
         if (!required.ready) issues.push("DATABASE_ROLE: required application table grants are incomplete");
+        const next = (await client.query(`SELECT to_regclass('public.sync_snapshots') IS NOT NULL AND to_regclass('public.sync_snapshot_items') IS NOT NULL
+          AND to_regclass('public.account_deletion_jobs') IS NOT NULL AND to_regclass('public.revoked_identities') IS NOT NULL
+          AND to_regclass('public.social_posts') IS NOT NULL AND to_regclass('public.social_reports') IS NOT NULL AS ready`)).rows[0];
+        if (!next.ready) issues.push("DATABASE_MIGRATIONS: apply migration 0016 and reviewed runtime grants before deploying");
+        else {
+          for (const [table, privileges] of [["sync_snapshots", "SELECT,INSERT,UPDATE,DELETE"], ["sync_snapshot_items", "SELECT,INSERT"], ["account_deletion_jobs", "SELECT,INSERT,UPDATE"], ["revoked_identities", "SELECT"], ["social_posts", "SELECT,INSERT,UPDATE"], ["social_reports", "SELECT,INSERT"]]) {
+            const granted = (await client.query("SELECT bool_and(has_table_privilege(current_user,$1,privilege)) AS ready FROM unnest(string_to_array($2,',')) privilege", [table, privileges])).rows[0];
+            if (!granted.ready) issues.push(`DATABASE_ROLE: ${table} grants are incomplete`);
+          }
+          for (const [table, denied] of [["revoked_identities", "INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER"], ["social_reports", "UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER"], ["account_deletion_jobs", "DELETE,TRUNCATE,REFERENCES,TRIGGER"]]) {
+            const excess = (await client.query("SELECT has_table_privilege(current_user,$1,$2) AS excess", [table, denied])).rows[0];
+            if (excess.excess) issues.push(`DATABASE_ROLE: ${table} has excessive runtime privileges; use separate operational credentials`);
+          }
+        }
+        const identityGuard = (await client.query(`SELECT EXISTS(SELECT 1 FROM pg_trigger WHERE tgrelid='public.users'::regclass AND tgname='users_revoked_identity_guard' AND tgenabled IN ('O','A')) AS ready`)).rows[0];
+        if (!identityGuard.ready) issues.push("DATABASE_MIGRATIONS: apply migration 0017 identity guard before deploying");
+        const priceMetadata = (await client.query("SELECT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='meal_catalog' AND column_name='price_details') AS ready")).rows[0];
+        if (!priceMetadata.ready) issues.push("DATABASE_MIGRATIONS: apply migration 0018 food price metadata before deploying");
         await client.query("ROLLBACK");
       } finally { client.release(); }
     } catch {

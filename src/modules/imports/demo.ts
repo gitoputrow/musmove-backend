@@ -10,6 +10,7 @@ import {
 } from "@/src/db/schema";
 import { ApiError, badRequest, conflict } from "@/src/lib/api-error";
 import { boundedJsonPayload, entityTypeSchema, parseEntityPayload } from "@/src/modules/sync/dto";
+import { lockActiveAccount } from "@/src/modules/accounts/access";
 import { canonicalRequestHash } from "@/src/modules/sync/encoding";
 import { asJsonValue, readEntityVersion, resolveEntityPayload, upsertEntity } from "@/src/modules/sync/entities";
 
@@ -61,6 +62,7 @@ export async function importDemo(
 
   try {
     return await getDatabase().transaction(async (transaction) => {
+    await lockActiveAccount(transaction, userId);
     const [state] = await transaction
       .select({ nextSequence: syncState.nextSequence })
       .from(syncState)

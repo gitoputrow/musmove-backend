@@ -67,7 +67,7 @@ async function main() {
     const dateQuery = mealsQuerySchema.parse({ date: "2026-10-17" });
     const day = await listMeals(user.id, dateQuery);
     assert.equal(day.entries[0].menuName, "Nasi");
-    assert.equal(day.entries[0].samplePriceRupiah, null);
+    assert.equal(day.entries[0].samplePriceRupiah, rice.samplePriceRupiah);
     assert.equal(day.entries[0].nutritionPerServing?.carbohydrateGrams, 39.8);
     assert.deepEqual(day.summary.reportedTotals, { caloriesKcal: 270, proteinGrams: 4.5 });
     assert.equal(day.summary.demoEntryCount, 0);

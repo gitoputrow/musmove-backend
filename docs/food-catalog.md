@@ -2,8 +2,8 @@
 
 Migrasi `0014_reference_food_catalog` menambahkan **1.145 pangan referensi**
 ke `meal_catalog`, bukan array hardcoded pada API. Tiga demo lama tetap ada
-untuk kompatibilitas/history dan tidak ditampilkan secara default. Flutter
-belum dihubungkan ke API ini.
+untuk kompatibilitas/history dan tidak ditampilkan secara default. Kontrak mobile
+ada di [panduan integrasi](mobile-integration.md).
 
 ## Sumber dan arti verifikasi
 
@@ -55,8 +55,8 @@ atau cocok untuk goal tertentu. Pangan mentah bukan anjuran untuk dimakan mentah
 
 ## Data yang disimpan
 
-- ID stabil `tkpi-ap001`, nama asli, kelompok, jenis `single` atau
-  `processed_or_composite`, dan porsi **100 g bagian dapat dimakan (BDD)**.
+- ID stabil `tkpi-ap001`, nama asli, kelompok, dan `portionGrams` sebagai
+  porsi **100 g bagian dapat dimakan (BDD)**.
 - `caloriesKcal`, `proteinGrams`, `carbohydrateGrams`, `fatGrams`,
   `fiberGrams`, `sodiumMg` adalah nilai **per satu porsi katalog**.
 - `sourceType: reference`, URL Kemenkes, kode TKPI, tanggal pemeriksaan.
@@ -87,22 +87,26 @@ representatif sudah diperiksa visual. Field terkait disajikan `null`;
 Snapshot asli tidak diubah. Tidak menebak perbaikan desimal.
 
 `enLabel` hanya diisi bila terjemahan ada dalam indeks sumber; sisanya null,
-UI perlu fallback ke `idLabel`. `mealType` katalog reference null: bahan tidak
-ditetapkan sebagai sarapan/siang/malam. `mealType` log tetap wajib dipilih user.
-Semua harga reference null karena sumber bukan survei harga. Demo masih punya
-harga ilustrasi dan label demo, tidak diklaim harga pasar.
+UI perlu fallback ke `idLabel`. Katalog tidak memiliki `mealType`: bahan tidak
+ditetapkan sebagai sarapan/siang/malam. `mealType` log terstruktur tetap wajib dipilih user.
+Harga makanan ditambahkan lewat migrasi `0018_food_price_estimates` dari
+rujukan internet **terpisah**; bukan berasal dari TKPI. Ada **1.125 estimasi** dan
+**20 item sengaja tidak diberi harga**, bukan gratis. Seluruh angka berlabel
+estimasi, termasuk konversi dari harga toko. Lihat
+[metode, sumber dan batas harga](food-prices.md). Demo tetap memiliki harga
+ilustrasi dan label demo, bukan harga pasar.
 
 ## API dan integrasi mobile
 
 ```http
 GET /api/v1/catalog/meals?q=tempe&foodGroup=legumes&limit=50&offset=0
 GET /api/v1/catalog/meals?q=AP001
-GET /api/v1/catalog/meals?foodKind=single&includeDemo=false
+GET /api/v1/catalog/meals?includeDemo=false
 ```
 
 Publik, read-only, no-store. Hanya pangan aktif; default reference saja.
 Filter opsional: `q` (nama Indonesia/Inggris/kode; literal, case-insensitive),
-`foodGroup`, `foodKind`, `includeDemo=true|false`.
+`foodGroup`, `includeDemo=true|false`.
 Pagination default limit50/offset0, maksimum limit100/offset100000.
 Parameter asing, duplikat dan nilai tidak sah menghasilkan 400.
 
@@ -146,6 +150,7 @@ python scripts/extract-tkpi.py /path/to/tkpi-2017.pdf --compact
 # Read-only: emit exactly the INSERT portion already in migration0014.
 npx tsx scripts/build-tkpi-migration.ts
 npm run test:food-catalog
+npm run test:food-prices
 npm run db:test-schema
 npm run db:migrate
 npm run db:test-food-catalog
@@ -158,3 +163,21 @@ pagination/filter, logging150g, pemalsuan client, retry dan snapshot sync.
 Migrasi dicatat Drizzle sehingga menjalankannya ulang tidak menduplikasi data;
 URL+kode sumber juga unik. Perubahan dataset berikutnya memakai migrasi baru,
 tidak mengedit migrasi yang sudah diterapkan.
+
+## Penyederhanaan katalog (migrasi 0019)
+
+`0019_simplify_meal_catalog` menghapus hanya `meal_type`, `portion_label`, dan
+`food_kind` dari `meal_catalog`, menyisakan **22 kolom**. Respons API tidak lagi
+memiliki `mealType`, `portionLabel`, atau `foodKind`; filter `foodKind` menghasilkan
+400. Mobile menggunakan `portionGrams` untuk satuan porsi dan `foodGroup` untuk
+kelompok. Nutrisi, harga, referensi sumber, dan seluruh entri tetap dipertahankan.
+`meal_entries.meal_type` dan snapshot jurnal lama tidak diubah.
+
+Urutan production: **deploy kode baru terlebih dahulu**, pastikan endpoint katalog
+berhasil dan tiga field tersebut tidak lagi muncul, lalu jalankan `npm run db:migrate`
+dengan koneksi migrasi admin yang sudah dikonfigurasi. Kode baru kompatibel dengan
+database sebelum maupun sesudah migrasi ini. Jangan menjalankan DROP ketika API
+lama masih aktif; hentikan instance lama dan hindari rollback ke kode lama setelah
+DROP. Migrasi menaikkan `catalogVersion` agar mobile mengambil ulang katalog.
+Snapshot TKPI dan generator migrasi historis tetap memuat struktur sumber asli;
+hal ini bukan penambahan kembali kolom database/API.

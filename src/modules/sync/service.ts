@@ -22,6 +22,7 @@ import { ApiError, conflict } from "@/src/lib/api-error";
 
 import { parseEntityPayload, type EntityType, type SyncOperation } from "./dto";
 import { canonicalRequestHash, decodeCursor, encodeCursor } from "./encoding";
+import { lockActiveAccount } from "@/src/modules/accounts/access";
 import {
   asJsonValue,
   latestEntityPayload,
@@ -70,6 +71,7 @@ async function lockSyncState(
   transaction: Parameters<Parameters<ReturnType<typeof getDatabase>["transaction"]>[0]>[0],
   userId: string,
 ): Promise<LockedSyncState> {
+  await lockActiveAccount(transaction, userId);
   const rows = await transaction
     .select({ epoch: syncState.epoch, nextSequence: syncState.nextSequence })
     .from(syncState)

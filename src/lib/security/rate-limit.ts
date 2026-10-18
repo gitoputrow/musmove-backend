@@ -43,8 +43,7 @@ export async function consumeRateLimit(scope: string, identity: string, limit: n
   if (!allowed) throw new ApiError(429, "RATE_LIMITED", "Too many requests; retry later", { retryAfterSeconds: Math.ceil(windowMs / 1000) });
 }
 
-export async function enforceIpLimit(request: Request) {
-  if (request.method === "OPTIONS") return;
+export function rateLimitIdentity(request: Request) {
   let ip = "local-untrusted-proxy";
   if (process.env.VERCEL === "1") {
     const forwarded = request.headers.get("x-vercel-forwarded-for");
@@ -54,15 +53,22 @@ export async function enforceIpLimit(request: Request) {
   }
   // On self-hosted production, a conservative shared IP bucket applies until
   // a trusted proxy adapter is explicitly implemented; spoofed headers ignored.
-  await consumeRateLimit("ip-api", ip, isProduction() ? 180 : 5000);
+  return ip;
 }
 
-export type RatePolicy = "scan" | "bootstrap" | "import";
+export async function enforceIpLimit(request: Request) {
+  if (request.method === "OPTIONS") return;
+  await consumeRateLimit("ip-api", rateLimitIdentity(request), isProduction() ? 180 : 5000);
+}
+
+export type RatePolicy = "scan" | "bootstrap" | "import" | "social-publish" | "social-report";
 export async function enforceUserLimit(request: Request, userId: string, policy?: RatePolicy) {
   await consumeRateLimit("user-api", userId, 120);
   // Policy is bound to the route handler, not an attacker-controlled URL spelling.
   if (policy === "scan") await consumeRateLimit("user-scan", userId, 5);
   else if (policy === "bootstrap") await consumeRateLimit("user-bootstrap", userId, 5);
   else if (policy === "import") await consumeRateLimit("user-import", userId, 2, 600000);
+  else if (policy === "social-publish") await consumeRateLimit("user-social-publish", userId, 3, 600000);
+  else if (policy === "social-report") await consumeRateLimit("user-social-report", userId, 10, 600000);
   else if (!["GET", "HEAD", "OPTIONS"].includes(request.method)) await consumeRateLimit("user-write", userId, 30);
 }

@@ -118,7 +118,7 @@ function validateOrigin(request: Request) {
   }
 }
 
-export function privateHandler(handler: Handler, policy?: RatePolicy) {
+export function privateHandler(handler: Handler, policy?: RatePolicy, options: { allowInactive?: boolean } = {}) {
   return async (request: Request) => {
     const id = requestId(request);
 
@@ -128,7 +128,7 @@ export function privateHandler(handler: Handler, policy?: RatePolicy) {
       if (!["GET", "HEAD", "OPTIONS"].includes(request.method)) {
         validateOrigin(request);
       }
-      const identity = await verifyIdentity(request);
+      const identity = await verifyIdentity(request, options);
       await enforceUserLimit(request, identity.internalUserId, policy);
       const response = await handler({ identity, request, requestId: id });
       response.headers.set("cache-control", "private, no-store");

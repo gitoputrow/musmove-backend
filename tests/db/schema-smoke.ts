@@ -26,8 +26,8 @@ async function main() {
          and table_type = 'BASE TABLE'
     `);
 
-    if (result.rows[0]?.table_count !== 24) {
-      throw new Error("Schema smoke test did not find all 24 application tables");
+    if (result.rows[0]?.table_count !== 30) {
+      throw new Error("Schema smoke test did not find all 30 application tables");
     }
 
     const equipment = await client.query<{ count: number }>("select count(*)::integer as count from equipment_catalog");

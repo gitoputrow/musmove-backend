@@ -5,6 +5,10 @@ Drizzle ORM, and Neon Auth bearer tokens.
 
 ## Mobile API
 
+Panduan berbahasa Indonesia untuk struktur database, penggunaan endpoint,
+alur Neon Auth native, dan sync offline tersedia di
+[`docs/mobile-integration.md`](docs/mobile-integration.md).
+
 All routes use `/api/v1`. Private routes require the short-lived JWT obtained
 by the mobile app from Neon Auth:
 
@@ -17,7 +21,9 @@ The server derives account ownership only from the verified token. A client
 must never send a `userId` to select ownership. Current endpoints are:
 
 - `GET /me`
+- `GET /meta` (public implementation capabilities; not provider readiness)
 - `GET /sync/bootstrap`
+- `POST/GET/DELETE /sync/snapshots` (additive immutable paginated bootstrap v2)
 - `POST /sync/push`
 - `GET /sync/pull?cursor=...&limit=...`
 - `POST /imports/demo`
@@ -34,6 +40,13 @@ must never send a `userId` to select ownership. Current endpoints are:
 - `GET /nutrition/targets` (private, stored profile-versioned estimates)
 - `GET /meals?date=YYYY-MM-DD&limit=50&offset=0` (private daily journal/summary)
 - `POST /account/deletion-requests`
+- `GET /account/deletion-requests` (own lifecycle status while JWT remains valid)
+- `GET/POST/DELETE /social/posts` (explicit text community publishing; feature flag)
+- `POST /social/reports` (private moderation reports)
+
+The web password-reset callback is `/auth/reset-password` outside `/api/v1`.
+See [backend follow-up implementation and rollout](docs/backend-follow-up-result.md)
+for the7-day deletion worker, operational credentials, moderation and limitations.
 
 The sync contract is offline-first. `operationId` makes retries idempotent,
 `baseVersion` detects concurrent edits, per-user sequence numbers order the
@@ -72,7 +85,7 @@ bypass versions, receipts, or the change log.
 
 ## Database
 
-The reviewed migrations create 24 application tables for identities, profiles,
+The reviewed migrations create 30 application tables after migration0016 for identities, profiles,
 training preferences, programs, exercises, workouts, private user data,
 synchronization state/change logs, idempotency receipts, and demo imports.
 
@@ -134,6 +147,11 @@ withheld for review. These are traceable reference values, not independently
 lab-tested individual meals. The three existing mobile demo meals remain stored
 but are hidden unless `includeDemo=true`; no history is deleted. See the
 [food catalog coverage, verification and API](docs/food-catalog.md).
+
+Migration `0018` adds internet-reference food price **estimates** with independent
+pricing provenance: 1,125 priced reference foods and 20 deliberate non-retail/
+sensitive exclusions. Numeric prices are per100g edible portion, not live offers;
+see [food pricing and mobile display rules](docs/food-prices.md).
 `meal_entries` supports portions, consumption timestamps, local
 dates and immutable nutrition snapshots. `nutrition_estimates` stores input and
 output snapshots per profile/formula version atomically on profile writes.
@@ -181,22 +199,25 @@ until a valid Neon Auth bearer token is supplied.
 
 ## Verification
 
+The default checks below are isolated/local and do not write production data.
+Legacy `db:test-api`, `db:test-security`, `db:test-nutrition` and other Neon
+integration commands require a separately approved test database; do not run
+them against the configured production database. No staging is created here.
+
 ```bash
 npm run lint
 npm run typecheck
 npm run db:test-schema
-npm run db:test-api
+npm run test:follow-up
+npm run test:security
 npm run test:programs
 npm run test:movement-tags
 npm run db:test-movement-tags
 npm run test:nutrition
 npm run test:places
-npm run db:test-places
 npm run test:equipment
-npm run db:test-equipment
 npm run test:vision
 npm run test:vision-real # requires downloaded model; runs real CPU inference
-npm run db:test-nutrition
 npm run test:nutrition-dart # optional: Dart SDK and ../musmove required
 npm run build -- --webpack
 npm audit
@@ -206,6 +227,8 @@ npm audit
 accounts, validates sync transactions/idempotency/conflicts/import, and removes
 those accounts in a `finally` block.
 
-The backend still needs deployment-level distributed rate limiting and a
-separate non-owner Neon runtime credential before production rollout.
+The backend has PostgreSQL-backed shared rate limiting and a dedicated
+non-owner runtime role for the configured database. Production still needs
+deployment-level WAF/usage controls and real mobile login/refresh/write smoke
+tests; see the security checklist and mobile integration guide.
 # musmove-backend

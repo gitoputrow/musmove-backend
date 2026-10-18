@@ -20,5 +20,14 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE
   workout_sessions, user_preferences, place_favorites, meal_entries, social_drafts,
   legacy_user_metadata, sync_state, sync_changes, operation_receipts, demo_imports,
   nutrition_estimates, api_rate_limits TO musmove_runtime;
+REVOKE ALL ON sync_snapshots, sync_snapshot_items, account_deletion_jobs,
+  revoked_identities, social_posts, social_reports FROM musmove_runtime;
+GRANT SELECT, INSERT, UPDATE, DELETE ON sync_snapshots TO musmove_runtime;
+GRANT SELECT, INSERT ON sync_snapshot_items TO musmove_runtime;
+GRANT SELECT, INSERT, UPDATE ON account_deletion_jobs, social_posts TO musmove_runtime;
+GRANT SELECT, INSERT ON social_reports TO musmove_runtime;
+GRANT SELECT ON revoked_identities TO musmove_runtime;
+GRANT EXECUTE ON FUNCTION public.guard_deleted_identity() TO musmove_runtime;
+-- Only separate operational/admin tooling can purge identities or moderate reports.
 -- No ALTER DEFAULT PRIVILEGES blanket grant: review each new table explicitly.
 COMMIT;

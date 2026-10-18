@@ -11,6 +11,7 @@ import { parseMealCatalogQuery } from "../../src/modules/meals/query";
 import { mealTotals } from "../../src/modules/meals/resolve";
 import { foodGroups } from "../../src/modules/meals/types";
 import { entityPayloadSchemas } from "../../src/modules/sync/dto";
+import { buildFoodPrices } from "../../scripts/food-price-data";
 
 test("Official source snapshot covers all TKPI rows and preserves missing/estimated values", async () => {
   const source = await loadTkpiSnapshot();
@@ -55,7 +56,7 @@ test("Catalog query is bounded and rejects duplicate, unknown or ambiguous optio
   assert.deepEqual(parseMealCatalogQuery("http://localhost/api/v1/catalog/meals"), { includeDemo: false, limit: 50, offset: 0 });
   assert.equal(parseMealCatalogQuery("http://localhost/?includeDemo=false").includeDemo, false);
   assert.equal(parseMealCatalogQuery("http://localhost/?q=tempe&foodGroup=legumes&limit=20").limit, 20);
-  for (const params of ["q=", "limit=0", "limit=101", "limit=1e2", "offset=-1", "offset=100001", "includeDemo=1", "foodGroup=wrong", "limit=2&limit=3", "q=a&q=b", "userId=123", "__proto__=bad"]) {
+  for (const params of ["q=", "limit=0", "limit=101", "limit=1e2", "offset=-1", "offset=100001", "includeDemo=1", "foodGroup=wrong", "foodKind=single", "limit=2&limit=3", "q=a&q=b", "userId=123", "__proto__=bad"]) {
     assert.throws(() => parseMealCatalogQuery(`http://localhost/?${params}`));
   }
 });
@@ -83,6 +84,7 @@ test("Fresh database persists every usable source row, provenance, and nullable 
     const result = await client.query<Record<string, unknown>>("SELECT * FROM meal_catalog WHERE source_type = 'reference' ORDER BY source_code");
     const source = await loadTkpiSnapshot();
     const usable = source.foods.filter((food) => food.nutrients.caloriesKcal !== null && food.nutrients.proteinGrams !== null);
+    const prices = new Map((await buildFoodPrices()).map(food => [food.sourceCode, food]));
     assert.equal(result.rows.length, 1145);
     const main = { caloriesKcal: "calories_kcal", proteinGrams: "protein_grams", carbohydrateGrams: "carbohydrate_grams", fatGrams: "fat_grams", fiberGrams: "fiber_grams", sodiumMg: "sodium_mg" };
     for (const [index, row] of result.rows.entries()) {
@@ -92,10 +94,10 @@ test("Fresh database persists every usable source row, provenance, and nullable 
       assert.equal(row.en_label, food.enLabel);
       assert.equal(row.source_code, food.code);
       assert.equal(row.food_group, food.foodGroup);
-      assert.equal(row.food_kind, food.foodKind);
       assert.equal(Number(row.portion_grams), 100);
-      assert.equal(row.meal_type, null);
-      assert.equal(row.sample_price_rupiah, null);
+      for (const removed of ["meal_type", "portion_label", "food_kind"]) assert.equal(Object.hasOwn(row, removed), false);
+      assert.equal(row.sample_price_rupiah, prices.get(food.code)?.samplePriceRupiah);
+      assert.deepEqual(row.price_details, prices.get(food.code)?.priceDetails);
       assert.equal(row.source_url, source.sourceUrl);
       for (const [field, column] of Object.entries(main)) {
         assert.equal(row[column] === null ? null : Number(row[column]), food.nutrients[field], `${food.code}/${field}`);
@@ -105,7 +107,7 @@ test("Fresh database persists every usable source row, provenance, and nullable 
         imputedOrBorrowedFields: food.imputedOrBorrowedFields, ...curateAdditionalNutrients(food) });
     }
     assert.equal((await client.query("SELECT id FROM meal_catalog WHERE source_type = 'demo'")).rows.length, 3);
-    for (const update of ["protein_grams = -1", "sodium_mg = -1", "portion_grams = 0", "source_details = '[]'::jsonb", "source_code = NULL", "food_group = 'unknown'"]) {
+    for (const update of ["protein_grams = -1", "sodium_mg = -1", "portion_grams = 0", "source_details = '[]'::jsonb", "source_code = NULL", "food_group = NULL", "source_checked_at = NULL", "food_group = 'unknown'"]) {
       await assert.rejects(client.exec(`UPDATE meal_catalog SET ${update} WHERE id = 'tkpi-ap001'`));
     }
     await assert.rejects(client.exec("UPDATE meal_catalog SET source_code = 'AP001' WHERE id = 'tkpi-ap005'"));

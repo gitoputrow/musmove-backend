@@ -7,7 +7,6 @@ const integer = z.string().regex(/^\d+$/).transform(Number).pipe(z.number().int(
 export const mealCatalogQuerySchema = z.object({
   q: z.string().trim().min(1).max(120).optional(),
   foodGroup: z.enum(foodGroups).optional(),
-  foodKind: z.enum(["single", "processed_or_composite"]).optional(),
   includeDemo: z.enum(["true", "false"]).transform((value) => value === "true").default(false),
   limit: integer.pipe(z.number().min(1).max(100)).default(50),
   offset: integer.pipe(z.number().min(0).max(100000)).default(0),

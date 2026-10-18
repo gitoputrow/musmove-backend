@@ -1,9 +1,10 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 
 import { getDatabase } from "@/src/db/client";
-import { syncState, users } from "@/src/db/schema";
+import { revokedIdentities, syncState, users } from "@/src/db/schema";
+import { identityHash } from "./identity-hash";
 
 import { forbidden, unauthorized } from "../api-error";
 import { isProduction } from "../security/config";
@@ -56,7 +57,7 @@ function authConfiguration() {
   return { audience: issuer, issuer, jwks: remoteKeys.jwks };
 }
 
-export async function verifyIdentity(request: Request): Promise<Identity> {
+export async function verifyIdentity(request: Request, options: { allowInactive?: boolean } = {}): Promise<Identity> {
   const token = bearerToken(request);
   const configuration = authConfiguration();
 
@@ -81,6 +82,10 @@ export async function verifyIdentity(request: Request): Promise<Identity> {
 
   const database = getDatabase();
   const user = await database.transaction(async (transaction) => {
+    const hash = identityHash(configuration.issuer, payload.sub!);
+    await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtextextended(${hash},0))`);
+    const [revoked] = await transaction.select().from(revokedIdentities).where(and(eq(revokedIdentities.identityHash, hash), sql`${revokedIdentities.expiresAt} > now()`)).limit(1);
+    if (revoked) throw unauthorized("The identity has been deleted");
     const [mappedUser] = await transaction
       .insert(users)
       .values({
@@ -104,7 +109,7 @@ export async function verifyIdentity(request: Request): Promise<Identity> {
     return mapped;
   });
 
-  if (user.status !== "active") {
+  if (user.status !== "active" && !options.allowInactive) {
     throw forbidden("ACCOUNT_INACTIVE", `The account is ${user.status}`);
   }
 
@@ -115,15 +120,4 @@ export async function verifyIdentity(request: Request): Promise<Identity> {
     issuer: configuration.issuer,
     subject: payload.sub,
   };
-}
-
-export async function markDeletionRequested(userId: string) {
-  const database = getDatabase();
-  const [user] = await database
-    .update(users)
-    .set({ status: "deletion_requested", updatedAt: new Date() })
-    .where(eq(users.id, userId))
-    .returning({ id: users.id, status: users.status });
-
-  return user;
 }

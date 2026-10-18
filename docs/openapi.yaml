@@ -1,13 +1,196 @@
 openapi: 3.1.0
 info:
   title: MusMove Mobile API
-  version: 1.0.0
+  version: 1.1.0
   description: Offline-first MusMove API. Private endpoints require a short-lived verified Neon JWT; cookies are not authentication. Production shared limits apply (IP180/min, account120/min, mutations30/min, scans5/min, bootstrap5/min, demo import2/10min); 429 includes Retry-After, unavailable protection returns503. JSON bodies at most1MiB, depth32; operation/import payloads64KiB, response3MiB. See docs/security-vercel.md.
 servers:
   - url: /api/v1
 security:
   - bearerAuth: []
 paths:
+  /meta:
+    get:
+      operationId: getApiCapabilities
+      security: []
+      description: Public API version/capabilities and social publishing flag only; no credentials or private account data. Capabilities describe source implementation, not provider/email/AI readiness. Operational deletion worker requires deployed identity-guard capability before purging. Older deployments may404; mobile can keep its legacy sync fallback.
+      responses:
+        "200":
+          description: apiVersion1.1.0, implementation capabilities and socialPublishingEnabled.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [apiVersion, capabilities, socialPublishingEnabled]
+                properties:
+                  apiVersion: { const: "1.1.0" }
+                  capabilities: { type: object, additionalProperties: { type: boolean } }
+                  socialPublishingEnabled: { type: boolean }
+  /sync/snapshots:
+    post:
+      operationId: startSyncSnapshot
+      description: Additive v2 bootstrap. Materializes an immutable snapshot and pins a v1 change-stream position in one transaction. Client-generated snapshotId makes start retries idempotent. TTL30 minutes, at most2 active snapshots/account,20000 live entities/32MiB. Does not clear local outbox; legacy bootstrap remains unchanged.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [snapshotId]
+              properties:
+                snapshotId: { type: string, format: uuid }
+      responses:
+        "200":
+          description: Snapshot start metadata; no sync cursor yet.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SyncSnapshotMetadata" }
+        "401": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "413": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+    get:
+      operationId: readSyncSnapshotPage
+      description: Read/replay an account-owned immutable page. Keyset page cursor is signed and bound to snapshot/account. Store pages in local staging tables, preserving outbox. Only complete=true returns syncCursor; atomically install the complete snapshot and that cursor, then pull all changes after it. Page budget2MiB. Expired/missing/wrong-account/changed-epoch snapshots return409 SNAPSHOT_EXPIRED; restart with a new ID without discarding pending edits.
+      parameters:
+        - { in: query, name: snapshotId, required: true, schema: { type: string, format: uuid } }
+        - { in: query, name: cursor, schema: { type: string, maxLength: 2048 } }
+        - { in: query, name: limit, schema: { type: integer, minimum: 1, maximum: 100, default: 50 } }
+      responses:
+        "200":
+          description: Immutable page; cursor for next page or final sync handoff.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SyncSnapshotPage" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+    delete:
+      operationId: releaseSyncSnapshot
+      description: Idempotent release of own temporary snapshot after local commit or abandonment. Does not modify user history or invalidate an already issued syncCursor.
+      parameters:
+        - { in: query, name: snapshotId, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200": { description: Released; status released. }
+        "401": { $ref: "#/components/responses/Error" }
+  /social/posts:
+    get:
+      operationId: readCommunityFeed
+      description: Authenticated text community feed, not private social_draft. Returns only visible/non-deleted explicit publications from active authors. No email, internal userId, profile health data or reports. Disabled with403 SOCIAL_NOT_ENABLED until SOCIAL_PUBLISHING_ENABLED=true and moderation is operational. Treat body and authorLabel as plain text, never HTML.
+      parameters:
+        - { in: query, name: cursor, schema: { type: string, maxLength: 2048 } }
+        - { in: query, name: limit, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }
+      responses:
+        "200":
+          description: Newest first keyset feed; concurrent new posts appear on refresh, not necessarily during an older pagination traversal.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, nextCursor]
+                properties:
+                  nextCursor: { type: [string, "null"] }
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/CommunityPost" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+    post:
+      operationId: publishCommunityPost
+      description: Explicit publication outside offline sync. Body/publish/authorLabel required; no draft auto-publication. postId is the idempotency key; retry unchanged input, never reuse for different content. 3 attempts/10min per account in addition to general limits. No media/comments/likes/edit in this version.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [postId, publish, authorLabel, body]
+              properties:
+                postId: { type: string, format: uuid }
+                publish: { const: true }
+                authorLabel: { type: string, minLength: 1, maxLength: 80, description: User-chosen public alias; no control characters. Not a verified identity. }
+                body: { type: string, minLength: 1, maxLength: 2000 }
+      responses:
+        "201":
+          description: Published or identical retry acknowledged.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [postId, publishedAt, duplicate]
+                properties:
+                  postId: { type: string, format: uuid }
+                  publishedAt: { type: string, format: date-time }
+                  duplicate: { type: boolean }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+    delete:
+      operationId: deleteOwnCommunityPost
+      description: Owner-only and idempotent. Erases body/alias, retains minimal tombstone to prevent delayed publication retries from resurrecting it. Another account receives404 POST_NOT_FOUND. Available even if publishing is disabled.
+      parameters:
+        - { in: query, name: postId, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200": { description: status deleted. }
+        "401": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+  /social/reports:
+    post:
+      operationId: reportCommunityPost
+      description: Private report to operator, never returned in feed. At most one stored report/account/post. Repeats acknowledge without changing the first report.10 attempts/10min/account. Own posts should be deleted instead. No public moderation/admin role parameter is accepted.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [postId, reason]
+              properties:
+                postId: { type: string, format: uuid }
+                reason: { type: string, enum: [spam, harassment, unsafe_content, privacy, other] }
+                details: { type: [string, "null"], maxLength: 1000, default: null }
+      responses:
+        "202": { description: status received and duplicate boolean. }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+  /auth/reset-password:
+    servers: [{ url: / }]
+    get:
+      operationId: passwordResetWebCallback
+      security: []
+      description: Root web callback, NOT /api/v1/auth/reset-password. No external scripts/analytics; no-store, nonce CSP, no-referrer. Browser consumes provider reset capability from query, removes it from history, and asks for a new password. Not an email verification page or a mobile JWT callback.
+      responses:
+        "200":
+          description: Minimal reset-password HTML page.
+          content:
+            text/html:
+              schema: { type: string }
+    post:
+      operationId: completePasswordReset
+      security: []
+      description: Same-origin reset form proxy to pinned Neon Auth reset-password endpoint. Capability token required, no mobile JWT/admin cookie forwarded.5 attempts/10min/IP. Provider SMTP/redirect allowlist must be configured separately; no reset email is sent by this endpoint.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [token, newPassword]
+              properties:
+                token: { type: string, minLength: 8, maxLength: 2048 }
+                newPassword: { type: string, minLength: 8, maxLength: 128, writeOnly: true }
+      responses:
+        "200": { description: status password_changed. Return to mobile sign-in; no JWT returned. }
+        "400": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
   /catalog/equipment:
     get:
       operationId: getEquipmentCatalog
@@ -145,7 +328,7 @@ paths:
     get:
       operationId: getMealCatalog
       security: []
-      description: Paginated, source-traceable TKPI reference foods, default excluding demos. 1145 usable source foods across 13 groups, each per100g edible portion. Missing nutrients are null; imputed/borrowed fields remain labeled; flagged micronutrient outliers are withheld, retaining original values for review. Not independently lab-tested individual foods or dietary recommendations. See docs/food-catalog.md.
+      description: Paginated, source-traceable TKPI reference foods, default excluding demos. 1145 usable source foods across 13 groups, each per100g edible portion. All1125 numeric prices are labeled estimates from separate internet references/proxies/cost models, NOT1125 observed individual prices or live offers;20 non-retail/sensitive exclusions remain null with reasons. Always display the estimate label and basis; null is not free. Missing nutrients are null; imputed/borrowed fields remain labeled; flagged micronutrient outliers are withheld. Not independently lab-tested individual foods or dietary recommendations. See docs/food-catalog.md and docs/food-prices.md.
       parameters:
         - name: q
           in: query
@@ -154,9 +337,6 @@ paths:
         - name: foodGroup
           in: query
           schema: { $ref: "#/components/schemas/FoodGroup" }
-        - name: foodKind
-          in: query
-          schema: { type: string, enum: [single, processed_or_composite] }
         - name: includeDemo
           in: query
           schema: { type: boolean, default: false }
@@ -380,7 +560,24 @@ paths:
       operationId: requestAccountDeletion
       responses:
         "202":
-          description: Account marked deletion_requested and future API access rejected.
+          description: Idempotent request; marks account inactive immediately and schedules deletion after7days. Identical identity may repeat this request or GET own status with a valid unexpired JWT despite inactive state. No extension of deadline on retry. Ordinary private API remains403. Provider identity/sessions must be removed by separate operational worker before application data purge;202 is not completion or a backup-erasure guarantee.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AccountDeletionStatus" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+    get:
+      operationId: getOwnDeletionStatus
+      description: Current identity only; valid JWT required, including inactive accounts. After provider deletion/JWT expiry/physical purge authentication can fail; this is not a permanently public tracking URL. No userId/query or admin error details accepted/exposed.
+      responses:
+        "200":
+          description: Deletion lifecycle status or status not_requested.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - { $ref: "#/components/schemas/AccountDeletionStatus" }
+                  - { type: object, properties: { status: { const: not_requested } }, required: [status] }
         "401": { $ref: "#/components/responses/Error" }
 components:
   parameters:
@@ -456,6 +653,53 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/ErrorEnvelope" }
   schemas:
+    SyncSnapshotMetadata:
+      type: object
+      required: [schemaVersion, snapshotId, total, expiresAt]
+      properties:
+        schemaVersion: { const: 2 }
+        snapshotId: { type: string, format: uuid }
+        total: { type: integer, minimum: 0, maximum: 20000 }
+        expiresAt: { type: string, format: date-time }
+    SyncSnapshotPage:
+      allOf:
+        - { $ref: "#/components/schemas/SyncSnapshotMetadata" }
+        - type: object
+          required: [items, complete, nextPageCursor, syncCursor]
+          properties:
+            items:
+              type: array
+              maxItems: 100
+              items:
+                allOf:
+                  - { $ref: "#/components/schemas/SnapshotItem" }
+                  - type: object
+                    required: [entityType]
+                    properties:
+                      entityType: { $ref: "#/components/schemas/EntityType" }
+            complete: { type: boolean }
+            nextPageCursor: { type: [string, "null"] }
+            syncCursor: { type: [string, "null"], description: Non-null only on complete snapshot. Compatible with existing /sync/pull schemaVersion1. }
+    AccountDeletionStatus:
+      type: object
+      required: [status, deletionRequestId, processingStatus, requestedAt, deleteAfter, completedAt, waitDays]
+      properties:
+        status: { type: string, enum: [deletion_requested, completed] }
+        deletionRequestId: { type: string, format: uuid, description: Lifecycle receipt ID, distinct from HTTP X-Request-ID. }
+        processingStatus: { type: string, enum: [waiting, provider_pending, failed, completed] }
+        requestedAt: { type: string, format: date-time }
+        deleteAfter: { type: string, format: date-time }
+        completedAt: { type: [string, "null"], format: date-time }
+        waitDays: { const: 7 }
+    CommunityPost:
+      type: object
+      required: [postId, authorLabel, body, createdAt, isMine]
+      properties:
+        postId: { type: string, format: uuid }
+        authorLabel: { type: string, maxLength: 80 }
+        body: { type: string, maxLength: 2000 }
+        createdAt: { type: string, format: date-time }
+        isMine: { type: boolean }
     EquipmentItem:
       type: object
       required: [id, name, aliases]
@@ -586,26 +830,93 @@ components:
             properties:
               sourceValue: { type: number }
               reason: { type: string, enum: [SOURCE_OUTLIER_REQUIRES_REVIEW] }
+    FoodPriceReference:
+      type: object
+      additionalProperties: false
+      required: [id, productName, sourceName, sourceUrl, location, checkedAt, sourceDate, access, priceRupiah, quantity, unit, edibleBasis, note]
+      properties:
+        id: { type: string }
+        productName: { type: string, description: Actual quoted product and selected package, not necessarily the TKPI food's individual price. }
+        sourceName: { type: string }
+        sourceUrl: { type: string, format: uri }
+        location: { type: string, description: Known seller/market location or explicitly unspecified/default storefront. Not inferred to be the user's city. }
+        checkedAt: { type: string, format: date }
+        sourceDate: { type: [string, "null"], format: date, description: Date stated by source; null means unstated, not today's measured price. }
+        access: { type: string, enum: [live_page, search_index, historical_document] }
+        priceRupiah: { type: integer, exclusiveMinimum: 0, description: Observed price of the reference quantity, not the normalized catalog price. }
+        quantity: { type: number, exclusiveMinimum: 0 }
+        unit: { type: string, enum: [g, ml] }
+        edibleBasis: { type: string, enum: [edible, as_purchased] }
+        note: { type: string, description: Variant, promotion, weight midpoint, inconsistent index or historical-source caveats. }
+    FoodPriceCalculation:
+      type: object
+      additionalProperties: false
+      required: [sourceWeightGrams, densityGramsPerMl, edibleFraction, cookedYieldFactor, cookingCostRupiahPer100g, roundingRupiah]
+      properties:
+        sourceWeightGrams: { type: number, exclusiveMinimum: 0 }
+        densityGramsPerMl: { type: [number, "null"], exclusiveMinimum: 0, description: Explicit assumed density when converting ml; not a measurement. }
+        edibleFraction: { type: number, exclusiveMinimum: 0, maximum: 1 }
+        cookedYieldFactor: { type: number, exclusiveMinimum: 0, description: Assumed output/input mass ratio in ingredient models;1 otherwise. }
+        cookingCostRupiahPer100g: { type: integer, minimum: 0, description: Heuristic additional cost, not an observed restaurant markup. }
+        roundingRupiah: { const: 100 }
+    FoodPriceDetails:
+      type: object
+      additionalProperties: false
+      required: [status, label, currency, basisGrams, methodVersion, checkedAt, reference, calculation, assumptions]
+      description: Independent of TKPI nutrient verification. All numeric catalog prices are estimates per100g edible portion. Source/proxy differences and cost assumptions must not be hidden. Low confidence proxies do not guarantee a shopping budget.
+      properties:
+        status: { type: string, enum: [estimated, not_priced] }
+        label: { type: string, enum: ["Estimasi harga, bukan harga jual pasti", "Tidak diberi estimasi harga"] }
+        currency: { const: IDR }
+        basisGrams: { const: 100 }
+        methodVersion: { const: internet-reference-estimates-v1 }
+        checkedAt: { type: string, format: date, description: Source review date, not an assertion that an undated/historical offer is current. }
+        method: { type: string, enum: [reference_conversion, similar_food_proxy, category_proxy, ingredient_cost_model] }
+        confidence: { type: string, enum: [medium, low], description: Editorial matching confidence, not a probability or statistical interval. }
+        reasonCode: { type: string, enum: [NOT_A_RETAIL_FOOD, SENSITIVE_FOOD_REQUIRES_REVIEW] }
+        reference:
+          oneOf: [{ $ref: "#/components/schemas/FoodPriceReference" }, { type: "null" }]
+        calculation:
+          oneOf: [{ $ref: "#/components/schemas/FoodPriceCalculation" }, { type: "null" }]
+        assumptions:
+          type: array
+          minItems: 1
+          items: { type: string }
+      oneOf:
+        - required: [method, confidence]
+          properties:
+            status: { const: estimated }
+            label: { const: "Estimasi harga, bukan harga jual pasti" }
+            reference: { $ref: "#/components/schemas/FoodPriceReference" }
+            calculation: { $ref: "#/components/schemas/FoodPriceCalculation" }
+          not: { required: [reasonCode] }
+        - required: [reasonCode]
+          properties:
+            status: { const: not_priced }
+            label: { const: "Tidak diberi estimasi harga" }
+            reference: { type: "null" }
+            calculation: { type: "null" }
+          not:
+            anyOf: [{ required: [method] }, { required: [confidence] }]
     MealCatalogItem:
       type: object
-      required: [id, idLabel, enLabel, mealType, portionLabel, portionGrams, foodGroup, foodKind, caloriesKcal, proteinGrams, carbohydrateGrams, fatGrams, fiberGrams, sodiumMg, sourceType, sourceNote, sourceUrl, sourceCode, sourceCheckedAt, sourceDetails, samplePriceRupiah, active, version, updatedAt]
+      required: [id, idLabel, enLabel, portionGrams, foodGroup, caloriesKcal, proteinGrams, carbohydrateGrams, fatGrams, fiberGrams, sodiumMg, sourceType, sourceNote, sourceUrl, sourceCode, sourceCheckedAt, sourceDetails, samplePriceRupiah, priceDetails, active, version, updatedAt]
       properties:
         id: { type: string }
         idLabel: { type: string }
         enLabel: { type: [string, "null"], description: Only source-provided translations; fallback to idLabel. }
-        mealType: { type: [string, "null"], enum: [breakfast, lunch, dinner, snack, null], description: Reference foods are not assigned a meal time. User chooses mealType when logging. }
-        portionLabel: { type: string }
         portionGrams: { type: [number, "null"], exclusiveMinimum: 0, description: 100g edible portion for TKPI; demo gram weights unknown. servings 1.5 therefore means150g, not1.5 plates. }
         foodGroup:
           oneOf: [{ $ref: "#/components/schemas/FoodGroup" }, { type: "null" }]
-        foodKind: { type: [string, "null"], enum: [single, processed_or_composite, null] }
         caloriesKcal: { type: number, minimum: 0, maximum: 10000 }
         proteinGrams: { type: number, minimum: 0, maximum: 1000 }
         carbohydrateGrams: { type: [number, "null"], minimum: 0, maximum: 1000 }
         fatGrams: { type: [number, "null"], minimum: 0, maximum: 1000 }
         fiberGrams: { type: [number, "null"], minimum: 0, maximum: 1000 }
         sodiumMg: { type: [number, "null"], minimum: 0, maximum: 100000 }
-        samplePriceRupiah: { type: [integer, "null"], minimum: 0 }
+        samplePriceRupiah: { type: [integer, "null"], minimum: 0, description: Estimated per catalog serving100g edible. Not package/plate price or total servings cost. Always display estimate label. Null is not free. Demos remain illustrative. }
+        priceDetails:
+          oneOf: [{ $ref: "#/components/schemas/FoodPriceDetails" }, { type: "null" }]
         sourceType: { type: string, enum: [demo, reference] }
         sourceNote: { type: string }
         sourceUrl: { type: [string, "null"] }

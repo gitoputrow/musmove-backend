@@ -150,7 +150,7 @@ bukan hasil uji laboratorium independen makanan pengguna. Detail cakupan,
 penanda imputasi, outlier dan reproduksi ada di [katalog pangan](food-catalog.md).
 
 Endpoint sekarang berhalaman (default 50, maksimum 100) dan mengembalikan
-`total`, `hasMore`, `nextOffset`. Filter `q`, `foodGroup`, `foodKind` tersedia.
+`total`, `hasMore`, `nextOffset`. Filter `q` dan `foodGroup` tersedia.
 Default hanya reference; `includeDemo=true` menyertakan tiga menu mobile lama:
 oat/pisang/susu, nasi/ayam/sayuran, serta tempe/telur/nasi. Demo tetap disimpan,
 tidak diubah menjadi data terverifikasi dan tidak ikut progress.

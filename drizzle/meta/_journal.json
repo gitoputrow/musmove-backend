@@ -113,6 +113,34 @@
       "when": 1791657682436,
       "tag": "0015_shared_api_rate_limits",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1791657682437,
+      "tag": "0016_mobile_follow_up",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1791657682438,
+      "tag": "0017_revoked_identity_guard",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1791657682439,
+      "tag": "0018_food_price_estimates",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1791657682440,
+      "tag": "0019_simplify_meal_catalog",
+      "breakpoints": true
     }
   ]
 }

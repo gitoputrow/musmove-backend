@@ -9,3 +9,4 @@ export * from "./sync";
 export * from "./types";
 export * from "./user-data";
 export * from "./users";
+export * from "./follow-up";

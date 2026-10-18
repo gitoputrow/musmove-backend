@@ -52,9 +52,10 @@ export async function resolveMealPayload(transaction: DatabaseTransaction, userI
       price = meal.samplePriceRupiah;
       details = {
         sourceType: meal.sourceType, sourceNote: meal.sourceNote, sourceUrl: meal.sourceUrl,
-        catalogId, catalogVersion: meal.version.toString(), portionLabel: meal.portionLabel,
-        portionGrams: meal.portionGrams, foodGroup: meal.foodGroup, foodKind: meal.foodKind,
+        catalogId, catalogVersion: meal.version.toString(),
+        portionGrams: meal.portionGrams, foodGroup: meal.foodGroup,
         sourceCode: meal.sourceCode, sourceCheckedAt: meal.sourceCheckedAt, sourceDetails: meal.sourceDetails,
+        priceDetails: meal.priceDetails,
       };
     }
   } else if (current?.catalogId && parsed.nutrition === undefined) {

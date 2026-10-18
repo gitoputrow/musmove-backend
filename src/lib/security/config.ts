@@ -13,6 +13,7 @@ export function isStrongSecret(value: string | undefined) {
 
 export function productionConfigurationIssues(env: Environment = process.env): string[] {
   const issues: string[] = [];
+  if (env.NEON_AUTH_ADMIN_COOKIE) issues.push("NEON_AUTH_ADMIN_COOKIE: operational admin sessions must not be present in the public runtime");
   for (const name of ["SYNC_CURSOR_SECRET", "API_RATE_LIMIT_SECRET"]) {
     if (!isStrongSecret(env[name])) issues.push(`${name}: use an independent random secret of at least 32 characters`);
   }

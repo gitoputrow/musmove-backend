@@ -10,8 +10,8 @@ begin
    where table_schema = 'public'
      and table_type = 'BASE TABLE';
 
-  if application_table_count <> 24 then
-    raise exception 'expected 24 application tables, found %', application_table_count;
+  if application_table_count <> 30 then
+    raise exception 'expected 30 application tables, found %', application_table_count;
   end if;
 end
 $$;
