@@ -3,6 +3,10 @@
 Tanggal: 18 Oktober 2026. **Kontrak baru ini menggantikan instruksi lama yang
 meminta Flutter menghubungi Neon Auth secara langsung.**
 
+Pembaruan 19 Oktober: kompatibilitas nama cookie session canonical Neon
+diperbaiki di backend, dengan diagnostik aman untuk 503. Kontrak Flutter tidak
+berubah. Lihat [hasil tindak lanjut error 503](backend-auth-503-follow-up.md).
+
 ## 1. Status dan konfigurasi
 
 Kode dan tes backend tersedia di repository. Deployment Vercel, konfigurasi

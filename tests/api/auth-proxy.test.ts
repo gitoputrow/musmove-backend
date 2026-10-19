@@ -17,6 +17,9 @@ import * as me from "../../app/api/v1/me/route";
 
 test("Native auth proxy is isolated from live Neon, email delivery, and production data", async t => {
   const savedEnv = { ...process.env }, savedFetch = globalThis.fetch;
+  const savedWarn = console.warn;
+  const warnings: { message: unknown; diagnostic: Record<string, unknown> }[] = [];
+  console.warn = (message, diagnostic) => { warnings.push({ message, diagnostic }); };
   const globalDb = globalThis as unknown as { musmoveDatabase?: Database; musmovePool?: unknown };
   const previousDb = globalDb.musmoveDatabase, previousPool = globalDb.musmovePool;
   const local = new PGlite();
@@ -29,13 +32,14 @@ test("Native auth proxy is isolated from live Neon, email delivery, and producti
     .setSubject(userId).setIssuer(issuer).setAudience(issuer).setIssuedAt().setExpirationTime("15m").sign(pair.privateKey);
   const rawCookie = "synthetic-provider-session.signed", rotatedCookie = "synthetic-rotated-session.signed";
   let currentCookie = rawCookie, active = true, rotate = false, calls = 0, ip = 0;
+  let currentCookieName = "__Secure-neon-auth.session_token";
   let override: ((path: string) => Response | undefined) | undefined;
   const captures: { path: string; headers: Headers; body: unknown }[] = [];
   const response = (value: unknown, status = 200, cookie?: string) => {
     const headers = new Headers({ "content-type": "application/json" });
     if (cookie) {
-      headers.append("set-cookie", `__Secure-neonauth.session_token=${cookie}; Path=/; HttpOnly; Secure; SameSite=None`);
-      headers.append("set-cookie", "__Secure-neonauth.session_data=private-cache-data; Path=/; HttpOnly; Secure");
+      headers.append("set-cookie", `${currentCookieName}=${cookie}; Path=/; HttpOnly; Secure; SameSite=None; Partitioned`);
+      headers.append("set-cookie", "__Secure-neon-auth.local.session_data=private-cache-data; Path=/; HttpOnly; Secure");
       headers.append("set-cookie", "admin_session=must-never-be-forwarded; Path=/; Secure");
     }
     return Response.json(value, { status, headers });
@@ -89,7 +93,7 @@ test("Native auth proxy is isolated from live Neon, email delivery, and producti
         assert.equal(headers.get("cookie"), null); assert.deepEqual(body, { email: user.email, redirectTo: `${origin}/auth/reset-password` });
         return response({ status: true });
       }
-      assert.equal(headers.get("cookie"), `__Secure-neonauth.session_token=${currentCookie}`);
+      assert.equal(headers.get("cookie"), `${currentCookieName}=${currentCookie}`);
       if (path === "get-session") {
         if (!active) return response(null);
         if (rotate) { currentCookie = rotatedCookie; rotate = false; }
@@ -118,6 +122,48 @@ test("Native auth proxy is isolated from live Neon, email delivery, and producti
       assert.equal((await local.query("SELECT * FROM users WHERE subject=$1", [userId])).rows.length, 1);
       await data(await signout.POST(request("auth/sign-out", "POST", undefined, `Session ${jwt.sessionToken}`)));
       await data(await session.GET(request("auth/get-session", "GET", undefined, `Session ${jwt.sessionToken}`)), 401);
+    });
+
+    await t.test("Canonical Neon SDK cookie and both legacy names preserve signup, restore, rotation, JWT and logout", async () => {
+      try {
+        for (const name of ["__Secure-neon-auth.session_token", "__Secure-neonauth.session_token", "neonauth.session_token"]) {
+          currentCookieName = name;
+          const registered = await data(await signup.POST(request("auth/sign-up/email", "POST", { email: user.email, name: user.name, password: "synthetic-password-only" })));
+          assert.equal(registered.status, "authenticated"); rotate = true;
+          const restored = await data(await session.GET(request("auth/get-session", "GET", undefined, `Session ${registered.sessionToken}`)));
+          const jwt = await data(await token.GET(request("auth/token", "GET", undefined, `Session ${restored.sessionToken}`)));
+          assert.equal(jwt.accessToken, accessToken);
+          await data(await signout.POST(request("auth/sign-out", "POST", undefined, `Session ${jwt.sessionToken}`)));
+          await data(await session.GET(request("auth/get-session", "GET", undefined, `Session ${jwt.sessionToken}`)), 401);
+        }
+      } finally { currentCookieName = "__Secure-neon-auth.session_token"; }
+    });
+
+    await t.test("Unrecognized/cache/admin/ambiguous/malformed cookies never become an authenticated session", async () => {
+      try {
+        for (const name of ["admin_session", "__Secure-neon-auth.local.session_data", "__Secure-neon-auth.session_token.attacker", "attacker__Secure-neon-auth.session_token"]) {
+          override = path => path === "sign-up/email" ? Response.json({ user, token: "raw-provider-token" }, { headers: { "set-cookie": `${name}=synthetic-only-value; Secure` } }) : undefined;
+          const beforeWarnings = warnings.length;
+          const result = await data(await signup.POST(request("auth/sign-up/email", "POST", { email: user.email, name: user.name, password: "synthetic-password-only" })), 503);
+          assert.equal(result.error.code, "AUTH_UNAVAILABLE");
+          assert.equal(warnings.length, beforeWarnings + 1);
+          assert.equal(warnings.at(-1)!.diagnostic.reason, "session_cookie_missing");
+          assert.equal(warnings.at(-1)!.diagnostic.requestId, result.requestId);
+          assert.equal(warnings.at(-1)!.diagnostic.stage, "sign-up/email");
+        }
+        override = path => {
+          if (path !== "sign-up/email") return;
+          const headers = new Headers();
+          headers.append("set-cookie", "__Secure-neon-auth.session_token=canonical.value; Secure");
+          headers.append("set-cookie", "__Secure-neonauth.session_token=legacy.value; Secure");
+          return Response.json({ user, token: "raw-provider-token" }, { headers });
+        };
+        await data(await signup.POST(request("auth/sign-up/email", "POST", { email: user.email, name: user.name, password: "synthetic-password-only" })), 503);
+        assert.equal(warnings.at(-1)!.diagnostic.reason, "session_cookie_ambiguous");
+        override = path => path === "sign-up/email" ? Response.json({ user, token: "raw-provider-token" }, { headers: { "set-cookie": "__Secure-neon-auth.session_token=invalid:value; Secure" } }) : undefined;
+        await data(await signup.POST(request("auth/sign-up/email", "POST", { email: user.email, name: user.name, password: "synthetic-password-only" })), 503);
+        assert.equal(warnings.at(-1)!.diagnostic.reason, "session_cookie_invalid");
+      } finally { override = undefined; }
     });
 
     await t.test("Missing/tampered/wrong-purpose/cross-provider sessions are rejected before upstream access", async () => {
@@ -181,7 +227,7 @@ test("Native auth proxy is isolated from live Neon, email delivery, and producti
       override = undefined;
     });
 
-    await t.test("Provider failures are bounded, sanitized, not forwarded as redirects, and never logged", async () => {
+    await t.test("Provider failures are bounded, sanitized, not forwarded as redirects or raw console errors", async () => {
       const originalError = console.error, logs: unknown[][] = []; console.error = (...values) => { logs.push(values); };
       try {
         for (const failure of [
@@ -221,9 +267,23 @@ test("Native auth proxy is isolated from live Neon, email delivery, and producti
       assert.ok(Date.now() - started < 12000);
       override = undefined;
     });
+    await t.test("Failure diagnostics contain only allowlisted metadata and public request correlation, never credentials", () => {
+      assert.ok(warnings.length > 0);
+      for (const warning of warnings) {
+        assert.equal(warning.message, "Auth proxy failure");
+        for (const key of Object.keys(warning.diagnostic)) assert.ok(["event", "requestId", "action", "stage", "reason", "upstreamStatus"].includes(key));
+        assert.equal(warning.diagnostic.event, "auth_proxy_failure");
+        assert.doesNotMatch(JSON.stringify(warning), /synthetic@example|synthetic-provider-session|synthetic-rotated-session|secret-provider-field|raw-provider-token|private-cache-data|synthetic-password-only|must-never-be-forwarded/);
+        assert.equal(JSON.stringify(warning).includes(process.env.AUTH_SECRET!), false);
+        assert.equal(JSON.stringify(warning).includes(accessToken), false);
+      }
+      assert.ok(warnings.some(warning => warning.diagnostic.reason === "upstream_timeout" && warning.diagnostic.upstreamStatus === 200));
+      assert.ok(warnings.some(warning => warning.diagnostic.reason === "upstream_content_type" && warning.diagnostic.upstreamStatus === 502));
+      assert.ok(warnings.some(warning => warning.diagnostic.reason === "jwt_invalid"));
+    });
     assert.ok(captures.length > 0);
   } finally {
-    globalThis.fetch = savedFetch; globalDb.musmoveDatabase = previousDb; globalDb.musmovePool = previousPool;
+    console.warn = savedWarn; globalThis.fetch = savedFetch; globalDb.musmoveDatabase = previousDb; globalDb.musmovePool = previousPool;
     for (const key of Object.keys(process.env)) if (!(key in savedEnv)) delete process.env[key];
     Object.assign(process.env, savedEnv); await local.close();
   }
