@@ -229,12 +229,20 @@ web reset password; pengiriman email dan allowlist tetap konfigurasi provider.
    yang dipin, umur/expiry token, `sub`, `role: authenticated`, dan `banned: false`.
 5. Pada request privat pertama, backend membuat mapping `users` dan `sync_state`
    jika belum ada. Ini tidak otomatis membuat profil, preferences, atau histori.
-6. Mobile memilih penyimpanan lokal milik akun tersebut, lalu melakukan bootstrap
-   atau melanjutkan cursor akun yang sudah tersimpan.
-7. Bila profil belum ada/`setupCompleted` belum true, tampilkan onboarding.
-8. Simpan profil dan alat lewat `/sync/push`, periksa hasil setiap operasi,
-   lalu pull perubahan agar memperoleh payload server yang kanonis.
-9. Ambil `/programs/recommendations` dan `/nutrition/targets`.
+6. Baca `setupCompleted`, `profile`, `trainingPreferences`, dan `versions` dari
+   `/me`. Jika false, tampilkan setup; simpan jawaban belum final hanya di memori
+   mobile, tanpa draft/progress backend.
+7. Submit seluruh setup final melalui `POST /onboarding/complete`, dengan UUID
+   `Idempotency-Key` dan `baseVersions` dari `/me`. Profil, preferensi, flag selesai,
+   dan snapshot nutrisi disimpan atomik; gunakan respons kanonis server.
+8. Jika sudah true, langsung masuk aplikasi. Data akun lama tidak direset.
+9. Ambil `/programs/recommendations` saat diperlukan. Respons complete sudah
+   menyertakan `nutritionTargets`; tidak perlu langsung GET targets lagi.
+
+Lihat [handoff onboarding terbaru](frontend-follow-up-onboarding.md) untuk payload,
+retry, konflik versi, dan field opsional. Ini menggantikan onboarding dua operasi
+sync untuk integrasi baru; sync lama tetap kompatibel dan tidak dihapus. Klien
+lama yang tetap offline-first boleh melanjutkan bootstrap/cursor sesuai bagian 5.
 
 Contoh respons `GET /me` (ID ilustrasi, bukan data akun asli):
 
@@ -244,7 +252,11 @@ Contoh respons `GET /me` (ID ilustrasi, bukan data akun asli):
     "id": "00000000-0000-4000-8000-000000000001",
     "email": null,
     "status": "active"
-  }
+  },
+  "setupCompleted": false,
+  "profile": null,
+  "trainingPreferences": null,
+  "versions": { "profile": "0", "trainingPreferences": "0" }
 }
 ```
 
@@ -417,7 +429,11 @@ Jangan memajukan cursor ke `sequence` hasil push: perubahan perangkat lain
 sebelum sequence tersebut bisa terlewat. Gunakan cursor dari bootstrap/pull saja.
 Push tidak mengembalikan seluruh payload hasil normalisasi.
 
-### 5.3 Contoh onboarding melalui push
+### 5.3 Contoh onboarding melalui push (legacy)
+
+Untuk integrasi baru gunakan [POST /onboarding/complete](frontend-follow-up-onboarding.md).
+Contoh lama berikut tetap kompatibel, tetapi dua operasi sync tidak menjamin
+atomisitas gabungan profil + preferensi dan bukan alur setup baru.
 
 Request ini membuat profil dan preferences pada akun kosong. ID operasi dan
 nilai profil berikut hanya ilustrasi; generate UUID baru untuk operasi baru.

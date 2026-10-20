@@ -1,22 +1,23 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import { getDatabase } from "@/src/db/client";
 import { catalogState, equipmentCatalog, exerciseCatalog } from "@/src/db/schema";
 import { badRequest } from "@/src/lib/api-error";
 import { matchEquipmentExercises, searchEquipment } from "./matching";
 
-export async function getEquipmentCatalog(query?: string) {
+export async function getEquipmentCatalog(query?: string, mode?: "gym" | "calisthenics") {
   return getDatabase().transaction(async (tx) => {
     const [state] = await tx.select().from(catalogState).where(eq(catalogState.name, "equipment"));
     if (!state) throw new Error("Equipment catalog migration has not been applied");
-    const rows = await tx.select({ id: equipmentCatalog.id, name: equipmentCatalog.name, aliases: equipmentCatalog.aliases })
-      .from(equipmentCatalog).where(eq(equipmentCatalog.active, true)).orderBy(asc(equipmentCatalog.name), asc(equipmentCatalog.id));
+    const rows = await tx.select({ id: equipmentCatalog.id, name: equipmentCatalog.name, aliases: equipmentCatalog.aliases, modes: equipmentCatalog.modes })
+      .from(equipmentCatalog).where(and(eq(equipmentCatalog.active, true), mode ? sql`${equipmentCatalog.modes} @> ARRAY[${mode}]::text[]` : undefined))
+      .orderBy(asc(equipmentCatalog.name), asc(equipmentCatalog.id));
     return { catalogVersion: state.version.toString(), ...searchEquipment(rows, query) };
   }, { accessMode: "read only", isolationLevel: "repeatable read" });
 }
 
 export async function getEquipmentExercises(ids: string[], mode?: "gym" | "calisthenics") {
   return getDatabase().transaction(async (tx) => {
-    const equipment = await tx.select({ id: equipmentCatalog.id, name: equipmentCatalog.name, aliases: equipmentCatalog.aliases })
+    const equipment = await tx.select({ id: equipmentCatalog.id, name: equipmentCatalog.name, aliases: equipmentCatalog.aliases, modes: equipmentCatalog.modes })
       .from(equipmentCatalog).where(eq(equipmentCatalog.active, true));
     const known = new Set(equipment.map((item) => item.id));
     if (ids.some((id) => !known.has(id))) throw badRequest("UNKNOWN_EQUIPMENT", "Use active IDs from the equipment catalog");

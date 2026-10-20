@@ -1,4 +1,5 @@
 import { apiJson, optionsHandler, privateHandler } from "@/src/lib/http";
+import { getAccountSetup } from "@/src/modules/onboarding/service";
 
 export const GET = privateHandler(async ({ identity }) =>
   apiJson({
@@ -7,6 +8,7 @@ export const GET = privateHandler(async ({ identity }) =>
       id: identity.internalUserId,
       status: "active",
     },
+    ...await getAccountSetup(identity.internalUserId),
   }),
 );
 

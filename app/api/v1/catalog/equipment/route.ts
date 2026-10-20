@@ -4,6 +4,6 @@ import { getEquipmentCatalog } from "@/src/modules/equipment/service";
 
 export const GET = publicHandler(async ({ request }) => {
   const query = equipmentSearchSchema.parse(equipmentQueryParams(request.url));
-  return apiJson(await getEquipmentCatalog(query.q));
+  return apiJson(await getEquipmentCatalog(query.q, query.mode));
 });
 export const OPTIONS = optionsHandler(["GET"]);

@@ -156,7 +156,7 @@ export function publicHandler(handler: PublicHandler) {
 export function optionsHandler(methods: string[]) {
   return publicHandler(async () => {
     const headers = new Headers({
-      "access-control-allow-headers": "Authorization, Content-Type, X-Request-ID",
+      "access-control-allow-headers": "Authorization, Content-Type, X-Request-ID, Idempotency-Key",
       "access-control-allow-methods": [...methods, "OPTIONS"].join(", "),
       "access-control-max-age": "600",
     });

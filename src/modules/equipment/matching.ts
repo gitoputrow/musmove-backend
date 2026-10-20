@@ -8,7 +8,7 @@ export function normalizeEquipmentName(value: string) {
   return value.normalize("NFKC").trim().toLowerCase().replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim();
 }
 
-export function searchEquipment(items: EquipmentItem[], query?: string) {
+export function searchEquipment<T extends EquipmentItem>(items: T[], query?: string) {
   if (query === undefined) return { matchType: "catalog" as const, equipment: items };
   const normalized = normalizeEquipmentName(query);
   if (!normalized) return { matchType: "no_match" as const, equipment: [] };

@@ -67,7 +67,7 @@ function postgresCode(error: unknown) {
   return null;
 }
 
-async function lockSyncState(
+export async function lockSyncState(
   transaction: Parameters<Parameters<ReturnType<typeof getDatabase>["transaction"]>[0]>[0],
   userId: string,
 ): Promise<LockedSyncState> {

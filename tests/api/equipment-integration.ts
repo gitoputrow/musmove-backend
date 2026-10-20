@@ -14,6 +14,11 @@ async function main() {
     const catalog = await getEquipmentCatalog();
     assert.equal(catalog.equipment.length, 28);
     assert.equal(catalog.matchType, "catalog");
+    assert.ok(catalog.equipment.every(item => item.modes.length > 0 && item.modes.every(mode => ["gym", "calisthenics"].includes(mode))));
+    assert.equal((await getEquipmentCatalog(undefined, "gym")).equipment.length, 26);
+    assert.equal((await getEquipmentCatalog(undefined, "calisthenics")).equipment.length, 8);
+    assert.equal((await getEquipmentCatalog("dambel", "calisthenics")).equipment.length, 0);
+    assert.deepEqual((await getEquipmentCatalog("palang", "calisthenics")).equipment[0].modes, ["gym", "calisthenics"]);
     assert.equal((await getEquipmentCatalog("dambel")).equipment[0].id, "dumbbell");
     assert.equal((await getEquipmentCatalog("bar")).matchType, "candidates");
     assert.equal((await getEquipmentCatalog("not an exercise machine")).equipment.length, 0);
@@ -34,6 +39,9 @@ async function main() {
     const response = await catalogRoute.GET(new Request("http://localhost/api/v1/catalog/equipment?q=dambel"));
     assert.equal(response.status, 200);
     assert.equal((await response.json()).equipment[0].id, "dumbbell");
+    const modeResponse = await catalogRoute.GET(new Request("http://localhost/api/v1/catalog/equipment?mode=calisthenics"));
+    assert.equal(modeResponse.status, 200);
+    assert.ok((await modeResponse.json()).equipment.every((item: { modes: string[] }) => item.modes.includes("calisthenics")));
     const ex = await exercisesRoute.GET(new Request("http://localhost/api/v1/equipment/exercises?equipmentIds=dumbbell,bench&mode=gym"));
     assert.equal(ex.status, 200);
     assert.ok((await ex.json()).ready.some((e: { id: string }) => e.id === "flat_dumbbell_bench_press"));

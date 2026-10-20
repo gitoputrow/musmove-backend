@@ -34,6 +34,10 @@ test("equipment query validation rejects duplicates, arbitrary keys and invalid 
   for (const equipmentIds of ["", "dumbbell,dumbbell", "dumbbell, bench", "Dumbbell", "../secret"]) assert.throws(() => equipmentExercisesSchema.parse({ equipmentIds }));
   assert.throws(() => equipmentSearchSchema.parse({ q: "a" }));
   assert.throws(() => equipmentSearchSchema.parse({ q: "test", userId: "spoof" }));
+  assert.equal(equipmentSearchSchema.parse({ mode: "gym" }).mode, "gym");
+  assert.equal(equipmentSearchSchema.parse({ q: "bar", mode: "calisthenics" }).mode, "calisthenics");
+  assert.throws(() => equipmentSearchSchema.parse({ mode: "both" }));
+  assert.throws(() => equipmentQueryParams("http://localhost?mode=gym&mode=calisthenics"));
   assert.throws(() => equipmentQueryParams("http://localhost?q=a&q=b"));
   assert.throws(() => equipmentSearchSchema.parse(equipmentQueryParams("http://localhost?__proto__=x")));
 });

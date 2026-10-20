@@ -337,9 +337,10 @@ paths:
     get:
       operationId: getEquipmentCatalog
       security: []
-      description: Canonical equipment IDs/names/aliases from the database. Exact normalized aliases resolve as exact; partial results require selection. Initial 28 tools. See docs/equipment-scan.md.
+      description: Canonical equipment IDs/names/aliases and nonempty training modes from the database. Optional mode filters before name search; shared tools appear in both modes. Exact normalized aliases resolve as exact; partial results require selection. Initial 28 tools. Modes classify training use, not venue availability or exercise eligibility. See docs/equipment-scan.md.
       parameters:
         - { in: query, name: q, schema: { type: string, minLength: 2, maxLength: 120 } }
+        - { in: query, name: mode, schema: { type: string, enum: [gym, calisthenics] } }
       responses:
         "200":
           description: Versioned catalog or name-search candidates.
@@ -580,12 +581,12 @@ paths:
       operationId: getMe
       responses:
         "200":
-          description: Authenticated internal account.
+          description: Authenticated account plus binary setup status and current profile/preferences. No draft/progress is created. Existing completed accounts remain completed even if optional fields are absent. Versions are decimal strings; use them as baseVersions for final onboarding.
           content:
             application/json:
               schema:
                 type: object
-                required: [user]
+                required: [user, setupCompleted, profile, trainingPreferences, versions]
                 properties:
                   user:
                     type: object
@@ -594,7 +595,52 @@ paths:
                       id: { type: string, format: uuid }
                       email: { type: [string, "null"], format: email }
                       status: { const: active }
+                  setupCompleted: { type: boolean }
+                  profile:
+                    oneOf: [{ $ref: "#/components/schemas/SetupProfile" }, { type: "null" }]
+                  trainingPreferences:
+                    oneOf: [{ $ref: "#/components/schemas/SetupTrainingPreferences" }, { type: "null" }]
+                  versions: { $ref: "#/components/schemas/SetupVersions" }
         "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+  /onboarding/complete:
+    post:
+      operationId: completeOnboarding
+      description: Final submission only; no draft, step, or partial-save endpoint. Atomically merges optional profile fields, stores training preferences, marks setup complete, calculates a versioned nutrition estimate and appends two legacy sync changes. Requires current versions from /me. Same account/key/normalized payload replays the original response without writes; different content or a legacy sync operation using that key returns409 IDEMPOTENCY_KEY_REUSE. A completed account rejects a new key with409 ONBOARDING_ALREADY_COMPLETED. Receipts use the existing account-lifecycle retention, with no new TTL. No query parameters; strict JSON at most64KiB. Equipment IDs must be active and support the selected mode at validation time. Ownership comes only from the Bearer JWT.
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/OnboardingCompleteInput" }
+      responses:
+        "200":
+          description: Canonical saved setup and nutrition targets, or exact idempotent replay. Optional missing body/formula data may leave the nutrition estimate unavailable without blocking completion.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [operationId, setupCompleted, profile, trainingPreferences, versions, nutritionTargets]
+                properties:
+                  operationId: { type: string, format: uuid }
+                  setupCompleted: { const: true }
+                  profile: { $ref: "#/components/schemas/SetupProfile" }
+                  trainingPreferences: { $ref: "#/components/schemas/SetupTrainingPreferences" }
+                  versions: { $ref: "#/components/schemas/SetupVersions" }
+                  nutritionTargets: { $ref: "#/components/schemas/NutritionTargets" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "413": { $ref: "#/components/responses/Error" }
+        "415": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "500": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
   /sync/bootstrap:
     get:
       operationId: bootstrapSync
@@ -895,11 +941,18 @@ components:
         isMine: { type: boolean }
     EquipmentItem:
       type: object
-      required: [id, name, aliases]
+      required: [id, name, aliases, modes]
       properties:
         id: { type: string, pattern: "^[a-z][a-z0-9_]{0,79}$" }
         name: { type: string }
         aliases: { type: array, items: { type: string } }
+        modes:
+          type: array
+          minItems: 1
+          maxItems: 2
+          uniqueItems: true
+          items: { type: string, enum: [gym, calisthenics] }
+          description: Training taxonomy; shared equipment uses [gym, calisthenics]. Not a location or individualized exercise recommendation.
     EquipmentExercise:
       type: object
       required: [id, mode, idLabel, enLabel, defaultSets, defaultReps, requirements, missingEquipmentOptions]
@@ -1233,6 +1286,152 @@ components:
       type: string
       pattern: "^(0|[1-9][0-9]*)$"
       description: PostgreSQL bigint serialized as a decimal string.
+    SetupVersions:
+      type: object
+      additionalProperties: false
+      required: [profile, trainingPreferences]
+      description: Current row versions, including tombstones. Zero means no row. Range0..9223372036854775807, never JSON numbers.
+      properties:
+        profile: { $ref: "#/components/schemas/DecimalVersion", maxLength: 19 }
+        trainingPreferences: { $ref: "#/components/schemas/DecimalVersion", maxLength: 19 }
+    TrainingContext:
+      type: object
+      additionalProperties: false
+      properties:
+        pregnancyStatus: { type: [string, "null"], enum: [not_applicable, not_pregnant, pregnant, postpartum, prefer_not_to_say, null] }
+        healthStatus: { type: [string, "null"], enum: [no_known_restrictions, needs_professional_guidance, prefer_not_to_say, null] }
+        painAreas: { type: array, maxItems: 7, items: { type: string, enum: [shoulder, elbow, wrist, back, hip, knee, ankle] } }
+        mobilityLimitations: { type: array, maxItems: 3, items: { type: string, enum: [floor_transfer, overhead_reach, deep_knee_bend] } }
+        balanceConfidence: { type: [string, "null"], enum: [stable, needs_support, null] }
+        recoveryStatus: { type: [string, "null"], enum: [recovered, tired, very_tired, null] }
+        trainingBreakWeeks: { type: [integer, "null"], minimum: 0, maximum: 520 }
+        equipmentHeightLimits:
+          type: array
+          maxItems: 50
+          description: Unique equipment IDs; minHeightCm must not exceed maxHeightCm.
+          items:
+            type: object
+            additionalProperties: false
+            required: [equipment, minHeightCm, maxHeightCm]
+            properties:
+              equipment: { type: string, minLength: 1, maxLength: 80 }
+              minHeightCm: { type: number, minimum: 1, maximum: 300 }
+              maxHeightCm: { type: number, minimum: 1, maximum: 300 }
+    ExerciseCapability:
+      type: object
+      additionalProperties: false
+      required: [exerciseId, mode, maxReps, weightKg]
+      properties:
+        exerciseId: { type: string, minLength: 1, maxLength: 255 }
+        mode: { type: string, enum: [gym, calisthenics] }
+        maxReps: { type: integer, minimum: 0, maximum: 100 }
+        weightKg: { type: [number, "null"], minimum: 0, maximum: 500 }
+        bodyweightKg: { type: [number, "null"], exclusiveMinimum: 0, maximum: 9999.99 }
+    OnboardingProfile:
+      type: object
+      additionalProperties: false
+      required: [ageYears, goal, dailyActivity, trainingFrequency, sessionMinutes, programSource, motivationEnabled, motivationReason]
+      description: Final setup values. App source additionally requires one non-null focus. Omitted optional fields preserve existing values; explicit null clears nullable fields. trainingContext objects merge provided keys; null clears the whole context. setupCompleted is server-owned and rejected in requests. Gender never implies formulaSex or ability.
+      properties:
+        ageYears: { type: integer, minimum: 1, maximum: 150 }
+        goal: { type: string, enum: [bulk, cut, maintenance, maintain], description: maintain is accepted and normalized to maintenance. }
+        dailyActivity: { type: string, enum: [light, moderate, vigorous] }
+        trainingFrequency: { type: integer, minimum: 1, maximum: 7 }
+        sessionMinutes: { type: integer, minimum: 10, maximum: 180 }
+        programSource: { type: string, enum: [app, custom] }
+        motivationEnabled: { type: boolean }
+        motivationReason: { type: string, minLength: 1, maxLength: 80 }
+        focus: { type: [string, "null"], enum: [full, leg, chest, back, arm, null] }
+        displayName: { type: [string, "null"], minLength: 1, maxLength: 80 }
+        weightKg: { type: [number, "null"], exclusiveMinimum: 0, maximum: 9999.99 }
+        heightCm: { type: [number, "null"], exclusiveMinimum: 0, maximum: 999.99 }
+        formulaSex: { type: [string, "null"], enum: [male, female, null] }
+        gender: { type: [string, "null"], enum: [male, female, non_binary, self_described, prefer_not_to_say, null] }
+        trainingLevel: { type: [string, "null"], enum: [beginner, intermediate, advanced, null] }
+        trainingContext:
+          oneOf: [{ $ref: "#/components/schemas/TrainingContext" }, { type: "null" }]
+        exerciseCapabilities:
+          type: [array, "null"]
+          maxItems: 100
+          description: Unique mode/exerciseId pairs, based on actual user assessments.
+          items: { $ref: "#/components/schemas/ExerciseCapability" }
+        excludedExerciseIds: { type: [array, "null"], maxItems: 100, items: { type: string, minLength: 1, maxLength: 255 } }
+      if:
+        properties:
+          programSource: { const: app }
+        required: [programSource]
+      then:
+        required: [focus]
+        properties:
+          focus: { type: string, enum: [full, leg, chest, back, arm] }
+    OnboardingTrainingPreferences:
+      type: object
+      additionalProperties: false
+      required: [mode, equipment, noEquipment]
+      properties:
+        mode: { type: string, enum: [gym, calisthenics] }
+        equipment:
+          type: array
+          maxItems: 50
+          uniqueItems: true
+          items: { type: string, pattern: "^[a-z][a-z0-9_]{0,79}$" }
+        noEquipment: { type: boolean }
+      if:
+        properties:
+          noEquipment: { const: true }
+        required: [noEquipment]
+      then:
+        properties:
+          equipment: { maxItems: 0 }
+      else:
+        properties:
+          equipment: { minItems: 1 }
+    OnboardingCompleteInput:
+      type: object
+      additionalProperties: false
+      required: [baseVersions, profile, trainingPreferences]
+      properties:
+        baseVersions: { $ref: "#/components/schemas/SetupVersions" }
+        profile: { $ref: "#/components/schemas/OnboardingProfile" }
+        trainingPreferences: { $ref: "#/components/schemas/OnboardingTrainingPreferences" }
+    SetupProfile:
+      type: object
+      required: [displayName, ageYears, weightKg, heightCm, formulaSex, gender, trainingContext, goal, motivationReason, motivationEnabled, dailyActivity, trainingFrequency, focus, programSource, sessionMinutes, setupCompleted, trainingLevel, exerciseCapabilities, excludedExerciseIds, version, updatedAt]
+      description: Canonical current profile; legacy values remain readable. Owner ID and tombstone metadata are not exposed. Optional absent measurements are null, never invented.
+      properties:
+        displayName: { type: [string, "null"] }
+        ageYears: { type: [integer, "null"] }
+        weightKg: { type: [number, "null"] }
+        heightCm: { type: [number, "null"] }
+        formulaSex: { type: [string, "null"] }
+        gender: { type: [string, "null"] }
+        trainingContext:
+          oneOf: [{ $ref: "#/components/schemas/TrainingContext" }, { type: "null" }]
+        goal: { type: [string, "null"] }
+        motivationReason: { type: [string, "null"] }
+        motivationEnabled: { type: boolean }
+        dailyActivity: { type: [string, "null"] }
+        trainingFrequency: { type: [integer, "null"] }
+        focus: { type: [string, "null"] }
+        programSource: { type: [string, "null"] }
+        sessionMinutes: { type: [integer, "null"] }
+        setupCompleted: { type: boolean }
+        trainingLevel: { type: [string, "null"] }
+        exerciseCapabilities:
+          type: [array, "null"]
+          items: { $ref: "#/components/schemas/ExerciseCapability" }
+        excludedExerciseIds: { type: [array, "null"], items: { type: string } }
+        version: { $ref: "#/components/schemas/DecimalVersion" }
+        updatedAt: { type: string, format: date-time }
+    SetupTrainingPreferences:
+      type: object
+      required: [mode, equipment, noEquipment, version, updatedAt]
+      properties:
+        mode: { type: string, enum: [gym, calisthenics] }
+        equipment: { type: array, items: { type: string } }
+        noEquipment: { type: boolean }
+        version: { $ref: "#/components/schemas/DecimalVersion" }
+        updatedAt: { type: string, format: date-time }
     EntityType:
       type: string
       enum:

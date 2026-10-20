@@ -79,6 +79,13 @@ test("goals adjust prescription and gender does not invent ability", () => {
   assert.equal(muscle.exercises[0].reps, 10);
 });
 
+test("canonical maintenance goal matches maintain without a defaulted-goal warning", () => {
+  const run = (goal: string) => personalizePrograms([gymTemplate], catalog, profile({ trainingLevel: "advanced", goal }), ["dumbbell"], []);
+  const canonical = run("maintenance"), legacy = run("maintain");
+  assert.deepEqual(canonical.programs, legacy.programs);
+  assert.ok(!canonical.personalization.assumptions.includes("GOAL_DEFAULTED_TO_GENERAL_FITNESS"));
+});
+
 test("assessed ability caps reps and reuses only assessed load", () => {
   const result = personalizePrograms([gymTemplate], catalog, profile({
     trainingLevel: "intermediate",

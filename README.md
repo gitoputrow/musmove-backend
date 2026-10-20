@@ -22,7 +22,8 @@ Content-Type: application/json
 The server derives account ownership only from the verified token. A client
 must never send a `userId` to select ownership. Current endpoints are:
 
-- `GET /me`
+- `GET /me` (account, binary `setupCompleted`, current profile/preferences and versions)
+- `POST /onboarding/complete` (final-only atomic setup; Bearer JWT, UUID `Idempotency-Key` and `baseVersions`)
 - `GET /meta` (public implementation capabilities; not provider readiness)
 - `POST /auth/sign-up/email` and `POST /auth/sign-in/email` (strict JSON; no Authorization)
 - `GET /auth/get-session` and `GET /auth/token` (native encrypted session; Authorization: Session)
@@ -53,6 +54,12 @@ must never send a `userId` to select ownership. Current endpoints are:
 The web password-reset callback is `/auth/reset-password` outside `/api/v1`.
 See [backend follow-up implementation and rollout](docs/backend-follow-up-result.md)
 for the7-day deletion worker, operational credentials, moderation and limitations.
+
+For the new final-only mobile setup flow, see
+[the onboarding handoff](docs/frontend-follow-up-onboarding.md). Incomplete
+answers stay in mobile memory; there is no backend draft/progress. This feature
+reuses existing tables and needs no additional migration. The legacy sync
+contract remains available; the full online-only CRUD proposal is not yet implemented.
 
 The sync contract is offline-first. `operationId` makes retries idempotent,
 `baseVersion` detects concurrent edits, per-user sequence numbers order the
@@ -215,6 +222,7 @@ npm run lint
 npm run typecheck
 npm run db:test-schema
 npm run test:follow-up
+npm run test:onboarding
 npm run test:security
 npm run test:programs
 npm run test:movement-tags

@@ -59,6 +59,8 @@ async function main() {
         if (!identityGuard.ready) issues.push("DATABASE_MIGRATIONS: apply migration 0017 identity guard before deploying");
         const priceMetadata = (await client.query("SELECT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='meal_catalog' AND column_name='price_details') AS ready")).rows[0];
         if (!priceMetadata.ready) issues.push("DATABASE_MIGRATIONS: apply migration 0018 food price metadata before deploying");
+        const equipmentModes = (await client.query("SELECT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='equipment_catalog' AND column_name='modes' AND is_nullable='NO') AS ready")).rows[0];
+        if (!equipmentModes.ready) issues.push("DATABASE_MIGRATIONS: apply migration 0020 equipment modes before deploying; review any older pending migrations first");
         await client.query("ROLLBACK");
       } finally { client.release(); }
     } catch {

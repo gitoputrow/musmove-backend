@@ -9,7 +9,7 @@ mengganti halaman scan Flutter secara otomatis.
 
 Migrasi `0012_equipment_catalog.sql` membuat `equipment_catalog` berisi 28 alat:
 27 key yang sudah digunakan 117 exercise, ditambah `mat` dari katalog mobile.
-Field utama hanya `id`, `name`, `aliases`; `active` dan `updatedAt` untuk
+Field utama `id`, `name`, `aliases`, `modes`; `active` dan `updatedAt` untuk
 pengelolaan katalog. ID memakai key lama seperti `pull_up_bar`, bukan enum
 Flutter `pullUpBar`. Nama English juga menjadi label kandidat model; alias
 Indonesia dan variasi ejaan membantu pencarian nama.
@@ -30,9 +30,60 @@ yang terdaftar.
 ```http
 GET /api/v1/catalog/equipment?q=dambel
 GET /api/v1/catalog/equipment?q=bar
+GET /api/v1/catalog/equipment?mode=gym
+GET /api/v1/catalog/equipment?mode=calisthenics&q=bar
 GET /api/v1/equipment/exercises?equipmentIds=dumbbell&mode=gym
 GET /api/v1/equipment/exercises?equipmentIds=dumbbell,bench&mode=gym
 ```
+
+### Jenis alat gym dan kalistenik (migrasi 0020)
+
+Setiap alat memiliki `modes` berupa array non-kosong: `["gym"]`,
+`["calisthenics"]`, atau `["gym", "calisthenics"]`. Ini kategori penggunaan
+latihan, bukan lokasi alat atau bukti tersedia di setiap gym/taman.
+
+- Gym saja (20 alat): assisted_pullup_machine, barbell, cable_machine,
+  chest_press_machine, chest_supported_row_machine, decline_chest_press_machine,
+  dumbbell, high_row_machine, incline_chest_press_machine, iso_lateral_row_machine,
+  landmine, lat_pulldown_machine, leg_curl_machine, leg_extension_machine,
+  leg_press_machine, low_row_machine, pec_deck_machine, pullover_machine,
+  smith_machine, squat_rack.
+- Kalistenik saja (2 alat): low_bar, rings.
+- Keduanya (6 alat): bench, chair, mat, parallel_bars, pull_up_bar, resistance_band.
+
+Chair juga muncul pada exercise mode gym yang sudah ada; tidak dikeluarkan
+dari kategori gym. Jumlah hasil filter adalah 26 gym dan 8 kalistenik karena
+enam alat bersama dihitung pada keduanya, bukan penambahan ID alat.
+
+Contoh item (alias dipersingkat):
+
+```json
+{"id":"pull_up_bar","name":"Pull-Up Bar","aliases":["palang"],"modes":["gym","calisthenics"]}
+```
+
+Filter `mode` opsional menerima `gym` atau `calisthenics`. Alat bersama muncul
+di kedua filter. Filter diterapkan sebelum pencarian nama; parameter tidak
+valid atau berulang ditolak 400. `selectedEquipment` pada pencocokan exercise
+juga memuat `modes`. Hubungan exercise tetap memakai requirements AND/OR,
+bukan ditebak hanya dari kategori alat; metadata ini tidak mengubah program user.
+
+Migration `0020_equipment_modes` mengisi seluruh 28 alat, menolak modes kosong,
+nilai asing, null, atau duplikat, dan menaikkan `catalogVersion`. Item baru wajib
+diklasifikasikan secara eksplisit. Mobile perlu menambah field array dan
+menyegarkan cache katalog; tidak perlu mengganti ID alat atau data latihan lama.
+Terapkan migrasi database **sebelum deploy API baru** yang membaca kolom ini;
+API lama tetap kompatibel dengan penambahan kolom. Review migrasi lama yang
+masih pending sebelum menjalankan `npm run db:migrate`, khususnya `0019` yang
+menghapus kolom makanan. Jangan menerapkan penghapusan tersebut tanpa memastikan
+rollout API makanan yang sesuai sudah selesai.
+
+Status 19 Oktober 2026: migrasi `0019` dan `0020` telah diterapkan pada database
+yang terhubung setelah persetujuan pengguna dan pemeriksaan API production.
+Semua 28 alat memiliki kategori; ID/nama/alias tetap sama. `meal_catalog` kini
+22 kolom, dengan nilai tiga kolom yang dihapus dicadangkan dalam file lokal
+gitignored `.local-backups/migration-0019-meal-columns-2026-10-19.json`.
+Security preflight lokal lolos. API Vercel perlu redeploy source terbaru agar
+respons equipment mengirim `modes` dan menerima filter `mode`.
 
 `GET /api/v1/equipment/exercises` (public) memerlukan 1–32 ID alat aktif,
 dipisahkan koma, tanpa duplikat. `mode` opsional (`gym`, `calisthenics`).

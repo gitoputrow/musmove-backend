@@ -24,14 +24,14 @@ export function normalizeGoal(value: string | null) {
   switch (value) {
     case "bulk": case "muscle": return "muscle";
     case "cut": case "fat": return "fat_loss";
-    case "fit": case "maintain": return "general_fitness";
+    case "fit": case "maintain": case "maintenance": return "general_fitness";
     case "strength": return "strength";
     case "endurance": return "endurance";
     default: return "general_fitness";
   }
 }
 
-const supportedGoals = new Set(["bulk", "muscle", "cut", "fat", "fit", "maintain", "strength", "endurance"]);
+const supportedGoals = new Set(["bulk", "muscle", "cut", "fat", "fit", "maintain", "maintenance", "strength", "endurance"]);
 const regressions: Record<string, string[]> = {
   pushup: ["knee_pushup", "wall_pushup"],
   diamond: ["pushup", "knee_pushup", "wall_pushup"],

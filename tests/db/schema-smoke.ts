@@ -38,9 +38,10 @@ async function main() {
       where not exists (select 1 from equipment_catalog where id = key.id)
     `);
     if (unmapped.rows[0].count !== 0) throw new Error("Exercise requirement has no equipment catalog entry");
+    const equipmentBefore = await client.query<{ version: string }>("select version::text from catalog_state where name = 'equipment'");
     await client.exec("BEGIN; UPDATE equipment_catalog SET name = 'Updated dumbbell' WHERE id = 'dumbbell';");
     const equipmentState = await client.query<{ version: string }>("select version::text from catalog_state where name = 'equipment'");
-    if (equipmentState.rows[0].version !== "2") throw new Error("Equipment catalog version trigger failed");
+    if (BigInt(equipmentState.rows[0].version) !== BigInt(equipmentBefore.rows[0].version) + BigInt(1)) throw new Error("Equipment catalog version trigger failed");
     await client.exec("ROLLBACK;");
 
     const catalog = await client.query<{ count: number }>(
