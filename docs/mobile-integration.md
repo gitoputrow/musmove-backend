@@ -4,6 +4,13 @@ Panduan implementasi untuk Android/iOS, termasuk Flutter. Disusun berdasarkan
 schema, validator, dan handler di repository ini pada 18 Oktober 2026.
 Kontrak field lengkap tersedia di [OpenAPI](openapi.yaml).
 
+**Alur mobile terbaru (20 Oktober 2026):** gunakan
+[handoff API langsung per fitur](frontend-follow-up-online-api.md) untuk mode
+online, PATCH profil/preferensi gabungan, CRUD resource, hasil workout selesai,
+favorit, jurnal dan ringkasan. Bagian sync/offline di panduan ini tetap merupakan
+kontrak legacy; bukan kewajiban startup client online baru. Tidak ada penghapusan
+storage/outbox lama atau deploy otomatis.
+
 Pembaruan source v1.1: snapshot berhalaman, lifecycle penghapusan 7 hari,
 social teks eksplisit, dan halaman penyelesaian reset password. Perubahan baru
 memerlukan migration0016, grants, dan redeploy; jangan menganggap deployment

@@ -23,6 +23,7 @@ jobs:
       - run: npm run security:secrets
       - run: npm run test:follow-up
       - run: npm run test:onboarding
+      - run: npm run test:online
       - run: npm run test:auth
       - run: npm run test:security
       - run: npm run db:test-schema

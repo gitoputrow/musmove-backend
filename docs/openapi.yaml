@@ -8,6 +8,30 @@ servers:
 security:
   - bearerAuth: []
 paths:
+  /programs/custom:
+    $ref: "./openapi-online.json#/paths/~1programs~1custom"
+  /programs/custom/{id}:
+    $ref: "./openapi-online.json#/paths/~1programs~1custom~1{id}"
+  /exercises/custom:
+    $ref: "./openapi-online.json#/paths/~1exercises~1custom"
+  /exercises/custom/{id}:
+    $ref: "./openapi-online.json#/paths/~1exercises~1custom~1{id}"
+  /social/drafts:
+    $ref: "./openapi-online.json#/paths/~1social~1drafts"
+  /social/drafts/{id}:
+    $ref: "./openapi-online.json#/paths/~1social~1drafts~1{id}"
+  /meals/{id}:
+    $ref: "./openapi-online.json#/paths/~1meals~1{id}"
+  /places/{id}/favorite:
+    $ref: "./openapi-online.json#/paths/~1places~1{id}~1favorite"
+  /workouts/{id}:
+    $ref: "./openapi-online.json#/paths/~1workouts~1{id}"
+  /dashboard:
+    $ref: "./openapi-online.json#/paths/~1dashboard"
+  /schedule:
+    $ref: "./openapi-online.json#/paths/~1schedule"
+  /statistics:
+    $ref: "./openapi-online.json#/paths/~1statistics"
   /auth/sign-up/email:
     post:
       operationId: nativeAuthSignUp
@@ -445,7 +469,7 @@ paths:
   /places:
     get:
       operationId: listPlacesWithFavorites
-      description: Same catalog and filters with isFavorite for the verified account only. Tombstones and other accounts are excluded. Mutate favorites through sync/push place_favorite, never this route.
+      description: Same catalog and filters with isFavorite and favoriteVersion for the verified account only. Tombstones are not favorites but their version remains available for re-add. Mutate only the changed place through PUT/DELETE /places/{id}/favorite; legacy sync/push remains supported.
       parameters:
         - { $ref: "#/components/parameters/PlacesArea" }
         - { $ref: "#/components/parameters/PlacesCity" }
@@ -521,45 +545,7 @@ paths:
               schema: { $ref: "#/components/schemas/NutritionTargets" }
         "401": { $ref: "#/components/responses/Error" }
   /meals:
-    get:
-      operationId: listMeals
-      description: Owned non-deleted consumption log on a user-local calendar date. Totals cover all entries for that date, independent of pagination. Demo totals are separate and excluded from remaining-target progress. Mutations use sync/push meal_entry; see MealEntryPayload.
-      parameters:
-        - { in: query, name: date, required: true, schema: { type: string, format: date } }
-        - { in: query, name: limit, schema: { type: integer, minimum: 1, maximum: 100, default: 50 } }
-        - { in: query, name: offset, schema: { type: integer, minimum: 0, maximum: 100000, default: 0 } }
-      responses:
-        "200":
-          description: Daily consumption entries, full-day totals and current profile targets.
-          content:
-            application/json:
-              schema:
-                type: object
-                required: [date, entries, hasMore, nextOffset, summary, targets, warnings]
-                properties:
-                  date: { type: string, format: date }
-                  entries:
-                    type: array
-                    items: { $ref: "#/components/schemas/MealLogItem" }
-                  hasMore: { type: boolean }
-                  nextOffset: { type: [integer, "null"] }
-                  targets: { $ref: "#/components/schemas/NutritionTargets" }
-                  warnings: { type: array, items: { type: string } }
-                  summary:
-                    type: object
-                    required: [entryCount, reportedTotals, demoTotals, demoEntryCount, undatedLegacyEntryCount, remaining]
-                    properties:
-                      entryCount: { type: integer }
-                      reportedTotals: { $ref: "#/components/schemas/MealNutrients" }
-                      demoTotals: { $ref: "#/components/schemas/MealNutrients" }
-                      demoEntryCount: { type: integer }
-                      undatedLegacyEntryCount: { type: integer, description: All owned live entries without a local date; not included in the daily totals. }
-                      remaining:
-                        anyOf:
-                          - { $ref: "#/components/schemas/MealNutrients" }
-                          - { type: "null" }
-        "400": { $ref: "#/components/responses/Error" }
-        "401": { $ref: "#/components/responses/Error" }
+    $ref: "./openapi-online.json#/paths/~1meals"
   /catalog/programs:
     get:
       operationId: getProgramCatalog
@@ -577,32 +563,7 @@ paths:
         "409": { $ref: "#/components/responses/Error" }
         "401": { $ref: "#/components/responses/Error" }
   /me:
-    get:
-      operationId: getMe
-      responses:
-        "200":
-          description: Authenticated account plus binary setup status and current profile/preferences. No draft/progress is created. Existing completed accounts remain completed even if optional fields are absent. Versions are decimal strings; use them as baseVersions for final onboarding.
-          content:
-            application/json:
-              schema:
-                type: object
-                required: [user, setupCompleted, profile, trainingPreferences, versions]
-                properties:
-                  user:
-                    type: object
-                    required: [id, email, status]
-                    properties:
-                      id: { type: string, format: uuid }
-                      email: { type: [string, "null"], format: email }
-                      status: { const: active }
-                  setupCompleted: { type: boolean }
-                  profile:
-                    oneOf: [{ $ref: "#/components/schemas/SetupProfile" }, { type: "null" }]
-                  trainingPreferences:
-                    oneOf: [{ $ref: "#/components/schemas/SetupTrainingPreferences" }, { type: "null" }]
-                  versions: { $ref: "#/components/schemas/SetupVersions" }
-        "401": { $ref: "#/components/responses/Error" }
-        "403": { $ref: "#/components/responses/Error" }
+    $ref: "./openapi-online.json#/paths/~1me"
   /onboarding/complete:
     post:
       operationId: completeOnboarding
@@ -630,6 +591,8 @@ paths:
                   setupCompleted: { const: true }
                   profile: { $ref: "#/components/schemas/SetupProfile" }
                   trainingPreferences: { $ref: "#/components/schemas/SetupTrainingPreferences" }
+                  userPreferences:
+                    anyOf: [{ $ref: "./openapi-online.json#/components/schemas/UserPreferences" }, { type: "null" }]
                   versions: { $ref: "#/components/schemas/SetupVersions" }
                   nutritionTargets: { $ref: "#/components/schemas/NutritionTargets" }
         "400": { $ref: "#/components/responses/Error" }
@@ -723,19 +686,7 @@ paths:
         "200": { description: Identical importId and snapshot was already imported. }
         "409": { $ref: "#/components/responses/Error" }
   /workouts:
-    get:
-      operationId: listWorkouts
-      parameters:
-        - { in: query, name: from, schema: { type: string, format: date } }
-        - { in: query, name: to, schema: { type: string, format: date } }
-        - { in: query, name: cursor, schema: { type: string } }
-        - in: query
-          name: limit
-          schema: { type: integer, minimum: 1, maximum: 100, default: 25 }
-      responses:
-        "200":
-          description: Owned non-deleted workout snapshots.
-        "400": { $ref: "#/components/responses/Error" }
+    $ref: "./openapi-online.json#/paths/~1workouts"
   /catalog/exercises:
     get:
       operationId: getExerciseCatalog
@@ -1036,6 +987,7 @@ components:
         updatedAt: { type: string, format: date-time }
         distanceKm: { type: [number, "null"], description: Great-circle distance rounded to 0.001 km; null without origin. Not travel distance. }
         isFavorite: { type: boolean, description: Present only on the private /places response. }
+        favoriteVersion: { $ref: "#/components/schemas/DecimalVersion", description: Private /places only. Includes tombstone version for optimistic favorite mutations; zero if no row. }
     MealNutrients:
       type: object
       additionalProperties: false
@@ -1294,6 +1246,7 @@ components:
       properties:
         profile: { $ref: "#/components/schemas/DecimalVersion", maxLength: 19 }
         trainingPreferences: { $ref: "#/components/schemas/DecimalVersion", maxLength: 19 }
+        userPreferences: { $ref: "#/components/schemas/DecimalVersion", maxLength: 19, description: Returned by /me and complete; optional in onboarding input and not checked/written by onboarding. Required as base version when PATCH changes userPreferences. }
     TrainingContext:
       type: object
       additionalProperties: false

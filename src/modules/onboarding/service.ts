@@ -1,7 +1,7 @@
 import "server-only";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { getDatabase } from "@/src/db/client";
-import { equipmentCatalog, operationReceipts, profiles, syncChanges, syncState, trainingPreferences, users } from "@/src/db/schema";
+import { equipmentCatalog, operationReceipts, profiles, syncChanges, syncState, trainingPreferences, userPreferences, users } from "@/src/db/schema";
 import type { JsonObject } from "@/src/db/schema";
 import { ApiError, badRequest, conflict, forbidden } from "@/src/lib/api-error";
 import { readNutritionTargets } from "@/src/modules/nutrition/storage";
@@ -17,10 +17,11 @@ const MAX_VERSION = BigInt("9223372036854775807");
 async function readRows(transaction: DatabaseTransaction, userId: string) {
   const [profile] = await transaction.select().from(profiles).where(eq(profiles.userId, userId));
   const [training] = await transaction.select().from(trainingPreferences).where(eq(trainingPreferences.userId, userId));
-  return { profile, training };
+  const [preferences] = await transaction.select().from(userPreferences).where(eq(userPreferences.userId, userId));
+  return { profile, training, preferences };
 }
 
-function projectSetup({ profile, training }: Awaited<ReturnType<typeof readRows>>) {
+function projectSetup({ profile, training, preferences }: Awaited<ReturnType<typeof readRows>>) {
   const profileLive = profile && !profile.deletedAt;
   const trainingLive = training && !training.deletedAt;
   // Preserve all existing completed accounts; do not infer completion from field completeness.
@@ -34,9 +35,17 @@ function projectSetup({ profile, training }: Awaited<ReturnType<typeof readRows>
       mode: training.mode, equipment: training.equipment, noEquipment: training.noEquipment,
       version: training.version.toString(), updatedAt: training.updatedAt.toISOString(),
     } : null,
+    userPreferences: preferences && !preferences.deletedAt ? {
+      budgetRupiah: preferences.budgetRupiah, budgetIsManual: preferences.budgetIsManual, placesArea: preferences.placesArea,
+      version: preferences.version.toString(), updatedAt: preferences.updatedAt.toISOString(),
+    } : null,
     // Keep tombstone versions for explicit optimistic concurrency, even when DTO is null.
-    versions: { profile: (profile?.version ?? BigInt(0)).toString(), trainingPreferences: (training?.version ?? BigInt(0)).toString() },
+    versions: { profile: (profile?.version ?? BigInt(0)).toString(), trainingPreferences: (training?.version ?? BigInt(0)).toString(), userPreferences: (preferences?.version ?? BigInt(0)).toString() },
   };
+}
+
+export async function readAccountSetup(transaction: DatabaseTransaction, userId: string) {
+  return projectSetup(await readRows(transaction, userId));
 }
 
 export async function getAccountSetup(userId: string) {

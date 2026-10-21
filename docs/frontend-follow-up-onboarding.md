@@ -3,6 +3,12 @@
 Tanggal: 20 Oktober 2026. Implementasi source; perlu redeploy backend sebelum
 dipakai pada URL production. Tidak ada migrasi database baru untuk fitur ini.
 
+Tambahan terbaru: [API langsung per fitur](frontend-follow-up-online-api.md)
+menyediakan PATCH `/me` dan CRUD online. `/me` serta respons complete kini juga
+memuat `userPreferences` dan `versions.userPreferences` untuk budget/area. Key
+versi tambahan tersebut boleh diteruskan ke complete, tetapi tidak ditulis/dicek
+oleh onboarding. Kontrak lama dengan dua baseVersions tetap diterima.
+
 ## Alur mobile
 
 1. Login melalui proxy auth Next.js, ambil JWT dari `GET /api/v1/auth/token`.
@@ -159,6 +165,6 @@ melalui pull; mekanisme lock, versi, dan ownership tetap sama. Jangan mengirim
 setup final yang sama lagi melalui `/sync/push` setelah berhasil memakai endpoint
 baru. Endpoint ini tidak memerlukan bootstrap/pull untuk menyimpan setup.
 
-Perubahan ini hanya mencakup `/me` dan finalisasi onboarding. Seluruh CRUD online
-dalam proposal frontend belum otomatis diimplementasikan oleh perubahan ini.
+Dokumen ini berfokus pada `/me` dan finalisasi onboarding. CRUD online yang
+ditambahkan setelahnya dijelaskan pada handoff API langsung yang ditautkan di atas.
 Tidak ada perubahan kebijakan email verification atau scan foto.

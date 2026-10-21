@@ -30,15 +30,17 @@ export async function getPlaceCatalog(query: PlacesQuery, userId?: string) {
       select 1 from ${placeFavorites} where ${placeFavorites.userId} = ${userId}
         and ${placeFavorites.placeId} = ${placeCatalog.id} and ${isNull(placeFavorites.deletedAt)}
     )` : sql<boolean | null>`NULL::boolean`;
-    const rows = await transaction.select({ place: placeCatalog, distanceKm: distance, isFavorite: favorite })
+    const favoriteVersion = userId ? sql<string>`coalesce((select version::text from ${placeFavorites}
+      where ${placeFavorites.userId}=${userId} and ${placeFavorites.placeId}=${placeCatalog.id}), '0')` : sql<string>`'0'`;
+    const rows = await transaction.select({ place: placeCatalog, distanceKm: distance, isFavorite: favorite, favoriteVersion })
       .from(placeCatalog).where(filter).orderBy(...(hasOrigin ? [asc(distance)] : []), asc(placeCatalog.name), asc(placeCatalog.id))
       .limit(query.limit).offset(query.offset);
     return {
       catalogVersion: state.version.toString(),
-      places: rows.map(({ place: { version, updatedAt, ...place }, distanceKm, isFavorite }) => ({
+      places: rows.map(({ place: { version, updatedAt, ...place }, distanceKm, isFavorite, favoriteVersion }) => ({
         ...place, version: version.toString(), updatedAt: updatedAt.toISOString(),
         distanceKm: distanceKm === null ? null : Math.round(distanceKm * 1000) / 1000,
-        ...(userId ? { isFavorite } : {}),
+        ...(userId ? { isFavorite, favoriteVersion } : {}),
       })),
       total: count.total, hasMore: query.offset + rows.length < count.total,
       nextOffset: query.offset + rows.length < count.total ? query.offset + query.limit : null,

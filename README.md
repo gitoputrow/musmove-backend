@@ -9,6 +9,10 @@ Panduan berbahasa Indonesia untuk struktur database, penggunaan endpoint,
 alur Neon Auth native, dan sync offline tersedia di
 [`docs/mobile-integration.md`](docs/mobile-integration.md).
 
+For the latest online-only mobile flow, use the
+[direct feature API handoff](docs/frontend-follow-up-online-api.md). It supersedes
+legacy sync instructions for new clients, without deleting the legacy API/data.
+
 All API routes use `/api/v1`. Mobile signs in through the Next.js auth proxy,
 not directly to Neon. See [the auth handoff](docs/frontend-follow-up-auth-proxy.md)
 for `Authorization: Session` on auth endpoints. Private data routes require the
@@ -22,7 +26,7 @@ Content-Type: application/json
 The server derives account ownership only from the verified token. A client
 must never send a `userId` to select ownership. Current endpoints are:
 
-- `GET /me` (account, binary `setupCompleted`, current profile/preferences and versions)
+- `GET/PATCH /me` (account/setup snapshot; one atomic patch for profile, training and budget/area preferences)
 - `POST /onboarding/complete` (final-only atomic setup; Bearer JWT, UUID `Idempotency-Key` and `baseVersions`)
 - `GET /meta` (public implementation capabilities; not provider readiness)
 - `POST /auth/sign-up/email` and `POST /auth/sign-in/email` (strict JSON; no Authorization)
@@ -35,6 +39,10 @@ must never send a `userId` to select ownership. Current endpoints are:
 - `GET /sync/pull?cursor=...&limit=...`
 - `POST /imports/demo`
 - `GET /workouts?from=YYYY-MM-DD&to=YYYY-MM-DD`
+- `POST /workouts` (save once after finishing, including full performed snapshot and all set results; custom/recommended/manual)
+- `GET/DELETE /workouts/{id}` (history; no start/resume, per-set save or abort API)
+- `GET/POST /programs/custom`; `GET/PATCH/DELETE /programs/custom/{id}`
+- `GET/POST /exercises/custom`; `GET/PATCH/DELETE /exercises/custom/{id}`
 - `GET /catalog/exercises` (public and versioned)
 - `GET /catalog/equipment?q=dambel` (public equipment catalog/name aliases)
 - `GET /equipment/exercises?equipmentIds=dumbbell,bench&mode=gym` (public equipment matches and missing tools)
@@ -43,9 +51,12 @@ must never send a `userId` to select ownership. Current endpoints are:
 - `GET /programs/recommendations` (private selection using saved preferences)
 - `GET /catalog/meals?q=tempe&foodGroup=legumes&limit=50&offset=0` (public, paginated TKPI reference foods; demos hidden by default)
 - `GET /catalog/places` (public Jakarta catalog, category/access filters and optional distance)
-- `GET /places` (private catalog with the current account's `isFavorite` flags)
+- `GET /places` (private `isFavorite` and `favoriteVersion`); `PUT/DELETE /places/{id}/favorite`
 - `GET /nutrition/targets` (private, stored profile-versioned estimates)
 - `GET /meals?date=YYYY-MM-DD&limit=50&offset=0` (private daily journal/summary)
+- `POST /meals`; `GET/PATCH/DELETE /meals/{id}` (canonical journal/summary returned on writes)
+- `GET/POST /social/drafts`; `GET/PATCH/DELETE /social/drafts/{id}` (private, never auto-published)
+- `GET /dashboard?date=YYYY-MM-DD`; `GET /schedule?from=...&to=...`; `GET /statistics?from=...&to=...`
 - `POST /account/deletion-requests`
 - `GET /account/deletion-requests` (own lifecycle status while JWT remains valid)
 - `GET/POST/DELETE /social/posts` (explicit text community publishing; feature flag)
@@ -59,7 +70,11 @@ For the new final-only mobile setup flow, see
 [the onboarding handoff](docs/frontend-follow-up-onboarding.md). Incomplete
 answers stay in mobile memory; there is no backend draft/progress. This feature
 reuses existing tables and needs no additional migration. The legacy sync
-contract remains available; the full online-only CRUD proposal is not yet implemented.
+contract remains available. Direct resource CRUD and completed-only workout submission are now
+implemented in source; see the online handoff for limits and rollout status.
+All new mutations require a UUID `Idempotency-Key`; updates/deletes also require
+base versions. No cloud deploy, production personal-data write, or mobile
+SQLite/outbox deletion is performed by this change.
 
 The sync contract is offline-first. `operationId` makes retries idempotent,
 `baseVersion` detects concurrent edits, per-user sequence numbers order the
@@ -223,6 +238,7 @@ npm run typecheck
 npm run db:test-schema
 npm run test:follow-up
 npm run test:onboarding
+npm run test:online
 npm run test:security
 npm run test:programs
 npm run test:movement-tags

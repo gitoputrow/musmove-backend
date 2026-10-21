@@ -1,0 +1,5046 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "MusMove direct online APIs",
+    "version": "1.1.0",
+    "description": "Source contract, not proof of deployment. Primary spec is openapi.yaml, which references these path items. Every mutation requires a UUID Idempotency-Key plus resource versions for updates/deletes. Scope/hash/receipt and domain writes commit atomically; same account/key/normalized body replays the original successful JSON/status, different content/path rejects409. Failed transactions save no receipt. No TTL cleanup/discovery endpoint, no skip endpoint, no new SETUP_REQUIRED recommendation guard. All ownership from Bearer JWT. JSON <=64KiB, depth32; mutation responses <=256KiB, reads <=3MiB. Account120/min and writes30/min;429 honors Retry-After; errors sanitized with requestId. Existing sync remains compatible. No new tables, cloud deployment, production personal writes or deletion of legacy device data."
+  },
+  "servers": [
+    {
+      "url": "/api/v1"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/me": {
+      "get": {
+        "operationId": "getMe",
+        "description": "Read identity, binary setup state, profile, training preferences, user preferences and all three versions without saving a draft.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Canonical account-owned state, or original successful response on exact idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Account"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "patchMe",
+        "description": "One atomic PATCH for changed resources only. Include exactly their baseVersions. Omission preserves, nullable null clears, nested trainingContext merges; arrays replace. setupCompleted cannot be patched. Profile/training editor requires completed onboarding; budget/area preferences may be saved independently. Optional nutrition can remain unavailable. No query parameters.",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountPatchInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Canonical account-owned state, or original successful response on exact idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountPatchResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/workouts": {
+      "get": {
+        "operationId": "listWorkouts",
+        "description": "Legacy bounded offset cursor for owned history; from <= to. New collection cursors below are separately signed and cannot be used here.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "from",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 25
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string",
+              "maxLength": 256
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Canonical account-owned state, or original successful response on exact idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutList"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "operationId": "recordCompletedWorkout",
+        "description": "Submit once after finishing: full performed exerciseSnapshot, complete setLog, startedAt, finishedAt and local recordedOn >=1900-01-01. Always creates status completed; no start, resume, per-set or abort API. Source custom/recommended requires programId with matching ownership/catalog and mode; source manual must omit programId. Valid historical references may be soft-deleted/inactive. Server canonicalizes exercise labels/requirements but never rebuilds sets/reps from a program or current recommendations. Results remain self-reported, not proof that a program was recommended. Key retry replays without duplication. finishedAt >= startedAt; recordedOn within one day of UTC start day.",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompletedWorkoutInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Canonical account-owned state, or original successful response on exact idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/workouts/{id}": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Id"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "getWorkout",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Canonical account-owned state, or original successful response on exact idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteWorkout",
+        "description": "Soft-delete only, retaining immutable history payload; owner/version required.",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Canonical account-owned state, or original successful response on exact idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Deleted"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/places/{id}/favorite": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Id"
+          }
+        }
+      ],
+      "put": {
+        "operationId": "addPlaceFavorite",
+        "description": "Set favorite using favoriteVersion from GET /places as baseVersion. Active public place required when adding. Same-state requests do not bump versions.",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Canonical account-owned state, or original successful response on exact idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Favorite"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "removePlaceFavorite",
+        "description": "Remove only this place. Tombstone favoriteVersion remains readable via GET /places for re-add; absence is version0.",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Canonical account-owned state, or original successful response on exact idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Favorite"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/dashboard": {
+      "get": {
+        "operationId": "getDashboard",
+        "description": "Bounded current-page data only. No recommendation call. nutritionTargets and remaining are null when setup is incomplete; no SETUP_REQUIRED guard.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "date",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Canonical account-owned state, or original successful response on exact idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Dashboard"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/schedule": {
+      "get": {
+        "operationId": "getSchedule",
+        "description": "Inclusive user-local date range with 0..366 days between endpoints. SQL summaries, not full history. Weekly custom schedule uses ISO Monday1..Sunday7. Statistics exclude demo meals/undated records and do not infer bodyweight load or calories burned. Figures are user-reported.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "from",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Canonical account-owned state, or original successful response on exact idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Schedule"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/statistics": {
+      "get": {
+        "operationId": "getStatistics",
+        "description": "Inclusive user-local date range with 0..366 days between endpoints. SQL summaries, not full history. Weekly custom schedule uses ISO Monday1..Sunday7. Statistics exclude demo meals/undated records and do not infer bodyweight load or calories burned. Figures are user-reported.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "from",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Canonical account-owned state, or original successful response on exact idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Statistics"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/programs/custom": {
+      "get": {
+        "operationId": "listCustomProgram",
+        "description": "Signed ID-keyset cursor bound to account, resource and mode filter. No disk cache or full-account bootstrap. Private draft list never publishes content.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 25
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string",
+              "maxLength": 2048
+            }
+          },
+          {
+            "in": "query",
+            "name": "mode",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "gym",
+                "calisthenics"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Canonical account-owned state, or original successful response on exact idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "items",
+                    "nextCursor"
+                  ],
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CustomProgram"
+                      }
+                    },
+                    "nextCursor": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createCustomProgram",
+        "description": "Strict final create with client-generated stable ID; IDs (including deleted IDs) cannot be reused. Program may atomically create newExercises; exercise references must be owned or active catalog and support its mode. Exercise labels/requirements are server-canonical, not client-authoritative. Exercise mode is immutable. Meals resolve catalog nutrition/estimated price server-side; journal summaries returned. Drafts remain private.",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomProgramCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Canonical account-owned state, or original successful response on exact idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomProgramResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/programs/custom/{id}": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Id"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "getCustomProgram",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Canonical account-owned state, or original successful response on exact idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "item"
+                  ],
+                  "properties": {
+                    "item": {
+                      "$ref": "#/components/schemas/CustomProgram"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "patchCustomProgram",
+        "description": "Non-empty changed fields only; merge with persisted data before validation. Only declared nullable fields accept null. Preserve untouched metadata, nutrition/price snapshots and versions. Meal journals include both dates if moved. Program schedule slot conflicts return409; newExercises and program write are one transaction. History snapshots never change when program/exercise changes.",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomProgramPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Canonical account-owned state, or original successful response on exact idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomProgramResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteCustomProgram",
+        "description": "Account-owned versioned soft-delete. Same successful key/body replays without another delete; new keys for absent/deleted rows return404.",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Canonical account-owned state, or original successful response on exact idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Deleted"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/exercises/custom": {
+      "get": {
+        "operationId": "listCustomExercise",
+        "description": "Signed ID-keyset cursor bound to account, resource and mode filter. No disk cache or full-account bootstrap. Private draft list never publishes content.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 25
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string",
+              "maxLength": 2048
+            }
+          },
+          {
+            "in": "query",
+            "name": "mode",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "gym",
+                "calisthenics"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Canonical account-owned state, or original successful response on exact idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "items",
+                    "nextCursor"
+                  ],
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/CustomExercise"
+                      }
+                    },
+                    "nextCursor": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createCustomExercise",
+        "description": "Strict final create with client-generated stable ID; IDs (including deleted IDs) cannot be reused. Program may atomically create newExercises; exercise references must be owned or active catalog and support its mode. Exercise labels/requirements are server-canonical, not client-authoritative. Exercise mode is immutable. Meals resolve catalog nutrition/estimated price server-side; journal summaries returned. Drafts remain private.",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomExerciseCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Canonical account-owned state, or original successful response on exact idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomExerciseResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/exercises/custom/{id}": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Id"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "getCustomExercise",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Canonical account-owned state, or original successful response on exact idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "item"
+                  ],
+                  "properties": {
+                    "item": {
+                      "$ref": "#/components/schemas/CustomExercise"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "patchCustomExercise",
+        "description": "Non-empty changed fields only; merge with persisted data before validation. Only declared nullable fields accept null. Preserve untouched metadata, nutrition/price snapshots and versions. Meal journals include both dates if moved. Program schedule slot conflicts return409; newExercises and program write are one transaction. History snapshots never change when program/exercise changes.",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomExercisePatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Canonical account-owned state, or original successful response on exact idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomExerciseResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteCustomExercise",
+        "description": "Account-owned versioned soft-delete. Same successful key/body replays without another delete; new keys for absent/deleted rows return404.",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Canonical account-owned state, or original successful response on exact idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Deleted"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/meals": {
+      "get": {
+        "operationId": "listMeals",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "date",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000,
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Canonical account-owned state, or original successful response on exact idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MealList"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createMeal",
+        "description": "Strict final create with client-generated stable ID; IDs (including deleted IDs) cannot be reused. Program may atomically create newExercises; exercise references must be owned or active catalog and support its mode. Exercise labels/requirements are server-canonical, not client-authoritative. Exercise mode is immutable. Meals resolve catalog nutrition/estimated price server-side; journal summaries returned. Drafts remain private.",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MealCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Canonical account-owned state, or original successful response on exact idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MealResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/meals/{id}": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Id"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "getMeal",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Canonical account-owned state, or original successful response on exact idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "item"
+                  ],
+                  "properties": {
+                    "item": {
+                      "$ref": "#/components/schemas/Meal"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "patchMeal",
+        "description": "Non-empty changed fields only; merge with persisted data before validation. Only declared nullable fields accept null. Preserve untouched metadata, nutrition/price snapshots and versions. Meal journals include both dates if moved. Program schedule slot conflicts return409; newExercises and program write are one transaction. History snapshots never change when program/exercise changes.",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MealPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Canonical account-owned state, or original successful response on exact idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MealResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteMeal",
+        "description": "Account-owned versioned soft-delete. Same successful key/body replays without another delete; new keys for absent/deleted rows return404.",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Canonical account-owned state, or original successful response on exact idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Deleted"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "journals"
+                      ],
+                      "properties": {
+                        "journals": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/MealJournalSummary"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/social/drafts": {
+      "get": {
+        "operationId": "listSocialDraft",
+        "description": "Signed ID-keyset cursor bound to account, resource and mode filter. No disk cache or full-account bootstrap. Private draft list never publishes content.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 25
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string",
+              "maxLength": 2048
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Canonical account-owned state, or original successful response on exact idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "items",
+                    "nextCursor"
+                  ],
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SocialDraft"
+                      }
+                    },
+                    "nextCursor": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createSocialDraft",
+        "description": "Strict final create with client-generated stable ID; IDs (including deleted IDs) cannot be reused. Program may atomically create newExercises; exercise references must be owned or active catalog and support its mode. Exercise labels/requirements are server-canonical, not client-authoritative. Exercise mode is immutable. Meals resolve catalog nutrition/estimated price server-side; journal summaries returned. Drafts remain private.",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SocialDraftCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Canonical account-owned state, or original successful response on exact idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SocialDraftResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          }
+        }
+      }
+    },
+    "/social/drafts/{id}": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Id"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "getSocialDraft",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Canonical account-owned state, or original successful response on exact idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "item"
+                  ],
+                  "properties": {
+                    "item": {
+                      "$ref": "#/components/schemas/SocialDraft"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "patchSocialDraft",
+        "description": "Non-empty changed fields only; merge with persisted data before validation. Only declared nullable fields accept null. Preserve untouched metadata, nutrition/price snapshots and versions. Meal journals include both dates if moved. Program schedule slot conflicts return409; newExercises and program write are one transaction. History snapshots never change when program/exercise changes.",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SocialDraftPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Canonical account-owned state, or original successful response on exact idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SocialDraftResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteSocialDraft",
+        "description": "Account-owned versioned soft-delete. Same successful key/body replays without another delete; new keys for absent/deleted rows return404.",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Canonical account-owned state, or original successful response on exact idempotent replay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Deleted"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "401": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "429": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "./openapi.yaml#/components/responses/Error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Version": {
+        "type": "string",
+        "maxLength": 19,
+        "pattern": "^(0|[1-9][0-9]*)$"
+      },
+      "Id": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 255,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+      },
+      "DeleteInput": {
+        "type": "object",
+        "properties": {
+          "baseVersion": {
+            "type": "string",
+            "maxLength": 19,
+            "pattern": "^(0|[1-9][0-9]*)$"
+          }
+        },
+        "required": [
+          "baseVersion"
+        ],
+        "additionalProperties": false
+      },
+      "AccountPatchInput": {
+        "type": "object",
+        "properties": {
+          "baseVersions": {
+            "type": "object",
+            "properties": {
+              "profile": {
+                "type": "string",
+                "maxLength": 19,
+                "pattern": "^(0|[1-9][0-9]*)$"
+              },
+              "trainingPreferences": {
+                "type": "string",
+                "maxLength": 19,
+                "pattern": "^(0|[1-9][0-9]*)$"
+              },
+              "userPreferences": {
+                "type": "string",
+                "maxLength": 19,
+                "pattern": "^(0|[1-9][0-9]*)$"
+              }
+            },
+            "additionalProperties": false
+          },
+          "profile": {
+            "type": "object",
+            "properties": {
+              "ageYears": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 150
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "dailyActivity": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "light",
+                      "moderate",
+                      "vigorous"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "displayName": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "focus": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "full",
+                      "leg",
+                      "chest",
+                      "back",
+                      "arm"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "formulaSex": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "male",
+                      "female"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "gender": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "male",
+                      "female",
+                      "non_binary",
+                      "self_described",
+                      "prefer_not_to_say"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "trainingContext": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "pregnancyStatus": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "not_applicable",
+                              "not_pregnant",
+                              "pregnant",
+                              "postpartum",
+                              "prefer_not_to_say"
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "healthStatus": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "no_known_restrictions",
+                              "needs_professional_guidance",
+                              "prefer_not_to_say"
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "painAreas": {
+                        "maxItems": 7,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "shoulder",
+                            "elbow",
+                            "wrist",
+                            "back",
+                            "hip",
+                            "knee",
+                            "ankle"
+                          ]
+                        }
+                      },
+                      "mobilityLimitations": {
+                        "maxItems": 3,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "floor_transfer",
+                            "overhead_reach",
+                            "deep_knee_bend"
+                          ]
+                        }
+                      },
+                      "balanceConfidence": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "stable",
+                              "needs_support"
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "recoveryStatus": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "recovered",
+                              "tired",
+                              "very_tired"
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "trainingBreakWeeks": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 520
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "equipmentHeightLimits": {
+                        "maxItems": 50,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "equipment": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 80
+                            },
+                            "minHeightCm": {
+                              "type": "number",
+                              "minimum": 1,
+                              "maximum": 300
+                            },
+                            "maxHeightCm": {
+                              "type": "number",
+                              "minimum": 1,
+                              "maximum": 300
+                            }
+                          },
+                          "required": [
+                            "equipment",
+                            "minHeightCm",
+                            "maxHeightCm"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "goal": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "bulk",
+                      "cut",
+                      "maintenance",
+                      "maintain",
+                      "strength",
+                      "endurance",
+                      "muscle",
+                      "fat",
+                      "fit"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "heightCm": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 999.99
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "motivationReason": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "programSource": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "app",
+                      "custom"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "sessionMinutes": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 10,
+                    "maximum": 180
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "trainingFrequency": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 7
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "trainingLevel": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "beginner",
+                      "intermediate",
+                      "advanced"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "exerciseCapabilities": {
+                "anyOf": [
+                  {
+                    "maxItems": 100,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "exerciseId": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 255
+                        },
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "gym",
+                            "calisthenics"
+                          ]
+                        },
+                        "maxReps": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 100
+                        },
+                        "weightKg": {
+                          "anyOf": [
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 500
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "bodyweightKg": {
+                          "anyOf": [
+                            {
+                              "type": "number",
+                              "exclusiveMinimum": 0,
+                              "maximum": 9999.99
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "exerciseId",
+                        "mode",
+                        "maxReps",
+                        "weightKg"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "excludedExerciseIds": {
+                "anyOf": [
+                  {
+                    "maxItems": 100,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 255
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "weightKg": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9999.99
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "motivationEnabled": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          },
+          "trainingPreferences": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "gym",
+                  "calisthenics"
+                ]
+              },
+              "equipment": {
+                "maxItems": 50,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 255,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+                }
+              },
+              "noEquipment": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          },
+          "userPreferences": {
+            "type": "object",
+            "properties": {
+              "budgetIsManual": {
+                "type": "boolean"
+              },
+              "budgetRupiah": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "placesArea": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "baseVersions"
+        ],
+        "additionalProperties": false
+      },
+      "CompletedWorkoutInput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "custom",
+              "recommended",
+              "manual"
+            ]
+          },
+          "programId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "gym",
+              "calisthenics"
+            ]
+          },
+          "exerciseSnapshot": {
+            "minItems": 1,
+            "maxItems": 12,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "enLabel": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 255
+                },
+                "idLabel": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "reps": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100
+                },
+                "requirements": {
+                  "minItems": 1,
+                  "maxItems": 20,
+                  "type": "array",
+                  "items": {
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    }
+                  }
+                },
+                "sets": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10
+                },
+                "targetWeightKg": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 500
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "enLabel",
+                "id",
+                "idLabel",
+                "reps",
+                "requirements",
+                "sets",
+                "targetWeightKg"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "setLog": {
+            "maxItems": 120,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "completed": {
+                  "type": "boolean"
+                },
+                "exerciseId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 255
+                },
+                "reps": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "setNumber": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10
+                },
+                "weightKg": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 500
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "completed",
+                "exerciseId",
+                "reps",
+                "setNumber",
+                "weightKg"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "finishedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "recordedOn": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "source",
+          "mode",
+          "exerciseSnapshot",
+          "setLog",
+          "startedAt",
+          "finishedAt",
+          "recordedOn"
+        ],
+        "additionalProperties": false
+      },
+      "UserPreferences": {
+        "type": "object",
+        "properties": {
+          "budgetIsManual": {
+            "type": "boolean"
+          },
+          "budgetRupiah": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "placesArea": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "version": {
+            "type": "string",
+            "maxLength": 19,
+            "pattern": "^(0|[1-9][0-9]*)$"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          }
+        },
+        "required": [
+          "budgetIsManual",
+          "budgetRupiah",
+          "placesArea",
+          "version",
+          "updatedAt"
+        ],
+        "additionalProperties": false
+      },
+      "Setup": {
+        "type": "object",
+        "required": [
+          "setupCompleted",
+          "profile",
+          "trainingPreferences",
+          "userPreferences",
+          "versions"
+        ],
+        "properties": {
+          "setupCompleted": {
+            "type": "boolean"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "$ref": "./openapi.yaml#/components/schemas/SetupProfile"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "trainingPreferences": {
+            "anyOf": [
+              {
+                "$ref": "./openapi.yaml#/components/schemas/SetupTrainingPreferences"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "userPreferences": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserPreferences"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "versions": {
+            "$ref": "./openapi.yaml#/components/schemas/SetupVersions"
+          }
+        }
+      },
+      "Account": {
+        "type": "object",
+        "required": [
+          "user",
+          "setupCompleted",
+          "profile",
+          "trainingPreferences",
+          "userPreferences",
+          "versions"
+        ],
+        "properties": {
+          "user": {
+            "type": "object",
+            "required": [
+              "id",
+              "email",
+              "status"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "email": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "status": {
+                "const": "active"
+              }
+            }
+          },
+          "setupCompleted": {
+            "type": "boolean"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "$ref": "./openapi.yaml#/components/schemas/SetupProfile"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "trainingPreferences": {
+            "anyOf": [
+              {
+                "$ref": "./openapi.yaml#/components/schemas/SetupTrainingPreferences"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "userPreferences": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserPreferences"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "versions": {
+            "$ref": "./openapi.yaml#/components/schemas/SetupVersions"
+          }
+        }
+      },
+      "AccountPatchResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Setup"
+          },
+          {
+            "type": "object",
+            "required": [
+              "nutritionTargets"
+            ],
+            "properties": {
+              "nutritionTargets": {
+                "$ref": "./openapi.yaml#/components/schemas/NutritionTargets"
+              }
+            }
+          }
+        ]
+      },
+      "DailyMealSummary": {
+        "type": "object",
+        "required": [
+          "entryCount",
+          "reportedTotals",
+          "demoTotals",
+          "demoEntryCount",
+          "undatedLegacyEntryCount",
+          "remaining"
+        ],
+        "properties": {
+          "entryCount": {
+            "type": "integer"
+          },
+          "reportedTotals": {
+            "$ref": "./openapi.yaml#/components/schemas/MealNutrients"
+          },
+          "demoTotals": {
+            "$ref": "./openapi.yaml#/components/schemas/MealNutrients"
+          },
+          "demoEntryCount": {
+            "type": "integer"
+          },
+          "undatedLegacyEntryCount": {
+            "type": "integer"
+          },
+          "remaining": {
+            "anyOf": [
+              {
+                "$ref": "./openapi.yaml#/components/schemas/MealNutrients"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "MealJournalSummary": {
+        "type": "object",
+        "required": [
+          "date",
+          "summary",
+          "targets",
+          "warnings"
+        ],
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/DailyMealSummary"
+          },
+          "targets": {
+            "$ref": "./openapi.yaml#/components/schemas/NutritionTargets"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Deleted": {
+        "type": "object",
+        "required": [
+          "id",
+          "deleted",
+          "version"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "deleted": {
+            "const": true
+          },
+          "version": {
+            "$ref": "#/components/schemas/Version"
+          }
+        }
+      },
+      "Favorite": {
+        "type": "object",
+        "required": [
+          "placeId",
+          "isFavorite",
+          "favoriteVersion"
+        ],
+        "properties": {
+          "placeId": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "isFavorite": {
+            "type": "boolean"
+          },
+          "favoriteVersion": {
+            "$ref": "#/components/schemas/Version"
+          }
+        }
+      },
+      "WorkoutDay": {
+        "type": "object",
+        "required": [
+          "date",
+          "completed",
+          "aborted",
+          "active",
+          "durationMinutes"
+        ],
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "completed": {
+            "type": "integer"
+          },
+          "aborted": {
+            "type": "integer"
+          },
+          "active": {
+            "type": "integer"
+          },
+          "durationMinutes": {
+            "type": "number"
+          }
+        }
+      },
+      "ScheduledProgram": {
+        "type": "object",
+        "required": [
+          "id",
+          "mode",
+          "name",
+          "weekday",
+          "durationMinutes",
+          "version"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "mode": {
+            "enum": [
+              "gym",
+              "calisthenics"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "weekday": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 7
+          },
+          "durationMinutes": {
+            "type": "integer"
+          },
+          "version": {
+            "$ref": "#/components/schemas/Version"
+          }
+        }
+      },
+      "Workout": {
+        "type": "object",
+        "properties": {
+          "exerciseSnapshot": {
+            "minItems": 1,
+            "maxItems": 12,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "enLabel": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 255
+                },
+                "idLabel": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "reps": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100
+                },
+                "requirements": {
+                  "minItems": 1,
+                  "maxItems": 20,
+                  "type": "array",
+                  "items": {
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    }
+                  }
+                },
+                "sets": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10
+                },
+                "targetWeightKg": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 500
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "enLabel",
+                "id",
+                "idLabel",
+                "reps",
+                "requirements",
+                "sets",
+                "targetWeightKg"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "finishedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "legacyMetadata": {
+            "anyOf": [
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "gym",
+              "calisthenics"
+            ]
+          },
+          "planId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "recordedOn": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "setLog": {
+            "maxItems": 120,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "completed": {
+                  "type": "boolean"
+                },
+                "exerciseId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 255
+                },
+                "reps": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "setNumber": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10
+                },
+                "weightKg": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 500
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "completed",
+                "exerciseId",
+                "reps",
+                "setNumber",
+                "weightKg"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "completed",
+              "aborted"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+          },
+          "version": {
+            "type": "string",
+            "maxLength": 19,
+            "pattern": "^(0|[1-9][0-9]*)$"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          }
+        },
+        "required": [
+          "exerciseSnapshot",
+          "finishedAt",
+          "legacyMetadata",
+          "mode",
+          "planId",
+          "recordedOn",
+          "setLog",
+          "startedAt",
+          "status",
+          "id",
+          "version",
+          "updatedAt"
+        ]
+      },
+      "WorkoutResponse": {
+        "type": "object",
+        "required": [
+          "item"
+        ],
+        "properties": {
+          "item": {
+            "$ref": "#/components/schemas/Workout"
+          }
+        }
+      },
+      "WorkoutList": {
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Workout"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "MealList": {
+        "type": "object",
+        "required": [
+          "date",
+          "entries",
+          "hasMore",
+          "nextOffset",
+          "summary",
+          "targets",
+          "warnings"
+        ],
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "./openapi.yaml#/components/schemas/MealLogItem"
+            }
+          },
+          "hasMore": {
+            "type": "boolean"
+          },
+          "nextOffset": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "summary": {
+            "$ref": "#/components/schemas/DailyMealSummary"
+          },
+          "targets": {
+            "$ref": "./openapi.yaml#/components/schemas/NutritionTargets"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Schedule": {
+        "type": "object",
+        "required": [
+          "from",
+          "to",
+          "weekdayConvention",
+          "weeklyPrograms",
+          "workoutDays"
+        ],
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "weekdayConvention": {
+            "const": "ISO_MONDAY_1_SUNDAY_7"
+          },
+          "weeklyPrograms": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduledProgram"
+            }
+          },
+          "workoutDays": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkoutDay"
+            }
+          }
+        }
+      },
+      "Statistics": {
+        "type": "object",
+        "required": [
+          "from",
+          "to",
+          "workoutDays",
+          "mealDays",
+          "totals",
+          "warnings"
+        ],
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "workoutDays": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkoutDay"
+            }
+          },
+          "mealDays": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "date",
+                "entryCount",
+                "caloriesKcal",
+                "proteinGrams"
+              ],
+              "properties": {
+                "date": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "entryCount": {
+                  "type": "integer"
+                },
+                "caloriesKcal": {
+                  "type": "number"
+                },
+                "proteinGrams": {
+                  "type": "number"
+                }
+              }
+            }
+          },
+          "totals": {
+            "type": "object",
+            "required": [
+              "completedWorkouts",
+              "abortedWorkouts",
+              "durationMinutes",
+              "completedSets",
+              "reportedReps",
+              "reportedExternalVolumeKg",
+              "setsMissingLoad"
+            ],
+            "properties": {
+              "completedWorkouts": {
+                "type": "integer"
+              },
+              "abortedWorkouts": {
+                "type": "integer"
+              },
+              "durationMinutes": {
+                "type": "number"
+              },
+              "completedSets": {
+                "type": "integer"
+              },
+              "reportedReps": {
+                "type": "number"
+              },
+              "reportedExternalVolumeKg": {
+                "type": "number"
+              },
+              "setsMissingLoad": {
+                "type": "integer"
+              }
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Dashboard": {
+        "type": "object",
+        "required": [
+          "date",
+          "setupCompleted",
+          "scheduledPrograms",
+          "workoutDays",
+          "meals",
+          "nutritionTargets"
+        ],
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "setupCompleted": {
+            "type": "boolean"
+          },
+          "scheduledPrograms": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduledProgram"
+            }
+          },
+          "workoutDays": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkoutDay"
+            }
+          },
+          "meals": {
+            "type": "object",
+            "required": [
+              "summary",
+              "warnings"
+            ],
+            "properties": {
+              "summary": {
+                "$ref": "#/components/schemas/DailyMealSummary"
+              },
+              "warnings": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "nutritionTargets": {
+            "anyOf": [
+              {
+                "$ref": "./openapi.yaml#/components/schemas/NutritionTargets"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "CustomProgramCreate": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "durationMinutes": {
+                "type": "integer",
+                "minimum": 10,
+                "maximum": 180
+              },
+              "exercisePrescriptions": {
+                "minItems": 1,
+                "maxItems": 12,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "enLabel": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    },
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 255
+                    },
+                    "idLabel": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    },
+                    "reps": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 100
+                    },
+                    "requirements": {
+                      "minItems": 1,
+                      "maxItems": 20,
+                      "type": "array",
+                      "items": {
+                        "maxItems": 20,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 80
+                        }
+                      }
+                    },
+                    "sets": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 10
+                    },
+                    "targetWeightKg": {
+                      "anyOf": [
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 500
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "enLabel",
+                    "id",
+                    "idLabel",
+                    "reps",
+                    "requirements",
+                    "sets",
+                    "targetWeightKg"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "gym",
+                  "calisthenics"
+                ]
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 60
+              },
+              "weekday": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 7
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "durationMinutes",
+              "exercisePrescriptions",
+              "mode",
+              "name",
+              "weekday"
+            ],
+            "additionalProperties": false
+          },
+          "newExercises": {
+            "maxItems": 12,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 255,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "defaultReps": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 100
+                    },
+                    "defaultSets": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 10
+                    },
+                    "mode": {
+                      "type": "string",
+                      "enum": [
+                        "gym",
+                        "calisthenics"
+                      ]
+                    },
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    }
+                  },
+                  "required": [
+                    "defaultReps",
+                    "defaultSets",
+                    "mode",
+                    "name"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "id",
+                "data"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "id",
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "CustomProgramPatch": {
+        "type": "object",
+        "properties": {
+          "baseVersion": {
+            "type": "string",
+            "maxLength": 19,
+            "pattern": "^(0|[1-9][0-9]*)$"
+          },
+          "changes": {
+            "type": "object",
+            "properties": {
+              "durationMinutes": {
+                "type": "integer",
+                "minimum": 10,
+                "maximum": 180
+              },
+              "exercisePrescriptions": {
+                "minItems": 1,
+                "maxItems": 12,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "enLabel": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    },
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 255
+                    },
+                    "idLabel": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    },
+                    "reps": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 100
+                    },
+                    "requirements": {
+                      "minItems": 1,
+                      "maxItems": 20,
+                      "type": "array",
+                      "items": {
+                        "maxItems": 20,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 80
+                        }
+                      }
+                    },
+                    "sets": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 10
+                    },
+                    "targetWeightKg": {
+                      "anyOf": [
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 500
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "enLabel",
+                    "id",
+                    "idLabel",
+                    "reps",
+                    "requirements",
+                    "sets",
+                    "targetWeightKg"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "gym",
+                  "calisthenics"
+                ]
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 60
+              },
+              "weekday": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 7
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          "newExercises": {
+            "maxItems": 12,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 255,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "defaultReps": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 100
+                    },
+                    "defaultSets": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 10
+                    },
+                    "mode": {
+                      "type": "string",
+                      "enum": [
+                        "gym",
+                        "calisthenics"
+                      ]
+                    },
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    }
+                  },
+                  "required": [
+                    "defaultReps",
+                    "defaultSets",
+                    "mode",
+                    "name"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "id",
+                "data"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "baseVersion",
+          "changes"
+        ],
+        "additionalProperties": false
+      },
+      "CustomProgram": {
+        "type": "object",
+        "properties": {
+          "durationMinutes": {
+            "type": "integer",
+            "minimum": 10,
+            "maximum": 180
+          },
+          "exercisePrescriptions": {
+            "minItems": 1,
+            "maxItems": 12,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "enLabel": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 255
+                },
+                "idLabel": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "reps": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100
+                },
+                "requirements": {
+                  "minItems": 1,
+                  "maxItems": 20,
+                  "type": "array",
+                  "items": {
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    }
+                  }
+                },
+                "sets": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10
+                },
+                "targetWeightKg": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 500
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "enLabel",
+                "id",
+                "idLabel",
+                "reps",
+                "requirements",
+                "sets",
+                "targetWeightKg"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "gym",
+              "calisthenics"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60
+          },
+          "weekday": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 7
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+          },
+          "version": {
+            "type": "string",
+            "maxLength": 19,
+            "pattern": "^(0|[1-9][0-9]*)$"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          }
+        },
+        "required": [
+          "durationMinutes",
+          "exercisePrescriptions",
+          "mode",
+          "name",
+          "weekday",
+          "id",
+          "version",
+          "updatedAt"
+        ]
+      },
+      "CustomProgramResponse": {
+        "type": "object",
+        "required": [
+          "item"
+        ],
+        "properties": {
+          "item": {
+            "$ref": "#/components/schemas/CustomProgram"
+          },
+          "exercises": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomExercise"
+            }
+          }
+        }
+      },
+      "CustomExerciseCreate": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "defaultReps": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100
+              },
+              "defaultSets": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10
+              },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "gym",
+                  "calisthenics"
+                ]
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              }
+            },
+            "required": [
+              "defaultReps",
+              "defaultSets",
+              "mode",
+              "name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "id",
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "CustomExercisePatch": {
+        "type": "object",
+        "properties": {
+          "baseVersion": {
+            "type": "string",
+            "maxLength": 19,
+            "pattern": "^(0|[1-9][0-9]*)$"
+          },
+          "changes": {
+            "type": "object",
+            "properties": {
+              "defaultReps": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100
+              },
+              "defaultSets": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10
+              },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "gym",
+                  "calisthenics"
+                ]
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "baseVersion",
+          "changes"
+        ],
+        "additionalProperties": false
+      },
+      "CustomExercise": {
+        "type": "object",
+        "properties": {
+          "defaultReps": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "defaultSets": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "gym",
+              "calisthenics"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+          },
+          "version": {
+            "type": "string",
+            "maxLength": 19,
+            "pattern": "^(0|[1-9][0-9]*)$"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          }
+        },
+        "required": [
+          "defaultReps",
+          "defaultSets",
+          "mode",
+          "name",
+          "id",
+          "version",
+          "updatedAt"
+        ]
+      },
+      "CustomExerciseResponse": {
+        "type": "object",
+        "required": [
+          "item"
+        ],
+        "properties": {
+          "item": {
+            "$ref": "#/components/schemas/CustomExercise"
+          }
+        }
+      },
+      "MealCreate": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "menuName": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "note": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 2000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "samplePriceRupiah": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "snapshot": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {}
+              },
+              "catalogId": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "servings": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "minimum": 0.01,
+                    "maximum": 20
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "consumedAt": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "recordedOn": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "date",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "mealType": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "breakfast",
+                      "lunch",
+                      "dinner",
+                      "snack"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "nutrition": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "caloriesKcal": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 10000
+                      },
+                      "proteinGrams": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1000
+                      },
+                      "carbohydrateGrams": {
+                        "anyOf": [
+                          {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "fatGrams": {
+                        "anyOf": [
+                          {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "fiberGrams": {
+                        "anyOf": [
+                          {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "sodiumMg": {
+                        "anyOf": [
+                          {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 100000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "caloriesKcal",
+                      "proteinGrams"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "menuName",
+              "note",
+              "samplePriceRupiah",
+              "snapshot"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "id",
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "MealPatch": {
+        "type": "object",
+        "properties": {
+          "baseVersion": {
+            "type": "string",
+            "maxLength": 19,
+            "pattern": "^(0|[1-9][0-9]*)$"
+          },
+          "changes": {
+            "type": "object",
+            "properties": {
+              "menuName": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "note": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 2000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "samplePriceRupiah": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "snapshot": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {}
+              },
+              "catalogId": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "servings": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "minimum": 0.01,
+                    "maximum": 20
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "consumedAt": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "recordedOn": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "date",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "mealType": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "breakfast",
+                      "lunch",
+                      "dinner",
+                      "snack"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "nutrition": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "caloriesKcal": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 10000
+                      },
+                      "proteinGrams": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1000
+                      },
+                      "carbohydrateGrams": {
+                        "anyOf": [
+                          {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "fatGrams": {
+                        "anyOf": [
+                          {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "fiberGrams": {
+                        "anyOf": [
+                          {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "sodiumMg": {
+                        "anyOf": [
+                          {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 100000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "caloriesKcal",
+                      "proteinGrams"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "baseVersion",
+          "changes"
+        ],
+        "additionalProperties": false
+      },
+      "Meal": {
+        "$ref": "./openapi.yaml#/components/schemas/MealLogItem"
+      },
+      "MealResponse": {
+        "type": "object",
+        "required": [
+          "item",
+          "journals"
+        ],
+        "properties": {
+          "item": {
+            "$ref": "#/components/schemas/Meal"
+          },
+          "journals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MealJournalSummary"
+            }
+          }
+        }
+      },
+      "SocialDraftCreate": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "body": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2000
+              },
+              "metadata": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {}
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "body",
+              "metadata"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "id",
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "SocialDraftPatch": {
+        "type": "object",
+        "properties": {
+          "baseVersion": {
+            "type": "string",
+            "maxLength": 19,
+            "pattern": "^(0|[1-9][0-9]*)$"
+          },
+          "changes": {
+            "type": "object",
+            "properties": {
+              "body": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2000
+              },
+              "metadata": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {}
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "baseVersion",
+          "changes"
+        ],
+        "additionalProperties": false
+      },
+      "SocialDraft": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+          },
+          "version": {
+            "type": "string",
+            "maxLength": 19,
+            "pattern": "^(0|[1-9][0-9]*)$"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          }
+        },
+        "required": [
+          "body",
+          "metadata",
+          "id",
+          "version",
+          "updatedAt"
+        ]
+      },
+      "SocialDraftResponse": {
+        "type": "object",
+        "required": [
+          "item"
+        ],
+        "properties": {
+          "item": {
+            "$ref": "#/components/schemas/SocialDraft"
+          }
+        }
+      }
+    }
+  }
+}

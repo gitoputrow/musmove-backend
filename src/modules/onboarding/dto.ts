@@ -8,7 +8,7 @@ const goal = z.enum(["bulk", "cut", "maintenance", "maintain"])
 
 // No draft/progress schema. This DTO is only submitted when all setup is ready.
 export const completeOnboardingSchema = z.object({
-  baseVersions: z.object({ profile: version, trainingPreferences: version }).strict(),
+  baseVersions: z.object({ profile: version, trainingPreferences: version, userPreferences: version.optional() }).strict(),
   profile: entityPayloadSchemas.profile.omit({ setupCompleted: true }).extend({
     ageYears: z.number().int().min(1).max(150),
     goal,

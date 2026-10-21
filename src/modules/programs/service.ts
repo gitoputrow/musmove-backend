@@ -3,6 +3,7 @@ import { getDatabase } from "@/src/db/client";
 import { catalogState, exerciseCatalog, profiles, trainingPreferences, workoutProgramCatalog, workoutProgramExercises, workoutSessions } from "@/src/db/schema";
 import { conflict } from "@/src/lib/api-error";
 import { personalizePrograms } from "./personalization";
+import type { DatabaseTransaction } from "@/src/modules/sync/entities";
 
 export interface ProgramPreferences {
   mode: "gym" | "calisthenics";
@@ -22,7 +23,10 @@ export function matchesProgram(
 }
 
 export async function getProgramCatalog(userId?: string) {
-  return getDatabase().transaction(async (transaction) => {
+  return getDatabase().transaction(transaction => readProgramCatalog(transaction, userId), { accessMode: "read only", isolationLevel: "repeatable read" });
+}
+
+export async function readProgramCatalog(transaction: DatabaseTransaction, userId?: string) {
     const states = await transaction.select().from(catalogState);
     const templates = await transaction.select().from(workoutProgramCatalog)
       .where(eq(workoutProgramCatalog.active, true)).orderBy(asc(workoutProgramCatalog.id));
@@ -66,7 +70,7 @@ export async function getProgramCatalog(userId?: string) {
     const [profile] = await transaction.select().from(profiles).where(and(eq(profiles.userId, userId), isNull(profiles.deletedAt)));
     const [training] = await transaction.select().from(trainingPreferences).where(and(eq(trainingPreferences.userId, userId), isNull(trainingPreferences.deletedAt)));
     if (!profile || !training || !profile.focus || !profile.sessionMinutes) {
-      throw conflict("PREFERENCES_REQUIRED", "Save training preferences, focus and sessionMinutes through sync before requesting programs");
+      throw conflict("PREFERENCES_REQUIRED", "Save training preferences, focus and sessionMinutes before requesting programs");
     }
     if (!["full", "leg", "chest", "back", "arm"].includes(profile.focus)) {
       throw conflict("UNSUPPORTED_FOCUS", "Supported focus values: full, leg, chest, back, arm");
@@ -86,5 +90,4 @@ export async function getProgramCatalog(userId?: string) {
     const candidates = programs.filter((program) => program.mode === training.mode && program.focus === profile.focus);
     const personalized = personalizePrograms(candidates, catalog, profile, preferences.equipment, history);
     return { ...versions, preferences, ...personalized };
-  }, { accessMode: "read only", isolationLevel: "repeatable read" });
 }

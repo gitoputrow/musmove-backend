@@ -5,6 +5,7 @@ import { catalogState, mealCatalog, mealEntries } from "@/src/db/schema";
 import { readNutritionTargets } from "@/src/modules/nutrition/storage";
 import { roundMealNumber } from "./resolve";
 import { mealCatalogQuerySchema, type MealCatalogQuery } from "./query";
+import type { DatabaseTransaction } from "@/src/modules/sync/entities";
 
 export const mealsQuerySchema = z.object({
   date: z.iso.date(),
@@ -44,7 +45,10 @@ export async function getMealCatalog(query: MealCatalogQuery = mealCatalogQueryS
 }
 
 export async function listMeals(userId: string, query: z.infer<typeof mealsQuerySchema>) {
-  return getDatabase().transaction(async (transaction) => {
+  return getDatabase().transaction(transaction => readMeals(transaction, userId, query), { accessMode: "read only", isolationLevel: "repeatable read" });
+}
+
+export async function readMeals(transaction: DatabaseTransaction, userId: string, query: z.infer<typeof mealsQuerySchema>) {
     const filter = and(eq(mealEntries.userId, userId), isNull(mealEntries.deletedAt), eq(mealEntries.recordedOn, query.date));
     const rows = await transaction.select().from(mealEntries).where(filter)
       .orderBy(desc(mealEntries.consumedAt), asc(mealEntries.id)).limit(query.limit + 1).offset(query.offset);
@@ -80,5 +84,4 @@ export async function listMeals(userId: string, query: z.infer<typeof mealsQuery
       },
       targets, warnings: ["REPORTED_TOTALS_NOT_INDEPENDENTLY_VERIFIED", "DEMO_ENTRIES_EXCLUDED_FROM_PROGRESS", "LEGACY_ENTRIES_WITHOUT_DATE_NOT_COUNTED"],
     };
-  }, { accessMode: "read only", isolationLevel: "repeatable read" });
 }

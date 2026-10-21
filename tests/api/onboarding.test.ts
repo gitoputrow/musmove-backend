@@ -83,7 +83,7 @@ test("Onboarding routes use isolated PostgreSQL and synthetic signed identities 
 
     await t.test("GET /me is additive, binary, private and does not persist drafts", async () => {
       assert.equal(a.body.setupCompleted, false); assert.equal(a.body.profile, null); assert.equal(a.body.trainingPreferences, null);
-      assert.deepEqual(a.body.versions, { profile: "0", trainingPreferences: "0" });
+      assert.deepEqual(a.body.versions, { profile: "0", trainingPreferences: "0", userPreferences: "0" });
       for (const table of ["profiles", "training_preferences", "nutrition_estimates"]) assert.equal(await count(table, a.id), 0);
       const response = await me.GET(request("me", a.jwt)); assert.equal(response.headers.get("cache-control"), "private, no-store");
       assert.ok(!JSON.stringify(await response.json()).includes("resumeStep"));
@@ -98,7 +98,7 @@ test("Onboarding routes use isolated PostgreSQL and synthetic signed identities 
       const input = { ...payload(), profile: { ...payload().profile, weightKg: 70, heightCm: 175, formulaSex: "male", gender: "prefer_not_to_say" } };
       const key = randomUUID(); const first = await submit(a.jwt, input, key); assert.equal(first.status, 200);
       const saved = await first.json(); assert.equal(saved.setupCompleted, true); assert.equal(saved.profile.setupCompleted, true);
-      assert.deepEqual(saved.versions, { profile: "1", trainingPreferences: "1" });
+      assert.deepEqual(saved.versions, { profile: "1", trainingPreferences: "1", userPreferences: "0" });
       assert.equal(saved.nutritionTargets.estimate.status, "ready"); assert.equal(saved.nutritionTargets.estimate.calories, 2850);
       assert.equal(saved.nutritionTargets.estimate.proteinGrams, 112);
       assert.equal(saved.profile.userId, undefined); assert.equal(saved.profile.deletedAt, undefined);
