@@ -19,6 +19,12 @@ const prescription = (id: string) => ({ id, idLabel: "forged", enLabel: "forged"
 const program = (exerciseId: string, weekday: number | null = null) => ({ mode: "gym", name: "Synthetic program", durationMinutes: 30, weekday, exercisePrescriptions: [prescription(exerciseId)] });
 const onboarding = () => ({ baseVersions: { profile: "0", trainingPreferences: "0" }, profile: { ageYears: 25, goal: "bulk", dailyActivity: "light", trainingFrequency: 3, sessionMinutes: 60, programSource: "app", focus: "full", motivationEnabled: false, motivationReason: "health", gender: "non_binary", weightKg: 70, heightCm: 175, formulaSex: "male", trainingContext: { painAreas: ["knee"], recoveryStatus: "recovered" } }, trainingPreferences: { mode: "gym", equipment: ["dumbbell", "bench"], noEquipment: false } });
 const startedAt = "2026-10-20T00:00:00Z", finishedAt = "2026-10-20T00:30:00Z", date = "2026-10-20";
+const manualWithNewExercises = (ids = [`user-exercise-${randomUUID()}`]) => ({
+  id: `workout-${randomUUID()}`, source: "manual", mode: "gym", startedAt, finishedAt, recordedOn: date,
+  exerciseSnapshot: ids.map(prescription),
+  setLog: [{ exerciseId: ids[0], setNumber: 1, completed: true, reps: 8, weightKg: 5 }],
+  newExercises: ids.map(id => ({ id, data: { ...exercise, name: "  New manual exercise  ", defaultSets: 3, defaultReps: 10 } })),
+});
 
 test("PATCH DTO has no implicit boolean defaults and strictly checks matching versions", () => {
   const parsed = accountPatchSchema.parse({ baseVersions: { profile: "1" }, profile: { weightKg: 72 } });
@@ -254,6 +260,124 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
       assert.equal((await call("workouts", b.jwt, "POST", manual)).status, 400, "Foreign custom exercise cannot be referenced");
     });
 
+    await t.test("Manual workout and new exercises commit together and return canonical immutable snapshots", async () => {
+      const a = await account(), input = manualWithNewExercises([`user-exercise-${randomUUID()}`, `user-exercise-${randomUUID()}`]);
+      const cursor = (await bootstrap(a.id)).cursor;
+      const saved = await call("workouts", a.jwt, "POST", input);
+      assert.equal(saved.status, 201, JSON.stringify(saved.body)); assert.equal(saved.body.item.status, "completed");
+      assert.equal(saved.body.exercises.length, 2); assert.equal(saved.body.item.version, "1");
+      for (const [index, created] of saved.body.exercises.entries()) {
+        assert.equal(created.id, input.newExercises[index].id); assert.equal(created.name, "New manual exercise");
+        assert.equal(created.defaultSets, 3); assert.equal(created.defaultReps, 10); assert.equal(created.version, "1");
+        assert.equal(created.userId, undefined); assert.equal(created.deletedAt, undefined);
+        const snapshot = saved.body.item.exerciseSnapshot[index];
+        assert.equal(snapshot.idLabel, created.name); assert.equal(snapshot.enLabel, created.name);
+        assert.deepEqual(snapshot.requirements, [[]]); assert.equal(snapshot.sets, 2); assert.equal(snapshot.reps, 8);
+      }
+      assert.equal(await count("workout_sessions", a.id), 1); assert.equal(await count("user_exercises", a.id), 2);
+      assert.equal(await count("operation_receipts", a.id), 1);
+      const delta = await pullChanges(a.id, cursor, 100);
+      assert.deepEqual(delta.changes.map(change => change.entityType), ["user_exercise", "user_exercise", "workout_session"]);
+      for (const change of delta.changes) assert.equal(change.version, "1");
+      const id = input.newExercises[0].id;
+      assert.equal((await call(`exercises/custom/${id}`, a.jwt, "PATCH", { baseVersion: "1", changes: { name: "Changed later", defaultSets: 5, defaultReps: 20 } })).status, 200);
+      const detail = await call(`workouts/${input.id}`, a.jwt);
+      assert.deepEqual(detail.body.item, saved.body.item);
+    });
+
+    await t.test("Retry after an ignored response replays the whole transaction without duplicating rows, events or versions", async () => {
+      const a = await account(), input = manualWithNewExercises(), key = randomUUID();
+      // Deliberately discard the first response, modeling a client that never
+      // received its ACK. This is not a real transport-disconnect simulation.
+      await call("workouts", a.jwt, "POST", input, key);
+      const [receipt] = await db.select().from(schema.operationReceipts).where(eq(schema.operationReceipts.userId, a.id));
+      assert.ok(receipt);
+      const retry = await call("workouts", a.jwt, "POST", input, key);
+      assert.equal(retry.status, 201);
+      assert.equal(retry.body.exercises[0].version, "1"); assert.equal(retry.body.item.version, "1");
+      assert.deepEqual(retry.body, receipt.result.response);
+      for (const table of ["workout_sessions", "user_exercises", "operation_receipts"]) assert.equal(await count(table, a.id), 1);
+      assert.equal(await count("sync_changes", a.id), 2);
+      const changed = { ...input, newExercises: [{ ...input.newExercises[0], data: { ...exercise, name: "Changed payload" } }] };
+      const rejected = await call("workouts", a.jwt, "POST", changed, key);
+      assert.equal(rejected.status, 409); assert.equal(rejected.body.error.code, "IDEMPOTENCY_KEY_REUSE");
+      assert.equal(await count("sync_changes", a.id), 2);
+    });
+
+    await t.test("Failure inserting an exercise or the workout rolls back all rows/events/receipt and permits the same-key retry", async () => {
+      for (const failAt of ["exercise", "workout"]) {
+        const a = await account(), key = randomUUID(), input = manualWithNewExercises([`user-exercise-${randomUUID()}`, `user-exercise-${randomUUID()}`]);
+        const [state] = await db.select().from(schema.syncState).where(eq(schema.syncState.userId, a.id));
+        const table = failAt === "exercise" ? "user_exercises" : "workout_sessions";
+        const failId = failAt === "exercise" ? input.newExercises[1].id : input.id;
+        await local.exec(`CREATE FUNCTION manual_atomic_fail() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.id='${failId}' THEN RAISE EXCEPTION 'synthetic failure'; END IF; RETURN NEW; END $$; CREATE TRIGGER manual_atomic_fail BEFORE INSERT ON ${table} FOR EACH ROW EXECUTE FUNCTION manual_atomic_fail();`);
+        const previousError = console.error; console.error = () => {};
+        try { assert.equal((await call("workouts", a.jwt, "POST", input, key)).status, 500); }
+        finally { console.error = previousError; await local.exec(`DROP TRIGGER manual_atomic_fail ON ${table}; DROP FUNCTION manual_atomic_fail();`); }
+        for (const name of ["user_exercises", "workout_sessions", "operation_receipts", "sync_changes"]) assert.equal(await count(name, a.id), 0, `${failAt}: ${name}`);
+        const [after] = await db.select().from(schema.syncState).where(eq(schema.syncState.userId, a.id));
+        assert.equal(after.nextSequence, state.nextSequence);
+        assert.equal((await call("workouts", a.jwt, "POST", input, key)).status, 201);
+      }
+    });
+
+    await t.test("Invalid new exercise modes, references, duplicates, dates, sets and payload sizes do not leave partial state", async () => {
+      const a = await account(), input = manualWithNewExercises(), entry = input.newExercises[0];
+      const cases = [
+        { ...input, source: "custom", programId: "some-program" },
+        { ...input, source: "recommended", programId: "some-program", newExercises: [] },
+        { ...input, newExercises: [{ ...entry, data: { ...entry.data, mode: "calisthenics" } }] },
+        { ...input, newExercises: [{ ...entry, id: "not-used-in-snapshot" }] },
+        { ...input, newExercises: [entry, entry] },
+        { ...input, newExercises: [{ ...entry, id: "invalid/id" }] },
+        { ...input, newExercises: [{ ...entry, data: { ...entry.data, defaultSets: 11 } }] },
+        { ...input, newExercises: [{ ...entry, userId: "foreign" }] },
+        { ...input, exerciseSnapshot: [...input.exerciseSnapshot, ...input.exerciseSnapshot] },
+        { ...input, setLog: [...input.setLog, ...input.setLog] },
+        { ...input, setLog: [{ ...input.setLog[0], setNumber: 3 }] },
+        { ...input, recordedOn: "2020-01-01" },
+        manualWithNewExercises(Array.from({ length: 13 }, () => `user-exercise-${randomUUID()}`)),
+      ];
+      for (const invalid of cases) assert.equal((await call("workouts", a.jwt, "POST", invalid)).status, 400);
+      assert.equal((await call("workouts", a.jwt, "POST", { ...input, note: "x".repeat(66000) })).status, 413);
+      for (const name of ["user_exercises", "workout_sessions", "operation_receipts", "sync_changes"]) assert.equal(await count(name, a.id), 0);
+    });
+
+    await t.test("Existing own/catalog/tombstone IDs conflict; foreign references fail without leaking or overwriting accounts", async () => {
+      const a = await account(), b = await account(), input = manualWithNewExercises();
+      const entry = input.newExercises[0];
+      assert.equal((await call("exercises/custom", a.jwt, "POST", { id: entry.id, data: exercise })).status, 201);
+      const collision = await call("workouts", a.jwt, "POST", input);
+      assert.equal(collision.status, 409); assert.equal(collision.body.error.code, "RESOURCE_ID_REUSE");
+      await call(`exercises/custom/${entry.id}`, a.jwt, "DELETE", { baseVersion: "1" });
+      assert.equal((await call("workouts", a.jwt, "POST", input)).status, 409, "Tombstone is not a reusable new ID");
+      const [catalog] = await db.select({ id: schema.exerciseCatalog.id }).from(schema.exerciseCatalog).where(eq(schema.exerciseCatalog.mode, "gym")).limit(1);
+      assert.equal((await call("workouts", a.jwt, "POST", manualWithNewExercises([catalog.id]))).status, 409);
+      const fresh = manualWithNewExercises();
+      const foreign = { ...fresh, exerciseSnapshot: [...fresh.exerciseSnapshot, prescription(entry.id)] };
+      assert.equal((await call("workouts", b.jwt, "POST", foreign)).status, 400);
+      assert.equal(await count("user_exercises", b.id), 0); assert.equal(await count("workout_sessions", b.id), 0);
+      // IDs are account-scoped: an explicitly new local exercise with the same
+      // ID as another account is not a reference to that account's private data.
+      const own = await call("workouts", b.jwt, "POST", input); assert.equal(own.status, 201);
+      const aExercise = await db.select().from(schema.userExercises).where(eq(schema.userExercises.userId, a.id));
+      assert.equal(aExercise[0].version, BigInt(2)); assert.ok(aExercise[0].deletedAt);
+      assert.equal((await call(`workouts/${input.id}`, a.jwt)).status, 404);
+    });
+
+    await t.test("Manual payloads without newExercises still work and pre-upgrade receipts replay unchanged", async () => {
+      const a = await account(), p = await setupProgram(a.jwt);
+      const input = { id: "manual-existing", source: "manual", mode: "gym", exerciseSnapshot: [prescription(p.exerciseId)], setLog: [], startedAt, finishedAt, recordedOn: date };
+      const key = randomUUID(), saved = await call("workouts", a.jwt, "POST", input, key);
+      assert.equal(saved.status, 201); assert.deepEqual(saved.body.exercises, []);
+      const [receipt] = await db.select().from(schema.operationReceipts).where(eq(schema.operationReceipts.operationId, key));
+      const { exercises: _extra, ...oldResponse } = saved.body; void _extra;
+      await db.update(schema.operationReceipts).set({ result: { ...receipt.result, response: oldResponse } }).where(eq(schema.operationReceipts.operationId, key));
+      assert.deepEqual((await call("workouts", a.jwt, "POST", input, key)).body, oldResponse);
+      assert.equal(await count("workout_sessions", a.id), 1);
+      assert.equal((await call("workouts", a.jwt, "POST", { ...input, id: "manual-empty", newExercises: [] })).status, 201);
+    });
+
     await t.test("Direct writes are visible to legacy sync; stale legacy writes and reused receipts cannot overwrite them", async () => {
       const a = await account(), cursor = (await bootstrap(a.id)).cursor, key = randomUUID();
       const input = { id: "exercise", data: exercise }; assert.equal((await call("exercises/custom", a.jwt, "POST", input, key)).status, 201);
@@ -313,6 +437,8 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
         assert.equal((await call("me", a.jwt, "PATCH", { baseVersions: { profile: "1" }, profile: { weightKg: 71 } })).status, 200);
         assert.equal((await call(`statistics?from=${date}&to=${date}`, a.jwt)).status, 200);
         await setupProgram(a.jwt);
+        const workout = await call("workouts", a.jwt, "POST", manualWithNewExercises());
+        assert.equal(workout.status, 201); assert.equal(workout.body.exercises[0].version, "1");
       } finally { await local.exec("RESET ROLE;"); }
       await db.update(schema.users).set({ status: "deletion_requested" }).where(eq(schema.users.id, a.id));
       assert.equal((await call("social/drafts", a.jwt, "POST", input, key)).status, 403);

@@ -1,6 +1,8 @@
 # Follow-up frontend lengkap: seluruh perubahan API backend
 
 Tanggal: 20 Oktober 2026. Mengikuti `backend-online-mode-follow-up.md` dari mobile.
+Pembaruan 21 Oktober 2026: workout manual mendukung gerakan baru dalam satu
+submit atomik, mengikuti `backend-manual-workout-atomic-follow-up.md`.
 Implementasi **source lokal** selesai; bukan klaim sudah deploy. Tidak ada migrasi
 database/dependensi/env baru, penghapusan storage lama, atau write akun production.
 
@@ -354,9 +356,90 @@ recommended harus ID katalog program. Untuk catatan manual, source manual dan
 **hilangkan programId**. Endpoint manual terpisah tidak diperlukan.
 
 Server menyimpan **status completed**; field status tidak boleh dikirim client.
-HTTP 201 mengembalikan `{item}` lengkap dengan version `"1"`, snapshot dan
-seluruh setLog. Penyimpanan row, event sync, serta receipt satu transaksi.
+HTTP 201 baru mengembalikan `{item,exercises}`. Item berisi version `"1"`, snapshot
+dan seluruh setLog; exercises berisi hanya gerakan baru kanonis yang dibuat oleh
+submit itu, atau array kosong jika tidak ada. Setiap exercise memiliki version
+string dan updatedAt. Penyimpanan row, event sync, serta receipt satu transaksi.
 Retry key/body sama tidak menggandakan histori. Sukses hanya setelah ACK server.
+
+Receipt sukses dari backend sebelum pembaruan ini tetap direplay persis; respons
+lama tersebut dapat hanya memiliki item. Mobile boleh memperlakukan exercises
+yang tidak ada sebagai array kosong pada replay lama, bukan meminta pendaftaran
+gerakan atau membuat workout baru.
+
+### Gerakan baru pada catatan manual: satu submit atomik
+
+Untuk **source manual saja**, tambahkan field opsional `newExercises` pada body
+POST /workouts. Tidak ada request pendahuluan ke POST /exercises/custom. Semua
+isian dan ID tetap di memori sampai pengguna menekan Selesai/Simpan hasil final.
+
+Contoh lengkap, memakai ID ilustrasi yang valid (generate UUID sendiri):
+
+```json
+{
+  "id": "workout-9f4e0288-83c2-49ca-8f82-109050b0b4cb",
+  "source": "manual",
+  "mode": "gym",
+  "startedAt": "2026-10-21T07:00:00+07:00",
+  "finishedAt": "2026-10-21T07:30:00+07:00",
+  "recordedOn": "2026-10-21",
+  "exerciseSnapshot": [
+    {
+      "id": "user-exercise-b3e51055-609b-4380-9036-e029c398834a",
+      "idLabel": "Gerakan saya", "enLabel": "My exercise", "requirements": [[]],
+      "sets": 3, "reps": 10, "targetWeightKg": null
+    }
+  ],
+  "setLog": [
+    {
+      "exerciseId": "user-exercise-b3e51055-609b-4380-9036-e029c398834a",
+      "setNumber": 1, "completed": true, "reps": 10, "weightKg": 5
+    }
+  ],
+  "newExercises": [
+    {
+      "id": "user-exercise-b3e51055-609b-4380-9036-e029c398834a",
+      "data": { "name": "Gerakan saya", "mode": "gym", "defaultSets": 3, "defaultReps": 10 }
+    }
+  ]
+}
+```
+
+Aturan kontrak:
+
+- newExercises opsional, maksimal 12, ID unik. Source custom/recommended menolak
+  field ini, termasuk array kosong. Source manual tetap tidak mengirim programId.
+- Setiap gerakan baru **wajib direferensikan** oleh exerciseSnapshot dan mempunyai
+  mode sama dengan workout. Semua prescription dan set log tetap divalidasi.
+- Format ID sama dengan resource exercise: 1–255 karakter, diawali huruf/angka,
+  selanjutnya huruf/angka atau `_`, `.`, `:`, `-`. `user-exercise-<UUID>` diterima;
+  prefix tersebut bukan syarat wajib. Default sets 1–10, reps 1–100, nama
+  nonkosong maksimum80 karakter dan tanpa karakter kontrol.
+- ID yang sudah ada di akun sendiri, termasuk tombstone, atau berbenturan ID
+  katalog apa pun menghasilkan409 RESOURCE_ID_REUSE. Jangan memakai field ini
+  untuk mengedit/menghidupkan lagi gerakan lama. Gerakan yang sudah tersimpan
+  cukup direferensikan dalam snapshot, tanpa dimasukkan ke newExercises.
+- ID private akun lain tidak menjadi referensi yang sah. Namespace ID custom
+  terikat akun: ID sama yang dibuat eksplisit untuk akun sendiri tidak membaca
+  atau menimpa data akun lain.
+- Name dan default disimpan sebagai exercise milik pengguna, bukan verifikasi
+  alat/teknik. Label snapshot dikanonisasi dari nama tersimpan; requirements
+  exercise buatan adalah `[[]]`, bukan klaim alat terverifikasi. Default exercise
+  tidak mengganti target sets/reps pada snapshot yang sudah dikirim.
+- Exercise baru, workout, event stream dan satu receipt respons penuh disimpan
+  dalam **satu transaksi**. Gagal membuat salah satu gerakan/workout atau gagal
+  validasi →rollback semuanya, termasuk event, counter versi dan receipt.
+- Respons exercises mengikuti urutan newExercises, hanya berisi gerakan baru
+  tersebut. Mobile menggabungkannya ke koleksi exercise di memori dan memakai
+  item untuk histori, tanpa GET tambahan.
+- Jika respons terputus setelah commit, retry dengan key, ID, dan body sama
+  mengembalikan receipt `{item,exercises}` awal tanpa konflik ID hasil commit
+  sendiri atau duplikasi data. Ubah payload dengan key sukses yang sama →409
+  IDEMPOTENCY_KEY_REUSE; jangan otomatis membuat ID/key baru saat hasil belum pasti.
+- Payload lama tanpa newExercises tetap diterima. Tidak ada DDL/env/dependensi
+  baru, endpoint tambahan, resume, autosave, atau penyimpanan offline baru.
+
+### Histori tetap independen
 
 Kirim snapshot prescription yang benar-benar digunakan dari memori mobile,
 jangan mengambil ulang program/rekomendasi untuk membentuk histori setelah
@@ -376,7 +459,7 @@ DELETE hanya tombstone, bukan mengubah isi histori.
 
 Endpoint `/workouts/active`, `/workouts/manual`, `/workouts/{id}/sets`,
 `/workouts/{id}/complete` dan `/workouts/{id}/abort` sudah dihapus dari source
-API langsung yang belum dideploy. Dashboard tidak lagi mengembalikan activeWorkout.
+API langsung. Dashboard tidak lagi mengembalikan activeWorkout.
 
 Jika aplikasi ditutup sebelum submit, progres memori bisa hilang. Jika pengguna
 membatalkan, tidak ada workout baru yang disimpan. Jika submit timeout, pertahankan
@@ -520,12 +603,31 @@ Pemeriksaan Vercel read-only pada 20 Oktober 2026:
 - GET `/api/v1/dashboard?date=2026-10-20` →404.
 - OPTIONS 204 sendiri **bukan bukti** route/domain contract sudah tersedia.
 
-Belum deploy/push, belum uji JWT akun asli/write production. Sebelum cutover:
-deploy commit ini, cek capability `atomicAccountPatch`, `onlineResourceApi`,
-`completedWorkoutSubmission` pada meta secara operasional (bukan startup rutin mobile), lalu
-uji baca/write dengan akun uji yang disetujui. Verifikasi runtime grants, error,
-retry dan ringkasan pada deployment tujuan sebelum mengklaim siap production.
+Pemeriksaan metadata Vercel read-only terbaru, **21 Oktober 2026**:
+
+- `atomicAccountPatch`, `onlineResourceApi`, dan `completedWorkoutSubmission`
+  sudah true pada production. Catatan404 tanggal20 di atas adalah riwayat audit,
+  bukan status terkini endpoint lama.
+- Capability **manualWorkoutAtomicExercises belum ada** pada metadata production.
+  Dukungan gerakan baru atomik belum dikonfirmasi pada deployment tersebut.
+- Tidak ada uji JWT akun asli atau write data personal production dalam pekerjaan
+  ini. Capability saja juga bukan bukti seluruh kontrak authenticated sudah diuji.
+
+Perubahan gerakan baru atomik ini belum dipush/deploy oleh pekerjaan ini. Sebelum
+mengaktifkannya pada mobile, deploy source terbaru dan cek capability secara
+operasional (bukan startup rutin mobile), lalu uji baca/write dengan akun uji yang
+disetujui. Verifikasi runtime grants, error, retry dan respons gabungan pada
+deployment tujuan sebelum mengklaim fitur baru siap production.
 Tidak perlu DDL/env baru untuk fitur ini; jangan menjalankan migrasi lama ulang.
+
+Untuk fitur gerakan baru manual (21 Oktober), deployment juga perlu memuat
+capability `manualWorkoutAtomicExercises: true`. Source fitur ini belum merupakan
+konfirmasi production: jangan aktifkan submit gerakan baru di mobile sampai
+deploy target dan uji kontrak dengan akun uji yang disetujui telah dikonfirmasi.
+Tes lokal mencakup sukses gabungan, gagal insert gerakan kedua/workout,
+rollback row/event/receipt/sequence, retry dengan respons awal diabaikan,
+payload berubah/key sama, mode, refs/ID duplikat/katalog/tombstone, lintas akun,
+ukuran payload, snapshot immutable, runtime role, dan payload tanpa newExercises.
 
 Mobile adalah project terpisah: belum diubah/dibuild di pekerjaan backend ini.
 Transisi SQLite/outbox lama tetap membutuhkan rencana tersendiri; jangan
@@ -544,6 +646,10 @@ menghapus progres, data pending, atau hasil write yang belum diketahui.
 - Workout hanya satu submit setelah Selesai; tidak start/resume/per-set/abort
   write. Simpan isian sementara dan key hanya di memori, jangan buang hasil
   yang belum mendapat ACK hanya karena timeout.
+- Catatan manual dengan gerakan baru: satu POST /workouts beserta newExercises,
+  tanpa request pendaftaran terpisah. Gunakan item/exercises kanonis respons;
+  payload lama tanpa gerakan baru tetap berjalan. Aktifkan setelah deployment
+  fitur atomik ini dikonfirmasi, bukan hanya karena file dokumentasinya tersedia.
 - Jurnal memakai respons item dan journals untuk rekap hari terkait; pertahankan
   snapshot historis dan label estimasi harga, jangan menghitung ulang dari
   katalog terkini setelah makan disimpan.

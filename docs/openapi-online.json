@@ -218,7 +218,7 @@
       },
       "post": {
         "operationId": "recordCompletedWorkout",
-        "description": "Submit once after finishing: full performed exerciseSnapshot, complete setLog, startedAt, finishedAt and local recordedOn >=1900-01-01. Always creates status completed; no start, resume, per-set or abort API. Source custom/recommended requires programId with matching ownership/catalog and mode; source manual must omit programId. Valid historical references may be soft-deleted/inactive. Server canonicalizes exercise labels/requirements but never rebuilds sets/reps from a program or current recommendations. Results remain self-reported, not proof that a program was recommended. Key retry replays without duplication. finishedAt >= startedAt; recordedOn within one day of UTC start day.",
+        "description": "Submit once after finishing: full performed exerciseSnapshot, complete setLog, startedAt, finishedAt and local recordedOn >=1900-01-01. Always creates status completed; no start, resume, per-set or abort API. Source custom/recommended requires programId with matching ownership/catalog and mode; source manual must omit programId. Only source manual accepts optional newExercises (even an empty array); at most12 unique account-local new IDs, every one referenced by exerciseSnapshot and mode matching the workout. Existing local IDs including tombstones or any catalog ID conflict409; another account's matching ID is independently scoped, never a private reference. All exercise rows, workout, sync events and one whole-response receipt commit atomically or fully roll back. Fresh responses include exercises with canonical fields/version strings, empty if none; pre-upgrade receipts may replay item-only JSON. Valid historical references may be soft-deleted/inactive. Server canonicalizes exercise labels/requirements but never rebuilds sets/reps from a program or current recommendations. Custom exercise requirements are unverified and use [[]]. Results remain self-reported, not proof that a program was recommended. Key retry replays without duplication, including new exercise IDs already committed on a lost ACK; changed payload/key reuse rejects409. finishedAt >= startedAt; recordedOn within one day of UTC start day.",
         "parameters": [
           {
             "in": "header",
@@ -247,7 +247,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WorkoutResponse"
+                  "$ref": "#/components/schemas/CompletedWorkoutResponse"
                 }
               }
             }
@@ -2945,6 +2945,60 @@
                 "type": "null"
               }
             ]
+          },
+          "newExercises": {
+            "maxItems": 12,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 255,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "defaultReps": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 100
+                    },
+                    "defaultSets": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 10
+                    },
+                    "mode": {
+                      "type": "string",
+                      "enum": [
+                        "gym",
+                        "calisthenics"
+                      ]
+                    },
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    }
+                  },
+                  "required": [
+                    "defaultReps",
+                    "defaultSets",
+                    "mode",
+                    "name"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "id",
+                "data"
+              ],
+              "additionalProperties": false
+            }
           }
         },
         "required": [
@@ -2957,7 +3011,23 @@
           "finishedAt",
           "recordedOn"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "newExercises"
+              ]
+            },
+            "then": {
+              "properties": {
+                "source": {
+                  "const": "manual"
+                }
+              }
+            }
+          }
+        ]
       },
       "UserPreferences": {
         "type": "object",
@@ -3545,6 +3615,24 @@
         "properties": {
           "item": {
             "$ref": "#/components/schemas/Workout"
+          }
+        }
+      },
+      "CompletedWorkoutResponse": {
+        "type": "object",
+        "required": [
+          "item"
+        ],
+        "properties": {
+          "item": {
+            "$ref": "#/components/schemas/Workout"
+          },
+          "exercises": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomExercise"
+            },
+            "description": "Canonical newly created exercises in request order, with string versions; empty for fresh submissions without newExercises. Optional only because pre-upgrade saved receipts replay the original item-only response unchanged."
           }
         }
       },

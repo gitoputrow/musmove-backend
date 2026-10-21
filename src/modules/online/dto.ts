@@ -51,10 +51,19 @@ export const completedWorkoutSchema = z.object({
   setLog: entityPayloadSchemas.workout_session.shape.setLog,
   startedAt: z.iso.datetime({ offset: true }), finishedAt: z.iso.datetime({ offset: true }), recordedOn: workoutDate,
   note: z.string().max(2000).nullable().optional(),
+  newExercises: newExercisesSchema.optional(),
 }).strict().superRefine((value, context) => {
   if ((value.source !== "manual") !== (value.programId !== undefined)) context.addIssue({
     code: "custom", path: ["programId"], message: "Provide programId for custom/recommended only; omit it for manual workouts",
   });
+  if (value.newExercises !== undefined && value.source !== "manual") context.addIssue({
+    code: "custom", path: ["newExercises"], message: "newExercises is supported only for manual workouts",
+  });
+  const referenced = new Set(value.exerciseSnapshot.map(exercise => exercise.id));
+  for (const [index, exercise] of (value.newExercises ?? []).entries()) {
+    if (exercise.data.mode !== value.mode) context.addIssue({ code: "custom", path: ["newExercises", index, "data", "mode"], message: "New exercise mode must match the workout mode" });
+    if (!referenced.has(exercise.id)) context.addIssue({ code: "custom", path: ["newExercises", index, "id"], message: "Every new exercise must be referenced in exerciseSnapshot" });
+  }
 });
 export const summaryQuerySchema = z.object({ from: z.iso.date(), to: z.iso.date() }).strict().refine(v => {
   const span = Date.parse(v.to) - Date.parse(v.from); return span >= 0 && span <= 366 * 86400000;

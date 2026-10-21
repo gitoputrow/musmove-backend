@@ -40,6 +40,7 @@ must never send a `userId` to select ownership. Current endpoints are:
 - `POST /imports/demo`
 - `GET /workouts?from=YYYY-MM-DD&to=YYYY-MM-DD`
 - `POST /workouts` (save once after finishing, including full performed snapshot and all set results; custom/recommended/manual)
+- Manual workout may include `newExercises` (up to12, all referenced and mode-matching) in the same atomic submit; fresh responses return `{item, exercises}`. No separate exercise registration or progress API.
 - `GET/DELETE /workouts/{id}` (history; no start/resume, per-set save or abort API)
 - `GET/POST /programs/custom`; `GET/PATCH/DELETE /programs/custom/{id}`
 - `GET/POST /exercises/custom`; `GET/PATCH/DELETE /exercises/custom/{id}`

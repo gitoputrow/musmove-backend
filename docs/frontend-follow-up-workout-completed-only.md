@@ -1,7 +1,12 @@
 # Follow-up mobile: workout disimpan hanya setelah selesai
 
 Tanggal: 20 Oktober 2026.
-Status: sudah diimplementasikan pada source backend, **belum di-deploy**.
+Pembaruan 21 Oktober: newExercises opsional khusus source manual, disimpan
+atomik bersama workout. Kontrak/contoh lengkap termasuk seluruh fitur backend
+ada di [handoff frontend lengkap](frontend-follow-up-online-api.md#gerakan-baru-pada-catatan-manual-satu-submit-atomik).
+Status: alur completed-only tersedia pada source. Pembaruan gerakan baru atomik
+21 Oktober belum dipush/deploy oleh pekerjaan ini; verifikasi terbarunya ada di
+handoff frontend lengkap.
 Dokumen ini menggantikan rancangan start/resume dan simpan progres workout
 bertahap sebelumnya. Fitur API lain tetap mengikuti
 [handoff API online](frontend-follow-up-online-api.md).
@@ -116,13 +121,23 @@ milik akun lain/tidak dikenal ditolak. Server mengkanonisasi label/requirements,
 tetapi tidak menghitung ulang prescription dari rekomendasi terbaru. Data hasil
 tetap user-reported, bukan bukti program pernah direkomendasikan.
 
-HTTP **201** mengembalikan `{ "item": { ... } }`. Item lengkap berisi:
+HTTP **201** baru mengembalikan `{ "item": { ... }, "exercises": [...] }`.
+Exercises berisi hanya gerakan baru kanonis, atau array kosong. Receipt lama
+sebelum pembaruan tetap bisa direplay dengan item saja; treat array yang tidak
+ada sebagai kosong. Item lengkap berisi:
 
 - id, planId, mode, status completed;
 - startedAt, finishedAt, recordedOn;
 - exerciseSnapshot dan setLog kanonis;
 - legacyMetadata.source dan note jika dikirim;
 - version `"1"` serta updatedAt.
+
+newExercises tidak wajib untuk workout yang hanya memakai gerakan tersimpan.
+Jika disertakan, maksimal12 ID unik, semuanya dipakai snapshot dan mode cocok;
+hanya untuk manual, tanpa programId. Tolak ID akun sendiri yang sudah ada
+(termasuk tombstone) dan bentrok katalog. Seluruh insert/stream/receipt rollback
+jika salah satu gagal. Jangan membuat request pendaftaran gerakan sebelumnya.
+Perubahan nama/default setelah commit tidak mengubah snapshot workout lama.
 
 Untuk manual, planId tersimpan sebagai `manual`. Timestamp respons dapat
 dinormalisasi menjadi UTC. Penyimpanan workout, event kompatibilitas sync, dan
@@ -186,4 +201,6 @@ lama pada perangkat tetap tidak boleh dibuang otomatis tanpa rencana transisi.
   akun production. Perlu redeploy Vercel dan uji integrasi yang disetujui sebelum
   mobile mengandalkan kontrak baru. Capability operasionalnya adalah
   completedWorkoutSubmission; jangan menambah GET /meta rutin pada startup.
+  Gerakan baru dalam submit manual memerlukan deployment dengan capability
+  manualWorkoutAtomicExercises serta verifikasi kontrak yang disetujui.
 - Dokumen ini tidak mengubah atau membangun project Flutter.

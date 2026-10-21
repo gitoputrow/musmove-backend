@@ -35,15 +35,17 @@ export async function canonicalExercises(tx: DatabaseTransaction, userId: string
     return { ...prescription, idLabel: custom.name, enLabel: custom.name, requirements: [[]] };
   }));
 }
-async function addExercises(ctx: Mutation, input: unknown) {
+export async function addExercises(ctx: Mutation, input: unknown) {
   const items = newExercisesSchema.parse(input ?? []);
+  const created = [];
   for (const item of items) {
     if (await readItem(ctx.tx, ctx.userId, "user_exercise", item.id)) throw conflict("RESOURCE_ID_REUSE", "Choose a new exercise ID");
     // Catalog IDs must never be shadowed by a custom exercise.
     const [catalog] = await ctx.tx.select({ id: exerciseCatalog.id }).from(exerciseCatalog).where(eq(exerciseCatalog.id, item.id)).limit(1);
     if (catalog) throw conflict("RESOURCE_ID_REUSE", "Catalog exercise ID cannot be used for a custom exercise");
-    await ctx.put("user_exercise", item.id, "0", item.data);
+    created.push(await ctx.put("user_exercise", item.id, "0", item.data));
   }
+  return created;
 }
 async function journals(ctx: Mutation, dates: unknown[]) {
   const result = [];
