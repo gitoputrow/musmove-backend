@@ -172,14 +172,16 @@ test("Onboarding routes use isolated PostgreSQL and synthetic signed identities 
 
     await t.test("A failure in the second write rolls back profile, nutrition, sequence and receipt; retry succeeds", async () => {
       const c = await account(), key = randomUUID();
+      const input = { ...payload(), profile: { ...payload().profile, focus: undefined, focusAreas: ["back", "chest"] } };
       const [before] = await db.select().from(schema.syncState).where(eq(schema.syncState.userId, c.id));
       await local.exec(`CREATE FUNCTION onboarding_test_failure() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'synthetic failure'; END $$; CREATE TRIGGER onboarding_fail BEFORE INSERT ON training_preferences FOR EACH ROW EXECUTE FUNCTION onboarding_test_failure();`);
       const previousError = console.error; console.error = () => {};
-      try { assert.equal((await submit(c.jwt, payload(), key)).status, 500); }
+      try { assert.equal((await submit(c.jwt, input, key)).status, 500); }
       finally { console.error = previousError; await local.exec("DROP TRIGGER onboarding_fail ON training_preferences; DROP FUNCTION onboarding_test_failure();"); }
       for (const table of ["profiles", "training_preferences", "nutrition_estimates", "operation_receipts", "sync_changes"]) assert.equal(await count(table, c.id), 0);
       const [after] = await db.select().from(schema.syncState).where(eq(schema.syncState.userId, c.id)); assert.equal(after.nextSequence, before.nextSequence);
-      assert.equal((await submit(c.jwt, payload(), key)).status, 200);
+      const retried = await submit(c.jwt, input, key); assert.equal(retried.status, 200);
+      assert.deepEqual((await retried.json()).profile.focusAreas, ["chest", "back"]);
     });
 
     await t.test("A legacy sync receipt cannot be reused as an onboarding key", async () => {

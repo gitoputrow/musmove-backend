@@ -4,10 +4,12 @@ import { catalogState, exerciseCatalog, profiles, trainingPreferences, workoutPr
 import { conflict } from "@/src/lib/api-error";
 import { personalizePrograms } from "./personalization";
 import type { DatabaseTransaction } from "@/src/modules/sync/entities";
+import { distributeFocusPrograms, readFocusAreas, resolveFocusFields, type FocusArea } from "./focus";
 
 export interface ProgramPreferences {
   mode: "gym" | "calisthenics";
-  focus: string;
+  focus: string | null;
+  focusAreas?: FocusArea[];
   sessionMinutes: number;
   equipment: string[];
 }
@@ -17,7 +19,7 @@ export function matchesProgram(
   preferences: ProgramPreferences,
 ) {
   const equipment = new Set(preferences.equipment);
-  return program.mode === preferences.mode && program.focus === preferences.focus &&
+  return program.mode === preferences.mode && readFocusAreas(preferences).some(area => area === program.focus) &&
     program.durationMinutes <= preferences.sessionMinutes && program.exercises.length > 0 &&
     program.exercises.every((exercise) => exercise.requirements.some((group) => group.every((item) => equipment.has(item))));
 }
@@ -69,17 +71,14 @@ export async function readProgramCatalog(transaction: DatabaseTransaction, userI
 
     const [profile] = await transaction.select().from(profiles).where(and(eq(profiles.userId, userId), isNull(profiles.deletedAt)));
     const [training] = await transaction.select().from(trainingPreferences).where(and(eq(trainingPreferences.userId, userId), isNull(trainingPreferences.deletedAt)));
-    if (!profile || !training || !profile.focus || !profile.sessionMinutes) {
-      throw conflict("PREFERENCES_REQUIRED", "Save training preferences, focus and sessionMinutes before requesting programs");
+    if (!profile || !training || !readFocusAreas(profile).length || !profile.sessionMinutes) {
+      throw conflict("PREFERENCES_REQUIRED", "Save training preferences, valid focusAreas and sessionMinutes before requesting programs", { reason: "VALID_TRAINING_PREFERENCES_REQUIRED" });
     }
-    if (!["full", "leg", "chest", "back", "arm"].includes(profile.focus)) {
-      throw conflict("UNSUPPORTED_FOCUS", "Supported focus values: full, leg, chest, back, arm");
-    }
-    const preferences: ProgramPreferences = {
-      mode: training.mode, focus: profile.focus,
+    const preferences = {
+      mode: training.mode, ...resolveFocusFields(profile),
       sessionMinutes: profile.sessionMinutes,
       equipment: training.noEquipment ? [] : training.equipment,
-    };
+    } satisfies ProgramPreferences;
     const catalog = await transaction.select().from(exerciseCatalog).where(eq(exerciseCatalog.active, true));
     const history = await transaction.select().from(workoutSessions).where(and(
       eq(workoutSessions.userId, userId), eq(workoutSessions.mode, training.mode),
@@ -87,7 +86,8 @@ export async function readProgramCatalog(transaction: DatabaseTransaction, userI
       gte(workoutSessions.finishedAt, new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)),
       lte(workoutSessions.finishedAt, new Date()),
     )).orderBy(desc(workoutSessions.finishedAt), desc(workoutSessions.id)).limit(20);
-    const candidates = programs.filter((program) => program.mode === training.mode && program.focus === profile.focus);
+    const candidates = programs.filter((program) => program.mode === training.mode && preferences.focusAreas.some(area => area === program.focus));
     const personalized = personalizePrograms(candidates, catalog, profile, preferences.equipment, history);
-    return { ...versions, preferences, ...personalized };
+    return { ...versions, preferences, ...personalized,
+      ...distributeFocusPrograms(personalized.programs, preferences.focusAreas, personalized.personalization.suggestedWeeklySessions) };
 }

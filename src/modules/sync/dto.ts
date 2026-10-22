@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { focusAreasSchema, validateFocusPair } from "@/src/modules/programs/focus";
 import { assertSafeJson } from "@/src/lib/body";
 
 export const boundedJsonPayload = z.unknown().superRefine((value, context) => {
@@ -74,6 +75,7 @@ export const entityPayloadSchemas = {
       dailyActivity: z.enum(["light", "moderate", "vigorous"]).nullable().optional(),
       displayName: nullableString(80).optional(),
       focus: nullableString(50).optional(),
+      focusAreas: focusAreasSchema.optional(),
       formulaSex: z.enum(["male", "female"]).nullable().optional(),
       gender: z.enum(["male", "female", "non_binary", "self_described", "prefer_not_to_say"]).nullable().optional(),
       trainingContext: trainingContextSchema.nullable().optional(),
@@ -256,6 +258,12 @@ export const syncPushSchema = z
 export type SyncOperation = z.infer<typeof syncOperationSchema>;
 
 export function parseEntityPayload(entityType: EntityType, payload: unknown) {
+  if (entityType === "profile") return entityPayloadSchemas.profile.superRefine((profile, ctx) => {
+    validateFocusPair(profile, ctx);
+    if (profile.programSource === "app" && profile.focusAreas?.length === 0) {
+      ctx.addIssue({ code: "custom", path: ["focusAreas"], message: "Choose focus areas for app-generated programs" });
+    }
+  }).parse(payload);
   return entityPayloadSchemas[entityType].parse(payload);
 }
 

@@ -148,6 +148,13 @@
       "when": 1791657682441,
       "tag": "0020_equipment_modes",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1791657682442,
+      "tag": "0021_multi_muscle_focus",
+      "breakpoints": true
     }
   ]
 }

@@ -12,6 +12,7 @@ import type { Database } from "../../src/db/client";
 import * as schema from "../../src/db/schema";
 import { bootstrap, pullChanges, pushOperations } from "../../src/modules/sync/service";
 import { syncPushSchema } from "../../src/modules/sync/dto";
+import { startSnapshot, snapshotPage, snapshotPageSchema } from "../../src/modules/sync/snapshots";
 import { accountPatchSchema, versionSchema } from "../../src/modules/online/dto";
 
 const exercise = { mode: "gym", name: "Synthetic exercise", defaultSets: 2, defaultReps: 8 };
@@ -99,6 +100,97 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
     }
     const count = async (table: string, userId: string) => (await local.query<{ n: number }>(`SELECT count(*)::integer n FROM ${table} WHERE user_id=$1`, [userId])).rows[0].n;
 
+    await t.test("Multi-focus onboarding persists canonical arrays, returns ACK and replays atomically without crossing accounts", async () => {
+      const a = await account(), b = await account(), key = randomUUID();
+      const input = { ...onboarding(), profile: { ...onboarding().profile, focus: undefined, focusAreas: ["back", "chest"] } };
+      const result = await call("onboarding/complete", a.jwt, "POST", input, key);
+      assert.equal(result.status, 200, JSON.stringify(result.body));
+      assert.equal(result.body.profile.focus, null); assert.equal(result.body.profile.version, "1");
+      assert.deepEqual(result.body.profile.focusAreas, ["chest", "back"]);
+      assert.deepEqual((await call("me", a.jwt)).body.profile, result.body.profile);
+      assert.equal((await call("me", b.jwt)).body.profile, null);
+      assert.deepEqual((await call("onboarding/complete", a.jwt, "POST", input, key)).body, result.body);
+      assert.equal(await count("operation_receipts", a.id), 1); assert.equal(await count("sync_changes", a.id), 2);
+      const snapshot = await bootstrap(a.id);
+      assert.deepEqual((snapshot.entities.profile[0].payload as Record<string, unknown>).focusAreas, ["chest", "back"]);
+      const snapshotId = randomUUID(); await startSnapshot(a.id, snapshotId);
+      const page = await snapshotPage(a.id, snapshotPageSchema.parse({ snapshotId, limit: "50" }));
+      const profile = page.items.find(item => item.entityType === "profile")!.payload as Record<string, unknown>;
+      assert.deepEqual(profile.focusAreas, ["chest", "back"]); assert.equal(profile.focus, null);
+      const custom = await call("onboarding/complete", b.jwt, "POST", { ...input, profile: { ...input.profile, programSource: "custom", focusAreas: [] } });
+      assert.equal(custom.status, 200); assert.deepEqual(custom.body.profile.focusAreas, []);
+    });
+
+    await t.test("Multi-focus PATCH merges final source, preserves omission, rejects conflicting/invalid/stale updates and replays lost ACK", async () => {
+      const a = await account(true), key = randomUUID(), cursor = (await bootstrap(a.id)).cursor;
+      const input = { baseVersions: { profile: "1" }, profile: { focusAreas: ["back", "chest"] } };
+      const saved = await call("me", a.jwt, "PATCH", input, key);
+      assert.equal(saved.status, 200); assert.equal(saved.body.profile.focus, null); assert.equal(saved.body.profile.version, "2");
+      assert.deepEqual(saved.body.profile.focusAreas, ["chest", "back"]);
+      assert.deepEqual((await call("me", a.jwt, "PATCH", input, key)).body, saved.body);
+      assert.equal((await call("me", a.jwt, "PATCH", { ...input, profile: { focusAreas: ["arm"] } }, key)).body.error.code, "IDEMPOTENCY_KEY_REUSE");
+      assert.equal((await call("me", a.jwt, "PATCH", input)).body.error.code, "VERSION_CONFLICT");
+      const delta = await pullChanges(a.id, cursor, 100); assert.equal(delta.changes.length, 1);
+      assert.deepEqual((delta.changes[0].payload as Record<string, unknown>).focusAreas, ["chest", "back"]);
+      const nutrition = saved.body.nutritionTargets.estimate;
+      for (const profile of [{ focusAreas: [] }, { focusAreas: null }, { focusAreas: ["full", "back"] }, { focusAreas: ["chest", "chest"] }, { focusAreas: [1] }, { focusAreas: ["shoulder"] }, { focus: "arm", focusAreas: ["back"] }, { focus: null, focusAreas: ["chest", "back"] }]) {
+        assert.equal((await call("me", a.jwt, "PATCH", { baseVersions: { profile: "2" }, profile })).status, 400);
+      }
+      assert.equal((await call("me", a.jwt)).body.profile.version, "2");
+      const unrelated = await call("me", a.jwt, "PATCH", { baseVersions: { profile: "2" }, profile: { displayName: "Unrelated edit" } });
+      assert.equal(unrelated.status, 200); assert.deepEqual(unrelated.body.profile.focusAreas, ["chest", "back"]);
+      assert.equal(unrelated.body.nutritionTargets.estimate.calories, nutrition.calories);
+      assert.equal(unrelated.body.nutritionTargets.estimate.proteinGrams, nutrition.proteinGrams);
+      const cleared = await call("me", a.jwt, "PATCH", { baseVersions: { profile: "3" }, profile: { programSource: "custom", focusAreas: [] } });
+      assert.equal(cleared.status, 200); assert.deepEqual(cleared.body.profile.focusAreas, []);
+      assert.equal((await call("me", a.jwt, "PATCH", { baseVersions: { profile: "4" }, profile: { programSource: "app" } })).status, 400);
+      const full = await call("me", a.jwt, "PATCH", { baseVersions: { profile: "4" }, profile: { programSource: "app", focusAreas: ["full"] } });
+      assert.equal(full.status, 200); assert.equal(full.body.profile.focus, "full");
+      const legacy = await call("me", a.jwt, "PATCH", { baseVersions: { profile: "5" }, profile: { focus: "arm" } });
+      assert.equal(legacy.status, 200); assert.deepEqual(legacy.body.profile.focusAreas, ["arm"]);
+      const both = await call("me", a.jwt, "PATCH", { baseVersions: { profile: "6" }, profile: { focus: "chest", focusAreas: ["chest"] } });
+      assert.equal(both.status, 200); assert.deepEqual(both.body.profile.focusAreas, ["chest"]);
+    });
+
+    await t.test("Multi-focus recommendations union candidates, retain safety filters, explain unavailable focus and never add volume/days", async () => {
+      const a = await account(true);
+      const patch = (version: string, profile: object, trainingPreferences?: object) => call("me", a.jwt, "PATCH", {
+        baseVersions: { profile: version, ...(trainingPreferences ? { trainingPreferences: "1" } : {}) }, profile, ...(trainingPreferences ? { trainingPreferences } : {}),
+      });
+      assert.equal((await patch("1", { focusAreas: ["chest"], trainingContext: { painAreas: [] } })).status, 200);
+      const single = (await call("programs/recommendations", a.jwt)).body;
+      assert.equal((await patch("2", { focusAreas: ["back", "chest"] })).status, 200);
+      const multi = await call("programs/recommendations", a.jwt); assert.equal(multi.status, 200);
+      assert.deepEqual(multi.body.preferences.focusAreas, ["chest", "back"]); assert.equal(multi.body.preferences.focus, null);
+      assert.deepEqual(multi.body.focusCoverage.available, ["chest", "back"]); assert.deepEqual(multi.body.focusCoverage.unavailable, []);
+      assert.equal(multi.body.personalization.suggestedWeeklySessions, single.personalization.suggestedWeeklySessions);
+      assert.ok(multi.body.weeklyPlan.length <= single.personalization.suggestedWeeklySessions);
+      assert.deepEqual(multi.body.programs.find((p: { focus: string }) => p.focus === "chest"), single.programs[0]);
+      assert.equal(new Set(multi.body.programs.map((p: { id: string }) => p.id)).size, multi.body.programs.length);
+      assert.ok(multi.body.programs.every((p: { mode: string; focus: string; durationMinutes: number }) => p.mode === "gym" && ["chest", "back"].includes(p.focus) && p.durationMinutes <= 60));
+      assert.equal((await patch("3", { trainingFrequency: 1 })).status, 200);
+      const limited = (await call("programs/recommendations", a.jwt)).body;
+      assert.equal(limited.weeklyPlan.length, 1); assert.deepEqual(limited.focusCoverage.unscheduled, ["back"]);
+      assert.equal((await patch("4", { excludedExerciseIds: ["row"] })).status, 200);
+      const partial = (await call("programs/recommendations", a.jwt)).body;
+      assert.deepEqual(partial.focusCoverage.unavailable, ["back"]); assert.equal(partial.reason, null);
+      assert.equal((await patch("5", { excludedExerciseIds: ["row", "press"] })).status, 200);
+      const empty = (await call("programs/recommendations", a.jwt)).body;
+      assert.deepEqual(empty.programs, []); assert.deepEqual(empty.focusCoverage.unavailable, ["chest", "back"]); assert.equal(empty.reason, "NO_MATCHING_PROGRAM");
+      assert.equal((await patch("6", { excludedExerciseIds: [] }, { equipment: [], noEquipment: true })).status, 200);
+      const unequipped = (await call("programs/recommendations", a.jwt)).body; assert.deepEqual(unequipped.programs, []);
+      assert.equal((await call("me", a.jwt, "PATCH", { baseVersions: { profile: "7", trainingPreferences: "2" },
+        profile: { sessionMinutes: 10, trainingLevel: "advanced" }, trainingPreferences: { equipment: ["dumbbell"], noEquipment: false } })).status, 200);
+      const tooLong = (await call("programs/recommendations", a.jwt)).body;
+      assert.deepEqual(tooLong.programs, []); assert.ok(tooLong.rejectedPrograms.every((p: { reason: string }) => p.reason === "SESSION_DURATION_EXCEEDED"));
+      assert.equal((await call("me", a.jwt, "PATCH", { baseVersions: { profile: "8", trainingPreferences: "3" },
+        profile: { sessionMinutes: 60, trainingLevel: "beginner" }, trainingPreferences: { mode: "calisthenics", equipment: [], noEquipment: true } })).status, 200);
+      const calisthenics = (await call("programs/recommendations", a.jwt)).body;
+      assert.ok(calisthenics.programs.length); assert.ok(calisthenics.programs.every((p: { mode: string }) => p.mode === "calisthenics"));
+      assert.equal((await patch("9", { programSource: "custom", focusAreas: [] })).status, 200);
+      assert.equal((await call("programs/recommendations", a.jwt)).body.error.code, "PREFERENCES_REQUIRED");
+    });
+
     await t.test("All added read/write routes require authentication and reject ownership in input", async () => {
       for (const [path, methods] of Object.entries(routes)) {
         for (const method of Object.keys(methods).filter(k => ["GET", "POST", "PATCH", "PUT", "DELETE"].includes(k))) {
@@ -134,7 +226,7 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
 
     await t.test("Invalid related equipment and transactional failures leave profile/nutrition/receipts unchanged", async () => {
       const a = await account(true), key = randomUUID();
-      const input = { baseVersions: { profile: "1", trainingPreferences: "1" }, profile: { weightKg: 80 }, trainingPreferences: { mode: "calisthenics", equipment: ["dumbbell"] } };
+      const input = { baseVersions: { profile: "1", trainingPreferences: "1" }, profile: { weightKg: 80, focusAreas: ["chest", "back"] }, trainingPreferences: { mode: "calisthenics", equipment: ["dumbbell"] } };
       assert.equal((await call("me", a.jwt, "PATCH", input)).status, 400);
       input.trainingPreferences.mode = "gym";
       await local.exec("CREATE FUNCTION online_fail_preferences() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'synthetic failure'; END $$; CREATE TRIGGER online_fail BEFORE UPDATE ON training_preferences FOR EACH ROW EXECUTE FUNCTION online_fail_preferences();");
@@ -142,8 +234,9 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
       try { assert.equal((await call("me", a.jwt, "PATCH", input, key)).status, 500); }
       finally { console.error = errorLog; await local.exec("DROP TRIGGER online_fail ON training_preferences; DROP FUNCTION online_fail_preferences();"); }
       assert.equal((await call("me", a.jwt)).body.profile.weightKg, 70); assert.equal(await count("nutrition_estimates", a.id), 1);
+      assert.deepEqual((await call("me", a.jwt)).body.profile.focusAreas, ["full"]);
       assert.equal(await count("operation_receipts", a.id), 1); assert.equal(await count("sync_changes", a.id), 2);
-      assert.equal((await call("me", a.jwt, "PATCH", input, key)).status, 200);
+      const retry = await call("me", a.jwt, "PATCH", input, key); assert.equal(retry.status, 200); assert.deepEqual(retry.body.profile.focusAreas, ["chest", "back"]);
     });
 
     await t.test("Program plus new exercises is atomic; schedule conflicts roll back every write", async () => {
@@ -394,6 +487,31 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
       const edited = await call("me", a.jwt, "PATCH", { baseVersions: { profile: "1" }, profile: { displayName: "Legacy" } });
       assert.equal(edited.status, 200); assert.equal(edited.body.setupCompleted, true); assert.equal(edited.body.profile.ageYears, null);
       assert.notEqual(edited.body.nutritionTargets.estimate.status, "ready");
+      assert.deepEqual(edited.body.profile.focusAreas, []);
+      assert.equal((await call("programs/recommendations", a.jwt)).body.error.code, "PREFERENCES_REQUIRED");
+    });
+
+    await t.test("Legacy focus requests normalize; omission preserves multi-focus and old receipts remain byte-shape compatible", async () => {
+      const a = await account(true);
+      const legacy = async (baseVersion: string, payload: object) => pushOperations(a.id, syncPushSchema.parse({ schemaVersion: 1, deviceId: "legacy", operations: [{ operationId: randomUUID(), entityType: "profile", entityId: "profile", action: "upsert", baseVersion, payload }] }));
+      assert.equal((await legacy("1", { focus: "chest", setupCompleted: true })).results[0].status, "applied");
+      assert.deepEqual((await call("me", a.jwt)).body.profile.focusAreas, ["chest"]);
+      const key = randomUUID(), input = { baseVersions: { profile: "2" }, profile: { focusAreas: ["chest", "back"] } };
+      const saved = await call("me", a.jwt, "PATCH", input, key); assert.equal(saved.status, 200);
+      assert.equal((await legacy("3", { displayName: "Old client", setupCompleted: true })).results[0].status, "applied");
+      assert.deepEqual((await call("me", a.jwt)).body.profile.focusAreas, ["chest", "back"]);
+      const delta = await pullChanges(a.id, (await bootstrap(a.id)).cursor, 100); assert.deepEqual(delta.changes, []);
+      const oldInput = { baseVersions: { profile: "4" }, profile: { focus: "arm" } }, oldKey = randomUUID();
+      const old = await call("me", a.jwt, "PATCH", oldInput, oldKey); assert.equal(old.status, 200);
+      const oldResponse = structuredClone(old.body); delete oldResponse.profile.focusAreas;
+      const [receipt] = await db.select().from(schema.operationReceipts).where(eq(schema.operationReceipts.operationId, oldKey));
+      await db.update(schema.operationReceipts).set({ result: { ...receipt.result, response: oldResponse } }).where(eq(schema.operationReceipts.operationId, oldKey));
+      assert.deepEqual((await call("me", a.jwt, "PATCH", oldInput, oldKey)).body, oldResponse);
+      assert.deepEqual((await call("me", a.jwt)).body.profile.focusAreas, ["arm"]);
+      assert.equal((await legacy("5", { focus: "unknown", setupCompleted: true })).results[0].status, "applied");
+      assert.deepEqual((await call("me", a.jwt)).body.profile.focusAreas, []);
+      const conflict = await legacy("6", { focus: "chest", focusAreas: ["back"] }); assert.equal(conflict.results[0].status, "rejected");
+      assert.equal((await call("me", a.jwt)).body.profile.version, "6");
     });
 
     await t.test("Completed recommendation saves the performed snapshot without rebuilding from a changed program", async () => {
@@ -434,7 +552,8 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
       await local.exec("CREATE ROLE musmove_runtime NOLOGIN;"); await local.exec(await readFile("scripts/runtime-role-grants.sql", "utf8")); await local.exec("SET ROLE musmove_runtime;");
       try {
         assert.equal((await call("social/drafts", a.jwt, "POST", input, key)).status, 201);
-        assert.equal((await call("me", a.jwt, "PATCH", { baseVersions: { profile: "1" }, profile: { weightKg: 71 } })).status, 200);
+        const profile = await call("me", a.jwt, "PATCH", { baseVersions: { profile: "1" }, profile: { weightKg: 71, focusAreas: ["back", "chest"] } });
+        assert.equal(profile.status, 200); assert.deepEqual(profile.body.profile.focusAreas, ["chest", "back"]);
         assert.equal((await call(`statistics?from=${date}&to=${date}`, a.jwt)).status, 200);
         await setupProgram(a.jwt);
         const workout = await call("workouts", a.jwt, "POST", manualWithNewExercises());

@@ -6,6 +6,7 @@ import type { JsonObject } from "@/src/db/schema";
 import { ApiError, badRequest, conflict, forbidden } from "@/src/lib/api-error";
 import { readNutritionTargets } from "@/src/modules/nutrition/storage";
 import { entityPayloadSchemas } from "@/src/modules/sync/dto";
+import { resolveFocusFields } from "@/src/modules/programs/focus";
 import { canonicalRequestHash } from "@/src/modules/sync/encoding";
 import { asJsonValue, upsertEntity, type DatabaseTransaction } from "@/src/modules/sync/entities";
 import { lockSyncState } from "@/src/modules/sync/service";
@@ -29,7 +30,7 @@ function projectSetup({ profile, training, preferences }: Awaited<ReturnType<typ
     setupCompleted: profileLive ? profile.setupCompleted : false,
     profile: profileLive ? (({ userId: _owner, deletedAt: _deleted, version, updatedAt, ...fields }) => {
       void _owner; void _deleted;
-      return { ...fields, version: version.toString(), updatedAt: updatedAt.toISOString() };
+      return { ...fields, ...resolveFocusFields(fields), version: version.toString(), updatedAt: updatedAt.toISOString() };
     })(profile) : null,
     trainingPreferences: trainingLive ? {
       mode: training.mode, equipment: training.equipment, noEquipment: training.noEquipment,
@@ -96,8 +97,9 @@ export async function completeOnboarding(userId: string, operationId: string, in
     void _version; void _updated;
     const canonicalProfile = entityPayloadSchemas.profile.parse({
       displayName: null, weightKg: null, heightCm: null, formulaSex: null, gender: null,
-      trainingLevel: null, exerciseCapabilities: null, excludedExerciseIds: null, focus: null,
+      trainingLevel: null, exerciseCapabilities: null, excludedExerciseIds: null,
       ...previousFields, ...input.profile, setupCompleted: true,
+      ...resolveFocusFields(input.profile, previousFields),
       // Merge only a LIVE profile's context; tombstones must not revive old data.
       trainingContext: input.profile.trainingContext === undefined ? previous?.trainingContext ?? null :
         input.profile.trainingContext === null ? null : { ...previous?.trainingContext, ...input.profile.trainingContext },

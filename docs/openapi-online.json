@@ -2329,6 +2329,9 @@
                   }
                 ]
               },
+              "focusAreas": {
+                "$ref": "./openapi.yaml#/components/schemas/FocusAreas"
+              },
               "formulaSex": {
                 "anyOf": [
                   {
@@ -2698,7 +2701,12 @@
                 "type": "boolean"
               }
             },
-            "additionalProperties": false
+            "additionalProperties": false,
+            "allOf": [
+              {
+                "$ref": "./openapi.yaml#/components/schemas/FocusInputCompatibility"
+              }
+            ]
           },
           "trainingPreferences": {
             "type": "object",

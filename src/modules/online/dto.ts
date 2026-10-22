@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { entityPayloadSchemas } from "@/src/modules/sync/dto";
+import { focusSchema, validateFocusPair } from "@/src/modules/programs/focus";
 
 export const versionSchema = z.string().max(19).regex(/^(0|[1-9][0-9]*)$/)
   .pipe(z.string().refine(v => BigInt(v) <= BigInt("9223372036854775807"), "Version exceeds the supported range"));
@@ -27,8 +28,8 @@ export const profilePatchSchema = entityPayloadSchemas.profile.omit({ setupCompl
   motivationEnabled: z.boolean().optional(),
   goal: z.enum(["bulk", "cut", "maintenance", "maintain", "strength", "endurance", "muscle", "fat", "fit"])
     .transform(v => v === "maintain" ? "maintenance" : v).nullable().optional(),
-  focus: z.enum(["full", "leg", "chest", "back", "arm"]).nullable().optional(),
-}).strict().refine(nonempty, "Provide at least one changed field");
+  focus: focusSchema.nullable().optional(),
+}).strict().superRefine(validateFocusPair).refine(nonempty, "Provide at least one changed field");
 export const trainingPatchSchema = z.object({
   mode: z.enum(["gym", "calisthenics"]).optional(),
   equipment: z.array(idSchema).max(50).refine(v => new Set(v).size === v.length, "Duplicate equipment IDs").optional(),

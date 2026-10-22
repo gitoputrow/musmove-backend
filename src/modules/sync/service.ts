@@ -23,6 +23,7 @@ import { ApiError, conflict } from "@/src/lib/api-error";
 import { parseEntityPayload, type EntityType, type SyncOperation } from "./dto";
 import { canonicalRequestHash, decodeCursor, encodeCursor } from "./encoding";
 import { lockActiveAccount } from "@/src/modules/accounts/access";
+import { resolveFocusFields } from "@/src/modules/programs/focus";
 import {
   asJsonValue,
   latestEntityPayload,
@@ -385,7 +386,7 @@ export async function bootstrap(userId: string) {
             motivationEnabled: row.motivationEnabled,
             dailyActivity: row.dailyActivity,
             trainingFrequency: row.trainingFrequency,
-            focus: row.focus,
+            ...resolveFocusFields(row),
             programSource: row.programSource,
             sessionMinutes: row.sessionMinutes,
             setupCompleted: row.setupCompleted,

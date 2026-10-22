@@ -53,7 +53,7 @@ function profile(overrides: Partial<Profile> = {}): Profile {
     userId: "test", version: BigInt(1), updatedAt: new Date(), deletedAt: null,
     displayName: null, ageYears: 30, weightKg: null, heightCm: null,
     formulaSex: null, gender: null, trainingContext: null, goal: "muscle", motivationReason: null, motivationEnabled: true,
-    dailyActivity: null, trainingFrequency: 3, focus: "chest", programSource: "app",
+    dailyActivity: null, trainingFrequency: 3, focus: "chest", focusAreas: ["chest"], programSource: "app",
     sessionMinutes: 45, setupCompleted: true, trainingLevel: null,
     exerciseCapabilities: null, excludedExerciseIds: null, ...overrides,
   };

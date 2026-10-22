@@ -9,6 +9,7 @@ import type { z } from "zod";
 import { accountPatchSchema } from "./dto";
 import { expectVersion, mutateOnline, payloadOf, readItem } from "./store";
 import type { DatabaseTransaction } from "@/src/modules/sync/entities";
+import { resolveFocusFields } from "@/src/modules/programs/focus";
 
 export async function validateEquipment(tx: DatabaseTransaction, training: unknown) {
   const value = completeOnboardingSchema.shape.trainingPreferences.parse(training);
@@ -37,7 +38,7 @@ export function patchAccount(userId: string, key: string, input: z.infer<typeof 
     for (const [name, row] of [["profile", profile], ["trainingPreferences", training], ["userPreferences", preferences]] as const) {
       if (input[name]) expectVersion(row, input.baseVersions[name]!);
     }
-    const merged = { ...liveProfile, ...input.profile, setupCompleted: liveProfile.setupCompleted === true };
+    const merged = { ...liveProfile, ...input.profile, ...resolveFocusFields(input.profile ?? {}, liveProfile), setupCompleted: liveProfile.setupCompleted === true };
     if (input.profile?.trainingContext !== undefined) merged.trainingContext = input.profile.trainingContext === null ? null : {
       ...(liveProfile.trainingContext as object ?? {}), ...input.profile.trainingContext,
     };
@@ -46,9 +47,9 @@ export function patchAccount(userId: string, key: string, input: z.infer<typeof 
     if (input.profile || input.trainingPreferences) {
       // Do not turn an unrelated edit into re-onboarding of a legacy completed
       // profile. Validate focus when the user actually edits source/focus.
-      if (input.profile && (Object.hasOwn(input.profile, "focus") || Object.hasOwn(input.profile, "programSource")) &&
-        merged.programSource === "app" && !["full", "leg", "chest", "back", "arm"].includes(String(merged.focus))) {
-        throw badRequest("FOCUS_REQUIRED", "Choose a focus for app-generated programs");
+      if (input.profile && ["focus", "focusAreas", "programSource"].some(field => Object.hasOwn(input.profile!, field)) &&
+        merged.programSource === "app" && !merged.focusAreas.length) {
+        throw badRequest("FOCUS_REQUIRED", "Choose focus areas for app-generated programs");
       }
       if (input.trainingPreferences) await validateEquipment(ctx.tx, chosenTraining);
       if (input.profile) await ctx.put("profile", "profile", input.baseVersions.profile!, entityPayloadSchemas.profile.parse(merged));

@@ -73,6 +73,9 @@ answers stay in mobile memory; there is no backend draft/progress. This feature
 reuses existing tables and needs no additional migration. The legacy sync
 contract remains available. Direct resource CRUD and completed-only workout submission are now
 implemented in source; see the online handoff for limits and rollout status.
+The22 October multi-muscle extension requires migration0021 before deploying
+the updated backend; `profile.focusAreas` replaces the singular focus as the
+recommendation input while accepting legacy requests during transition.
 All new mutations require a UUID `Idempotency-Key`; updates/deletes also require
 base versions. No cloud deploy, production personal-data write, or mobile
 SQLite/outbox deletion is performed by this change.
@@ -151,8 +154,9 @@ or muscle-target labels. See [movement-tag definitions and full mapping](docs/ex
 
 `workout_program_catalog` and `workout_program_exercises` hold 12 curated
 templates: four full-body options and eight focus-specific options. Selection
-uses saved training mode, equipment, profile focus (`full`, `leg`, `chest`,
-`back`, `arm`), and maximum session duration. Missing preferences return 409;
+uses saved training mode, equipment, canonical profile `focusAreas` (`full`
+exclusively, or1–4 of `leg`, `chest`, `back`, `arm` with OR matching), and maximum
+session duration. Missing preferences return409;
 no matching template returns an empty list with `NO_MATCHING_PROGRAM`.
 Prescriptions reference the catalog but use template-specific sets/reps.
 Core templates use repetition-based dead bug/bird dog instead of timed planks.
@@ -163,9 +167,12 @@ to 20 completed workouts from the last 30 days. Gender is stored independently
 from the nutrition-formula sex field. See [personalization contract](docs/program-personalization.md)
 for supported fields, defaults, load handling and scope.
 
-Mobile should sync preferences, call `/programs/recommendations`, then persist
-the selected exercises as `exerciseSnapshot` when starting a workout through
-sync push. Existing workout snapshots stay independent of later catalog edits.
+Mobile should save setup/profile through the direct account APIs, call
+`/programs/recommendations`, then keep workout progress local and submit the
+performed `exerciseSnapshot` only after finishing via POST `/workouts`.
+Recommendations include a bounded `weeklyPlan` and explicit `focusCoverage`
+without increasing training days or volume. Existing workout snapshots stay
+independent of later catalog/profile edits.
 This backend change does not yet switch the Flutter application to these routes.
 
 `meal_catalog` stores 1,145 TKPI 2017 reference foods across 13 food groups,

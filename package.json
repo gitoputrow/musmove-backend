@@ -24,7 +24,7 @@
     "db:migrate": "tsx src/db/migrate.ts",
     "db:test-schema": "tsx tests/db/schema-smoke.ts",
     "db:test-api": "NODE_OPTIONS='--conditions=react-server' tsx tests/api/sync-integration.ts",
-    "test:programs": "tsx --test tests/api/personalization.test.ts",
+    "test:programs": "tsx --test tests/api/personalization.test.ts tests/api/focus.test.ts",
     "test:movement-tags": "tsx --test tests/api/movement-tags.test.ts",
     "db:test-movement-tags": "NODE_OPTIONS='--conditions=react-server' tsx tests/api/movement-tags-integration.ts",
     "test:nutrition": "tsx --test tests/api/nutrition.test.ts",

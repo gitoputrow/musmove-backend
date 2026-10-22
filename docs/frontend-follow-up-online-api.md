@@ -3,8 +3,11 @@
 Tanggal: 20 Oktober 2026. Mengikuti `backend-online-mode-follow-up.md` dari mobile.
 Pembaruan 21 Oktober 2026: workout manual mendukung gerakan baru dalam satu
 submit atomik, mengikuti `backend-manual-workout-atomic-follow-up.md`.
-Implementasi **source lokal** selesai; bukan klaim sudah deploy. Tidak ada migrasi
-database/dependensi/env baru, penghapusan storage lama, atau write akun production.
+Pembaruan 22 Oktober 2026: profil dan rekomendasi mendukung multi-pilih target
+otot (`focusAreas`), mengikuti `backend-multi-muscle-focus-follow-up.md`.
+Implementasi **source lokal** selesai; bukan klaim sudah deploy. Revisi multi-otot
+memerlukan migrasi **0021_multi_muscle_focus** sebelum source baru digunakan.
+Tidak ada dependensi/env baru, penghapusan storage lama, atau write akun production.
 
 **Kirim dokumen ini sebagai follow-up utama ke frontend.** Isinya seluruh
 perubahan yang dikerjakan: startup/setup/skip, profil dan preferensi gabungan,
@@ -154,7 +157,7 @@ baru; untuk akun yang sudah memiliki data, gunakan versi dari /me:
   "profile": {
     "ageYears": 25, "goal": "bulk", "dailyActivity": "light",
     "trainingFrequency": 3, "sessionMinutes": 45,
-    "programSource": "app", "focus": "full",
+    "programSource": "app", "focusAreas": ["chest", "back"],
     "motivationEnabled": true, "motivationReason": "health",
     "weightKg": 70, "heightCm": 175, "formulaSex": "male",
     "gender": "prefer_not_to_say"
@@ -174,8 +177,10 @@ yang sama lagi melalui sync/push.
 Core final wajib: ageYears 1–150, goal bulk/cut/maintenance (maintain diterima
 sebagai alias), dailyActivity light/moderate/vigorous, frekuensi 1–7, durasi
 10–180 menit, programSource app/custom, motivationEnabled boolean dan
-motivationReason nonkosong <=80 karakter. Source app wajib satu focus
-full/leg/chest/back/arm; source custom boleh focus null/tidak dikirim.
+motivationReason nonkosong <=80 karakter. Source app wajib memilih focusAreas
+1–4 area spesifik leg/chest/back/arm atau ["full"] saja. Source custom boleh
+[] atau tidak mengirim fokus. Request focus string lama tetap diterima selama
+transisi; aturan lengkap dan kompatibilitas ada di bagian multi-pilih di bawah.
 Berat, tinggi, formulaSex, gender dan konteks/kemampuan tambahan bersifat
 opsional; tidak dikarang jika pengguna belum memberikannya. No equipment harus
 eksplisit dengan noEquipment true dan array alat kosong.
@@ -250,6 +255,108 @@ dipertahankan. Gender tidak mengarang formulaSex/kemampuan. `setupCompleted`
 server-owned, **ditolak** dalam body patch; tidak diturunkan menjadi false.
 Editor profil/latihan berlaku setelah finalisasi pertama (`ONBOARDING_NOT_COMPLETED`
 jika belum); budget/area boleh disimpan independen tanpa menyimpan draft wizard.
+
+### Multi-pilih target otot (22 Oktober 2026)
+
+Field kanonis final adalah **`profile.focusAreas: string[]`**. Gunakan ini untuk
+checkbox setup dan editor; jangan membuat request simpan per checkbox. Tidak ada
+endpoint baru: GET /me, POST /onboarding/complete, PATCH /me dan GET
+/programs/recommendations tetap dipakai. Profil yang belum ada tetap null;
+membaca akun tidak membuat profil/array default di database.
+
+- Nilai: full (seluruh tubuh), leg (kaki), chest (dada), back (punggung), arm
+  (lengan). Pilih 1–4 area spesifik atau ["full"]. full eksklusif.
+- Duplikasi, nilai/tipe lain dan null ditolak400. Respons selalu berurutan
+  full → leg → chest → back → arm; urutan bukan prioritas pengguna.
+- Source app wajib nonkosong; source custom boleh kosong. Onboarding tetap
+  wajib mengirim seluruh core profile dan trainingPreferences, bukan hanya fokus.
+- PATCH tidak mengirim field → pilihan tetap. [] → kosongkan, valid hanya jika
+  programSource hasil gabungan adalah custom. Mengubah ke app tanpa pilihan
+  valid →400 FOCUS_REQUIRED. Mengubah source dan fokus boleh dalam satu PATCH.
+- Akun legacy completed yang fokusnya belum valid tetap dapat mengedit field
+  lain tanpa reset setup; edit source/fokus wajib memenuhi aturan baru.
+
+Contoh PATCH dengan Bearer JWT dan Idempotency-Key UUID, memakai versi dari /me:
+
+```json
+{
+  "baseVersions": { "profile": "7" },
+  "profile": { "focusAreas": ["chest", "back"] }
+}
+```
+
+Respons ACK memuat seluruh profil kanonis, versions, preferensi dan
+nutritionTargets seperti PATCH biasa. Potongan profil yang relevan:
+
+```json
+{
+  "profile": {
+    "programSource": "app",
+    "focusAreas": ["chest", "back"],
+    "focus": null,
+    "version": "8"
+  }
+}
+```
+
+Gunakan ACK langsung; tidak perlu GET /me tambahan. Stale version →409
+VERSION_CONFLICT; semua pilihan/resource tetap tidak berubah jika validasi,
+konflik atau transaksi gagal. Retry setelah timeout wajib memakai key, versi,
+body dan urutan array yang sama; hasil sukses pertama diulang tanpa write baru.
+Urutan array tidak menyatakan prioritas, tetapi perubahan urutan request tetap
+termasuk perubahan body untuk pemeriksaan idempotency.
+
+Kompatibilitas:
+
+- Fokus string lama valid dipetakan ke singleton, misalnya chest → ["chest"].
+  Kosong/tidak dikenal → []; tidak ditebak menjadi full body, tidak mereset akun.
+- Response focus lama adalah nilai tunggal bila array satu elemen; null bila
+  multi-pilih/kosong. Klien lama tidak bisa menampilkan multi-pilih secara utuh;
+  jangan membaca null sebagai bukti pengguna belum setup.
+- Request focus lama yang eksplisit mengganti seluruh pilihan menjadi singleton
+  (atau mengosongkan bila null dan source custom). Jika focus dan focusAreas
+  dikirim bersama, keduanya harus singleton yang sama, atau null dengan [].
+  Konflik ditolak400, bukan dipilih salah satu diam-diam. Untuk multi-pilih,
+  **kirim focusAreas saja**, jangan ikut mengirim focus:null dari respons.
+- Omit keduanya mempertahankan pilihan pada PATCH dan legacy sync upsert.
+  Sync lama masih punya full-replacement semantics untuk field profil lama lain;
+  jangan gunakan sync/push sebagai request simpan kedua setelah API online.
+- Receipt sukses sebelum upgrade tidak ditulis ulang; replay dapat belum punya
+  focusAreas. Pada ACK lama saja, map focus yang dikenal menjadi singleton atau
+  [] bila tidak dikenal. GET /me normal berikutnya memberikan array kanonis.
+- Snapshot/history workout, program buatan, sync history dan receipt lama tidak
+  diubah oleh migrasi. Tidak ada penghitungan ulang hasil workout lama.
+
+Rekomendasi:
+
+- preferences.focusAreas menjadi input kanonis. Katalog program tetap mempunyai
+  focus tunggal; kandidat memakai OR, misalnya chest **atau** back.
+- Kemampuan, mode, alat, konteks kesehatan, usia, dan estimasi durasi tetap
+  difilter seperti sebelumnya. Tidak ada full-body fallback otomatis.
+- programs adalah daftar alternatif unik yang diselang-seling antar fokus.
+  **weeklyPlan** adalah saran sessionNumber/programId/focus, maksimal sejumlah
+  personalization.suggestedWeeklySessions yang sudah dibatasi kemampuan.
+  Ini bukan jadwal yang disimpan dan bukan tambahan hari/set/repetisi.
+  Program tidak digandakan untuk memenuhi slot; jika kandidat kurang, saran
+  dapat lebih pendek. Frekuensi tidak otomatis naik karena banyak fokus.
+- **focusCoverage**: requested = pilihan; available = punya kandidat setelah
+  semua filter; unavailable = tidak punya kandidat; scheduled = masuk weeklyPlan;
+  unscheduled = belum masuk weeklyPlan (termasuk kandidat yang tidak tersedia
+  atau slot tidak cukup); unfilledSessions = slot saran yang belum terisi.
+  Urutan kanonis dipakai untuk tie-break, bukan prioritas checkbox. Coverage
+  berdasarkan tag katalog, bukan jaminan fisiologis semua otot telah dilatih.
+- Jika semua kandidat tersaring, programs/weeklyPlan kosong dengan reason domain
+  yang sudah ada dan coverage yang jujur. Jika tidak ada fokus sah sama sekali,
+  rekomendasi →409 PREFERENCES_REQUIRED; pengguna perlu memilih fokus, bukan
+  menerima target buatan. setupCompleted=false tetap tidak memicu request dari mobile.
+- Fokus tidak menjadi pengali kalori/protein. Snapshot nutrisi mengikuti versi
+  profil baru, tetapi input/fokus saja tidak mengubah angka formula nutrisi.
+
+Rollout: migrasi0021 dan source yang memuat `capabilities.multiMuscleFocus:true`
+harus tersedia sebelum frontend mengaktifkan checkbox. Fitur ini belum dipush,
+dimigrasikan ke production, atau dideploy oleh pekerjaan ini. Verifikasi capability
+secara operasional dan uji kontrak dengan akun uji yang disetujui; jangan menambah
+request /meta pada startup mobile.
 
 ## 5. Program custom dan exercise
 
@@ -603,7 +710,7 @@ Pemeriksaan Vercel read-only pada 20 Oktober 2026:
 - GET `/api/v1/dashboard?date=2026-10-20` →404.
 - OPTIONS 204 sendiri **bukan bukti** route/domain contract sudah tersedia.
 
-Pemeriksaan metadata Vercel read-only terbaru, **21 Oktober 2026**:
+Pemeriksaan metadata Vercel read-only pada **21 Oktober 2026**:
 
 - `atomicAccountPatch`, `onlineResourceApi`, dan `completedWorkoutSubmission`
   sudah true pada production. Catatan404 tanggal20 di atas adalah riwayat audit,
@@ -613,12 +720,28 @@ Pemeriksaan metadata Vercel read-only terbaru, **21 Oktober 2026**:
 - Tidak ada uji JWT akun asli atau write data personal production dalam pekerjaan
   ini. Capability saja juga bukan bukti seluruh kontrak authenticated sudah diuji.
 
-Perubahan gerakan baru atomik ini belum dipush/deploy oleh pekerjaan ini. Sebelum
-mengaktifkannya pada mobile, deploy source terbaru dan cek capability secara
-operasional (bukan startup rutin mobile), lalu uji baca/write dengan akun uji yang
-disetujui. Verifikasi runtime grants, error, retry dan respons gabungan pada
-deployment tujuan sebelum mengklaim fitur baru siap production.
-Tidak perlu DDL/env baru untuk fitur ini; jangan menjalankan migrasi lama ulang.
+Pemeriksaan metadata read-only terbaru, **22 Oktober 2026**, GET
+`https://musmove-backend.vercel.app/api/v1/meta` →200:
+
+- `manualWorkoutAtomicExercises` sekarang true; ketiadaannya pada21 Oktober
+  di atas adalah riwayat, bukan status metadata saat ini.
+- **multiMuscleFocus belum ada**. Kontrak multi-pilih belum dikonfirmasi pada
+  deployment tujuan; jangan mengaktifkan checkbox hanya berdasarkan source lokal.
+- Hanya metadata publik yang dibaca. Tidak ada write personal, migrasi cloud,
+  push/deploy atau uji JWT akun production oleh pekerjaan ini.
+
+Sebelum mengaktifkan fitur baru, terapkan migrasi0021 sekali melalui tooling
+migrasi admin yang sudah ada, lalu deploy source terbaru. Migrasi menambah kolom
+dan fungsi/trigger kompatibilitas tanpa menghapus kolom lama atau akun. Role runtime
+tetap bukan role migrasi; default table-level grants mencakup kolom baru. Jika
+kebijakan DB membatasi EXECUTE fungsi secara khusus, pastikan runtime dapat
+memanggil `musmove_valid_focus_areas(text[])` dan trigger kompatibilitasnya.
+Cek capability secara operasional (bukan startup rutin mobile), lalu uji baca/write
+dengan akun uji yang disetujui. Verifikasi runtime grants, error, retry dan respons
+gabungan sebelum mengklaim fitur siap production. Jangan rollback ke source lama
+tanpa meninjau batasan tampilan/penyimpanan multi-pilih pada klien lama.
+Tidak perlu DDL/env baru untuk fitur workout atomik itu; jangan menjalankan migrasi
+lama ulang. **Berbeda untuk multi-otot22 Oktober: migrasi0021 diperlukan.**
 
 Untuk fitur gerakan baru manual (21 Oktober), deployment juga perlu memuat
 capability `manualWorkoutAtomicExercises: true`. Source fitur ini belum merupakan
@@ -641,6 +764,10 @@ menghapus progres, data pending, atau hasil write yang belum diketahui.
   bootstrap/pull rutin, draft wizard, flag skip atau default profil buatan.
 - Editor memakai state yang sudah ada di memori; satu PATCH saat Simpan berubah,
   tanpa request per field dan tanpa GET otomatis setelah ACK.
+- Target otot memakai focusAreas, full eksklusif, tanpa focus:null yang ikut
+  terkirim pada request multi-pilih. Tampilkan unavailable/unscheduled, jangan
+  mengklaim semua pilihan pasti masuk saran mingguan. Aktifkan setelah migrasi0021,
+  deploy capability multiMuscleFocus dan verifikasi kontrak tujuan selesai.
 - Program/exercise memakai CRUD langsung, weekday dan prescription sesuai
   kontrak; program + exercise baru dapat disimpan satu transaksi.
 - Workout hanya satu submit setelah Selesai; tidak start/resume/per-set/abort

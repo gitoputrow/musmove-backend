@@ -23,6 +23,7 @@ import type {
 import { badRequest } from "@/src/lib/api-error";
 import { mealTotals, resolveMealPayload } from "@/src/modules/meals/resolve";
 import { storeNutritionEstimate } from "@/src/modules/nutrition/storage";
+import { resolveFocusFields } from "@/src/modules/programs/focus";
 
 import { entityPayloadSchemas, type EntityType } from "./dto";
 
@@ -193,6 +194,7 @@ export async function upsertEntity(
   switch (entityType) {
     case "profile": {
       const payload = entityPayloadSchemas.profile.parse(rawPayload);
+      const focus = resolveFocusFields(payload);
       await transaction
         .insert(profiles)
         .values({
@@ -209,7 +211,7 @@ export async function upsertEntity(
           motivationEnabled: payload.motivationEnabled,
           dailyActivity: payload.dailyActivity ?? null,
           trainingFrequency: payload.trainingFrequency ?? null,
-          focus: payload.focus ?? null,
+          ...focus,
           programSource: payload.programSource ?? null,
           sessionMinutes: payload.sessionMinutes ?? null,
           setupCompleted: payload.setupCompleted,
@@ -233,7 +235,7 @@ export async function upsertEntity(
             motivationEnabled: payload.motivationEnabled,
             dailyActivity: payload.dailyActivity ?? null,
             trainingFrequency: payload.trainingFrequency ?? null,
-            focus: payload.focus ?? null,
+            ...focus,
             programSource: payload.programSource ?? null,
             sessionMinutes: payload.sessionMinutes ?? null,
             setupCompleted: payload.setupCompleted,
@@ -435,6 +437,9 @@ export async function resolveEntityPayload(
   if (entityType !== "profile") return payload;
   const parsed = entityPayloadSchemas.profile.parse(payload);
   const [current] = await transaction.select({
+    focus: profiles.focus,
+    focusAreas: profiles.focusAreas,
+    deletedAt: profiles.deletedAt,
     trainingLevel: profiles.trainingLevel,
     exerciseCapabilities: profiles.exerciseCapabilities,
     excludedExerciseIds: profiles.excludedExerciseIds,
@@ -445,6 +450,7 @@ export async function resolveEntityPayload(
   // change log payload as the persisted row so pull/bootstrap cannot diverge.
   return {
     ...parsed,
+    ...resolveFocusFields(parsed, current && !current.deletedAt ? current : {}),
     trainingLevel: parsed.trainingLevel === undefined ? current?.trainingLevel ?? null : parsed.trainingLevel,
     exerciseCapabilities: parsed.exerciseCapabilities === undefined ? current?.exerciseCapabilities ?? null : parsed.exerciseCapabilities,
     excludedExerciseIds: parsed.excludedExerciseIds === undefined ? current?.excludedExerciseIds ?? null : parsed.excludedExerciseIds,

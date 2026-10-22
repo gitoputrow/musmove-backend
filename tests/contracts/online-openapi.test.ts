@@ -30,4 +30,10 @@ test("Online OpenAPI artifact matches current DTO generator and all path items a
   assert.equal(spec.components.schemas.CompletedWorkoutInput.allOf[0].then.properties.source.const, "manual");
   assert.equal(spec.components.schemas.CompletedWorkoutResponse.properties.exercises.items.$ref, "#/components/schemas/CustomExercise");
   assert.equal(spec.components.schemas.Dashboard.properties.activeWorkout, undefined);
+  const profile = spec.components.schemas.AccountPatchInput.properties.profile;
+  assert.equal(profile.properties.focusAreas.$ref, "./openapi.yaml#/components/schemas/FocusAreas");
+  assert.equal(profile.allOf[0].$ref, "./openapi.yaml#/components/schemas/FocusInputCompatibility");
+  assert.ok(!profile.required?.includes("focusAreas"));
+  for (const schema of ["FocusAreas", "FocusInputCompatibility", "FocusCoverage"]) assert.ok(yaml.includes(`    ${schema}:`));
+  assert.ok(yaml.includes("weeklyPlan:"));
 });

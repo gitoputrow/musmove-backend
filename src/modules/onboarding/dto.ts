@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { entityPayloadSchemas } from "@/src/modules/sync/dto";
+import { focusSchema, readFocusAreas, validateFocusPair } from "@/src/modules/programs/focus";
 
 const version = z.string().max(19).regex(/^(0|[1-9][0-9]*)$/)
   .pipe(z.string().refine(value => BigInt(value) <= BigInt("9223372036854775807"), "Version exceeds the supported range"));
@@ -18,10 +19,11 @@ export const completeOnboardingSchema = z.object({
     programSource: z.enum(["app", "custom"]),
     motivationEnabled: z.boolean(),
     motivationReason: z.string().trim().min(1).max(80),
-    focus: z.enum(["full", "leg", "chest", "back", "arm"]).nullable().optional(),
+    focus: focusSchema.nullable().optional(),
   }).strict().superRefine((profile, context) => {
-    if (profile.programSource === "app" && !profile.focus) {
-      context.addIssue({ code: "custom", path: ["focus"], message: "Choose one focus for an app-generated program" });
+    validateFocusPair(profile, context);
+    if (profile.programSource === "app" && !readFocusAreas(profile).length) {
+      context.addIssue({ code: "custom", path: ["focusAreas"], message: "Choose focus areas for an app-generated program" });
     }
   }),
   trainingPreferences: z.object({

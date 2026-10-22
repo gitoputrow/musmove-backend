@@ -1,9 +1,11 @@
-# Program personalization v2
+# Program personalization: multi-focus selection, v2 prescriptions
 
 `GET /api/v1/programs/recommendations` uses the authenticated account's saved
 profile and training preferences, the database template/exercise catalogs,
 and recent owned, non-deleted completed workouts. It never modifies workouts
-or their snapshots. Mobile must send profile fields through sync push first.
+or their snapshots. Mobile saves initial setup through onboarding/complete and
+subsequent changes through PATCH /me; do not additionally sync-push those writes.
+Legacy sync remains supported for existing clients.
 
 ## Profile contract
 
@@ -13,7 +15,7 @@ The existing profile sync payload accepts these additional optional fields:
 {
   "ageYears": 28,
   "goal": "bulk",
-  "focus": "chest",
+  "focusAreas": ["chest", "back"],
   "sessionMinutes": 30,
   "trainingFrequency": 3,
   "formulaSex": "female",
@@ -50,7 +52,50 @@ saved values. Use an empty list to clear pain/limitations/equipment ranges,
 `null` to clear nullable properties, or `trainingContext: null` to clear the
 whole object. The resolved object is published in sync pull and conflict
 payloads as well as the database. Other existing profile fields retain their
-original full-replacement semantics; send age/goal/focus/etc. on each upsert.
+original full-replacement semantics; send age/goal/etc. on each legacy upsert.
+focusAreas is an exception: omit both focus fields to preserve it. PATCH /me
+always preserves omitted fields.
+
+## Multi-muscle focus (22 October 2026)
+
+`profiles.focus_areas` is the canonical text array. Migration0021 backfills a
+known legacy focus into a singleton; unknown/empty values become [] without
+guessing. It does not change profile versions/timestamps, sync logs, receipts,
+nutrition or workout snapshots. No absent profile is created. A compatibility
+trigger bridges old server versions writing only the string during rollout.
+
+Supported values: full, leg, chest, back, arm, in that fixed response order.
+Accept1–4 specific areas or ["full"] exclusively; reject duplicates, unknown
+values, non-strings and null. Source app requires nonempty selection; custom
+may omit during onboarding or explicitly clear with []. PATCH merges source
+and selection before validating. Unrelated edits of a legacy completed profile
+with missing focus do not reset onboarding or require re-onboarding.
+
+Legacy focus requests remain valid: a known string replaces the selection with
+that singleton; null clears only where the online source rules permit it.
+Requests containing both fields must agree as one singleton or null/[]; a
+multi-select request should send focusAreas alone. Responses expose the legacy
+string only for a singleton and otherwise null. Old clients cannot fully display
+multi-select. Old successful receipts replay unchanged and may lack the array.
+Current GET /me always projects the canonical array; invalid old values yield []
+and recommendations return409 PREFERENCES_REQUIRED, not full-body fallback.
+
+Candidate selection is OR across the canonical areas, retaining mode and all
+existing personalization/ability/equipment/duration guards. Each catalog program
+can keep its single focus tag. The response interleaves filtered unique programs
+by canonical focus order. `weeklyPlan` references at most the existing effective
+weekly-session count, without duplicate program IDs or changed prescriptions.
+It is a suggestion, not a persisted calendar. Fewer candidates can mean fewer
+suggested slots. More selected areas do not increase training days or volume.
+
+`focusCoverage` reports requested/available/unavailable/scheduled/unscheduled
+arrays and unfilledSessions. Unavailable means no candidate after all filters;
+unscheduled additionally includes available areas beyond the session cap.
+Coverage refers to catalog tags, not proof of physiological muscle coverage.
+The canonical ordering breaks ties, not user priority. Empty candidates keep
+their existing reason (including safety gates) and never silently change focus.
+Focus choices do not multiply calorie/protein requirements. See the
+[complete frontend handoff](frontend-follow-up-online-api.md#multi-pilih-target-otot-22-oktober-2026).
 
 ## User data used by the recommendation
 
@@ -87,7 +132,7 @@ use dumbbells/bodyweight and may not require an equipment size check.
 
 ## Selection and prescriptions
 
-- Select templates by mode and focus, adapt exercises, then check equipment
+- Select templates by mode and OR across focusAreas, adapt exercises, then check equipment
   and estimated duration. A template is omitted if any exercise cannot be
   adapted; the response explains why in `rejectedPrograms`.
 - `trainingLevel`: beginner (2 sets), intermediate (3), advanced (3, or 4 for
@@ -154,6 +199,8 @@ returns `NO_MATCHING_PROGRAM`. Context gates additionally return
 `PROFESSIONAL_GUIDANCE_REQUIRED`, `SPECIALIZED_PROGRAM_REQUIRED`, or
 `RECOVERY_REQUIRED`. Context adjustments, blocked equipment, assumptions and
 gender/bodyweight handling policies are returned for the client to explain.
-Missing mode/focus/duration returns HTTP 409.
-This implementation is backend-only; Flutter still needs fields for ability
-assessment and to call this endpoint.
+Missing mode/valid focusAreas/duration returns HTTP409 PREFERENCES_REQUIRED.
+Migration0021, cloud deployment and an approved live account test must be
+verified before mobile enables multi-select; local implementation is not proof
+of deployed support. Check multiMuscleFocus capability operationally, not on
+every mobile startup. Flutter changes are outside this backend task.

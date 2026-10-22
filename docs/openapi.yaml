@@ -556,10 +556,42 @@ paths:
   /programs/recommendations:
     get:
       operationId: recommendPrograms
-      description: Personalizes curated templates using saved mode, focus, equipment, goal, age, trainingLevel, exerciseCapabilities, gender/health/mobility/recovery context, bodyweight evidence, verified equipment height limits and recent completed workouts. See docs/program-personalization.md for rules and profile sync fields. Gender alone is not a strength estimate.
+      description: Personalizes curated templates using saved mode, canonical focusAreas (OR across selected focuses), equipment, goal, age, trainingLevel, exerciseCapabilities, gender/health/mobility/recovery context, bodyweight evidence, verified equipment height limits and recent completed workouts. Program catalog focus remains singular. Filtered alternatives are interleaved in canonical focus order. weeklyPlan is a unique-program suggestion bounded by existing suggestedWeeklySessions, not a saved schedule or additional days/volume. focusCoverage distinguishes unavailable candidates from focuses not scheduled due to limited sessions. No full-body fallback and no nutrition multiplier. Missing valid focusAreas returns409 PREFERENCES_REQUIRED. See docs/program-personalization.md. Gender alone is not a strength estimate.
       responses:
         "200":
           description: Personalized programs, catalog versions, preferences, personalization metadata, rejectedPrograms and reason. Reasons include AGE_REQUIRED, ADULT_PROGRAMS_ONLY, NO_MATCHING_PROGRAM, PROFESSIONAL_GUIDANCE_REQUIRED, SPECIALIZED_PROGRAM_REQUIRED and RECOVERY_REQUIRED.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [programs, preferences, personalization, weeklyPlan, focusCoverage, reason]
+                properties:
+                  programs:
+                    type: array
+                    description: Existing personalized program objects, unique by ID; unchanged prescriptions/volume.
+                    items: { type: object }
+                  preferences:
+                    type: object
+                    required: [mode, focus, focusAreas, sessionMinutes, equipment]
+                    properties:
+                      mode: { type: string, enum: [gym, calisthenics] }
+                      focus: { type: [string, "null"], description: Single selection only; null for multiple. }
+                      focusAreas: { $ref: "#/components/schemas/FocusAreas" }
+                      sessionMinutes: { type: integer }
+                      equipment: { type: array, items: { type: string } }
+                  personalization: { type: object, description: Existing safety and ability metadata; suggestedWeeklySessions is not increased by multi-focus. }
+                  weeklyPlan:
+                    type: array
+                    description: At most suggestedWeeklySessions unique program IDs; may be shorter when candidates run out. Not persisted, no ISO weekdays assigned.
+                    items:
+                      type: object
+                      required: [sessionNumber, programId, focus]
+                      properties:
+                        sessionNumber: { type: integer, minimum: 1, maximum: 7 }
+                        programId: { type: string }
+                        focus: { type: string, enum: [full, leg, chest, back, arm] }
+                  focusCoverage: { $ref: "#/components/schemas/FocusCoverage" }
+                  reason: { type: [string, "null"] }
         "409": { $ref: "#/components/responses/Error" }
         "401": { $ref: "#/components/responses/Error" }
   /me:
@@ -1280,11 +1312,58 @@ components:
         maxReps: { type: integer, minimum: 0, maximum: 100 }
         weightKg: { type: [number, "null"], minimum: 0, maximum: 500 }
         bodyweightKg: { type: [number, "null"], exclusiveMinimum: 0, maximum: 9999.99 }
+    FocusAreas:
+      type: array
+      maxItems: 4
+      uniqueItems: true
+      description: Canonical order full, leg, chest, back, arm, not priority. full is exclusive. Empty only for custom source on new onboarding or source/focus edits; null is rejected. Omitted PATCH preserves the current selection. Legacy completed profiles lacking a selection may still edit unrelated fields.
+      items: { type: string, enum: [full, leg, chest, back, arm] }
+      if:
+        contains: { const: full }
+      then:
+        maxItems: 1
+    FocusInputCompatibility:
+      description: Requests with both fields must be equivalent single selections or focus null plus an empty array. For multi-select send focusAreas only; do not echo the legacy response focus null alongside it.
+      if:
+        required: [focus, focusAreas]
+      then:
+        anyOf:
+          - properties:
+              focus: { type: "null" }
+              focusAreas: { maxItems: 0 }
+          - properties:
+              focus: { const: full }
+              focusAreas: { const: [full] }
+          - properties:
+              focus: { const: leg }
+              focusAreas: { const: [leg] }
+          - properties:
+              focus: { const: chest }
+              focusAreas: { const: [chest] }
+          - properties:
+              focus: { const: back }
+              focusAreas: { const: [back] }
+          - properties:
+              focus: { const: arm }
+              focusAreas: { const: [arm] }
+    FocusCoverage:
+      type: object
+      required: [requested, available, unavailable, scheduled, unscheduled, unfilledSessions]
+      description: Coverage of program catalog focus tags after all safety/ability/equipment/time filters; not a physiological guarantee that every muscle is trained. Unscheduled includes both unavailable focuses and those beyond the bounded weekly suggestion. Canonical ordering resolves ties, not user priority.
+      properties:
+        requested: { $ref: "#/components/schemas/FocusAreas" }
+        available: { $ref: "#/components/schemas/FocusAreas" }
+        unavailable: { $ref: "#/components/schemas/FocusAreas" }
+        scheduled: { $ref: "#/components/schemas/FocusAreas" }
+        unscheduled: { $ref: "#/components/schemas/FocusAreas" }
+        unfilledSessions: { type: integer, minimum: 0, maximum: 7 }
     OnboardingProfile:
       type: object
       additionalProperties: false
       required: [ageYears, goal, dailyActivity, trainingFrequency, sessionMinutes, programSource, motivationEnabled, motivationReason]
-      description: Final setup values. App source additionally requires one non-null focus. Omitted optional fields preserve existing values; explicit null clears nullable fields. trainingContext objects merge provided keys; null clears the whole context. setupCompleted is server-owned and rejected in requests. Gender never implies formulaSex or ability.
+      description: Final setup values. App source requires nonempty focusAreas or a valid legacy focus. Custom source permits an empty array or omission. Both fields must agree if sent together. Omitted optional fields preserve existing values; explicit null clears nullable fields except focusAreas which never accepts null. trainingContext objects merge provided keys; null clears the whole context. setupCompleted is server-owned and rejected in requests. Gender never implies formulaSex or ability.
+      allOf:
+        - $ref: "#/components/schemas/FocusInputCompatibility"
       properties:
         ageYears: { type: integer, minimum: 1, maximum: 150 }
         goal: { type: string, enum: [bulk, cut, maintenance, maintain], description: maintain is accepted and normalized to maintenance. }
@@ -1295,6 +1374,7 @@ components:
         motivationEnabled: { type: boolean }
         motivationReason: { type: string, minLength: 1, maxLength: 80 }
         focus: { type: [string, "null"], enum: [full, leg, chest, back, arm, null] }
+        focusAreas: { $ref: "#/components/schemas/FocusAreas" }
         displayName: { type: [string, "null"], minLength: 1, maxLength: 80 }
         weightKg: { type: [number, "null"], exclusiveMinimum: 0, maximum: 9999.99 }
         heightCm: { type: [number, "null"], exclusiveMinimum: 0, maximum: 999.99 }
@@ -1314,9 +1394,13 @@ components:
           programSource: { const: app }
         required: [programSource]
       then:
-        required: [focus]
-        properties:
-          focus: { type: string, enum: [full, leg, chest, back, arm] }
+        anyOf:
+          - required: [focusAreas]
+            properties:
+              focusAreas: { minItems: 1 }
+          - required: [focus]
+            properties:
+              focus: { type: string, enum: [full, leg, chest, back, arm] }
     OnboardingTrainingPreferences:
       type: object
       additionalProperties: false
@@ -1349,8 +1433,8 @@ components:
         trainingPreferences: { $ref: "#/components/schemas/OnboardingTrainingPreferences" }
     SetupProfile:
       type: object
-      required: [displayName, ageYears, weightKg, heightCm, formulaSex, gender, trainingContext, goal, motivationReason, motivationEnabled, dailyActivity, trainingFrequency, focus, programSource, sessionMinutes, setupCompleted, trainingLevel, exerciseCapabilities, excludedExerciseIds, version, updatedAt]
-      description: Canonical current profile; legacy values remain readable. Owner ID and tombstone metadata are not exposed. Optional absent measurements are null, never invented.
+      required: [displayName, ageYears, weightKg, heightCm, formulaSex, gender, trainingContext, goal, motivationReason, motivationEnabled, dailyActivity, trainingFrequency, focus, focusAreas, programSource, sessionMinutes, setupCompleted, trainingLevel, exerciseCapabilities, excludedExerciseIds, version, updatedAt]
+      description: Canonical current profile; focusAreas is authoritative, including empty for unknown legacy focus. Legacy focus is a singleton projection or null for multiple/empty. No profile remains null; reads do not create it. Pre-upgrade idempotency receipts replay the original JSON and may lack focusAreas; derive only a known singleton in such an ACK until the next ordinary read. Owner ID and tombstone metadata are not exposed. Optional absent measurements are null, never invented.
       properties:
         displayName: { type: [string, "null"] }
         ageYears: { type: [integer, "null"] }
@@ -1366,6 +1450,7 @@ components:
         dailyActivity: { type: [string, "null"] }
         trainingFrequency: { type: [integer, "null"] }
         focus: { type: [string, "null"] }
+        focusAreas: { $ref: "#/components/schemas/FocusAreas" }
         programSource: { type: [string, "null"] }
         sessionMinutes: { type: [integer, "null"] }
         setupCompleted: { type: boolean }

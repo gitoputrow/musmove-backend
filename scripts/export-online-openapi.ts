@@ -35,6 +35,9 @@ const schemas: Record<string, ObjectSchema> = {
   WorkoutDay: object({ date: { type: "string", format: "date" }, completed: { type: "integer" }, aborted: { type: "integer" }, active: { type: "integer" }, durationMinutes: { type: "number" } }),
   ScheduledProgram: object({ id: ref("Id"), mode: { enum: ["gym", "calisthenics"] }, name: { type: "string" }, weekday: { type: "integer", minimum: 1, maximum: 7 }, durationMinutes: { type: "integer" }, version: ref("Version") }),
 };
+const patchProfile = (schemas.AccountPatchInput.properties as Record<string, ObjectSchema>).profile;
+(patchProfile.properties as Record<string, ObjectSchema>).focusAreas = original("FocusAreas");
+patchProfile.allOf = [original("FocusInputCompatibility")];
 const meta = { id: idSchema, version: versionSchema, updatedAt: z.iso.datetime({ offset: true }) };
 const resourceNames = { custom_program: "CustomProgram", user_exercise: "CustomExercise", meal_entry: "Meal", social_draft: "SocialDraft" } as const;
 schemas.Workout = fromZod(z.object(entityPayloadSchemas.workout_session.shape).extend(meta));
