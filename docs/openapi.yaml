@@ -36,7 +36,7 @@ paths:
     post:
       operationId: nativeAuthSignUp
       security: []
-      description: Register via the pinned Neon upstream. No Authorization or query parameters.10 attempts/10min/IP plus provider limits. Callback/Origin are server-owned; callbackURL, rememberMe, role and arbitrary upstream fields are rejected. Verification policy unchanged. HTTP200 does not guarantee a session or delivered email; inspect status. Credentials are not stored in application tables or logged. Mutations may have succeeded on upstream timeout; try sign-in before retrying registration.
+      description: Register via the pinned Neon upstream. No Authorization or query parameters.10 attempts/10min/IP plus provider limits. No callbackURL is sent upstream; native navigation is client-owned. Origin is server-owned; callbackURL, rememberMe, role and arbitrary upstream request fields are rejected. Provider JSON redirect/twoFactorRedirect flags are not authentication decisions; a live matching provider session and allowlisted cookie are required for authenticated status. Verification policy unchanged. HTTP200 does not guarantee a session or delivered email; inspect status. Credentials are not stored in application tables or logged. Mutations may have succeeded on upstream timeout; try sign-in before retrying registration.
       requestBody:
         required: true
         content:
@@ -59,7 +59,7 @@ paths:
     post:
       operationId: nativeAuthSignIn
       security: []
-      description: Email/password login through Next.js. No Authorization or query.10 attempts/10min/IP. Returns an encrypted native session, NOT an access JWT or provider cookie. Store sessionToken securely; use /auth/token next, then /me. Error messages are sanitized.
+      description: Email/password login through Next.js. No Authorization or query.10 attempts/10min/IP. No callbackURL sent upstream and no browser redirect. Provider JSON redirect/twoFactorRedirect flags are ignored; authentication still requires a valid allowlisted cookie and live matching unexpired session. No 2FA endpoints are implemented. Actual HTTP redirects remain forbidden and Location is never forwarded. Returns an encrypted native session, NOT an access JWT or provider cookie. Store sessionToken securely; use /auth/token next, then /me. Error messages are sanitized.
       requestBody:
         required: true
         content:
@@ -167,7 +167,7 @@ paths:
     get:
       operationId: nativeAuthLandingPage
       security: []
-      description: Root web landing page for server-owned signup/login callback, NOT /api/v1/auth/mobile. Simply asks user to return to app and sign in. No arbitrary redirect, session exchange, query echo, OAuth, or new email-verification implementation.
+      description: Legacy root web landing page retained for existing links, NOT /api/v1/auth/mobile. New signup/login no longer send callbackURL or use this page. Simply asks user to return to app and sign in. No arbitrary redirect, session exchange, query echo, OAuth, or new email-verification implementation.
       responses:
         "200":
           description: No-store minimal HTML.

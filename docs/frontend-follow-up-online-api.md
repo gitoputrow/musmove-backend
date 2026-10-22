@@ -99,6 +99,16 @@ memakai body/idempotensi masing-masing, dijelaskan pada bagian 8.
 
 ## 3. Startup dan skip
 
+Pembaruan auth22 Oktober: login/register tidak mengirim callbackURL ke provider
+dan tidak memeriksa flag redirect/twoFactorRedirect dari JSON. Tidak ada metode
+2FA baru; validasi cookie dan sesi hidup tetap wajib. Flutter tetap mengirim
+email/password (ditambah name untuk register), menerima sessionToken, lalu
+mengambil accessToken melalui /auth/token. Tidak perlu WebView/redirect browser
+atau perubahan payload. Reset password tetap menggunakan halaman web reset.
+Source perubahan ini belum dipush/dideploy oleh pekerjaan ini; capability baru
+`nativeAuthNoCallback:true` diperiksa secara operasional setelah deploy, bukan
+request startup tambahan. Detail di [panduan auth proxy](frontend-follow-up-auth-proxy.md).
+
 Restore sesi/token mengikuti proxy auth yang sudah ada, lalu **GET `/me` satu
 kali**. Respons sekarang juga mencakup `userPreferences` (budget/area, nullable)
 dan `versions.userPreferences`, selain profil dan preferensi latihan yang lama:

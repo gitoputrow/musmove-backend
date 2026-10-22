@@ -25,7 +25,7 @@ const MAX_SESSION_SECONDS = 30 * 86400;
 const invalidSession = () => new ApiError(401, "AUTH_SESSION_INVALID", "The session is invalid or expired; sign in again");
 type FailureReason = "cookie_header_invalid" | "session_cookie_ambiguous" | "session_cookie_invalid" | "session_cookie_missing"
   | "upstream_timeout" | "upstream_content_type" | "upstream_http" | "upstream_transport" | "upstream_json"
-  | "reset_ack_invalid" | "auth_user_invalid" | "interactive_flow_unsupported" | "session_shape_invalid"
+  | "reset_ack_invalid" | "auth_user_invalid" | "session_shape_invalid"
   | "jwt_shape_invalid" | "jwt_invalid" | "logout_ack_invalid";
 class AuthProxyFailure extends ApiError {
   constructor(readonly reason: FailureReason, readonly stage: AuthAction, readonly upstreamStatus?: number) {
@@ -182,7 +182,7 @@ async function handleAuthAction(action: AuthAction, request: Request) {
     const input = (action === "sign-up/email" ? signup : action === "sign-in/email" ? credentials : reset).parse(await readJson(request, 8192));
     const reply = await provider(config, action, action === "request-password-reset"
       ? { ...input, redirectTo: `${config.origin}/auth/reset-password` }
-      : { ...input, rememberMe: true, callbackURL: `${config.origin}/auth/mobile` });
+      : { ...input, rememberMe: true });
     if (action === "request-password-reset") {
       if (!reply.data || typeof reply.data !== "object" || !("status" in reply.data) || reply.data.status !== true) throw unavailable("reset_ack_invalid", action);
       return apiJson({ status: "accepted", message: "If the account is eligible, a password reset email will be sent" });
@@ -190,7 +190,8 @@ async function handleAuthAction(action: AuthAction, request: Request) {
     const result = reply.data && typeof reply.data === "object" ? reply.data as Record<string, unknown> : {};
     const user = userSchema.safeParse(result.user);
     if (!user.success) throw unavailable("auth_user_invalid", action);
-    if (result.redirect === true || result.twoFactorRedirect === true) throw unavailable("interactive_flow_unsupported", action);
+    // Native auth has no browser callback or flag-based interactive flow.
+    // Only an allowlisted cookie and a live, matching provider session authorize it.
     if (!reply.cookie) {
       if (action !== "sign-up/email" || result.token) throw unavailable("session_cookie_missing", action);
       return apiJson({ status: user.data.emailVerified ? "sign_in_required" : "verification_required", user: user.data, sessionToken: null, sessionExpiresAt: null });

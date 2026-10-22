@@ -7,6 +7,13 @@ Pembaruan 19 Oktober: kompatibilitas nama cookie session canonical Neon
 diperbaiki di backend, dengan diagnostik aman untuk 503. Kontrak Flutter tidak
 berubah. Lihat [hasil tindak lanjut error 503](backend-auth-503-follow-up.md).
 
+Pembaruan 22 Oktober: login/register tidak lagi mengirim callbackURL ke provider.
+Tidak ada pemeriksaan flag twoFactorRedirect/redirect pada respons JSON provider;
+autentikasi tetap wajib lolos validasi cookie dan sesi provider yang hidup.
+Tidak menambahkan fitur 2FA atau mengubah payload Flutter. Perubahan ini tersedia
+di source lokal; belum dipush/dideploy oleh pekerjaan ini. Capability source baru:
+`nativeAuthNoCallback: true` (bukan bukti login production sudah diuji).
+
 ## 1. Status dan konfigurasi
 
 Kode dan tes backend tersedia di repository. Deployment Vercel, konfigurasi
@@ -77,9 +84,11 @@ Pisahkan interceptor auth: jangan otomatis memasang Bearer JWT pada register,
 login, atau permintaan reset; gunakan skema Session hanya pada tiga endpoint
 session, dan Bearer hanya pada API data. Jangan membuat fallback diam-diam ke
 Neon langsung ketika proxy 401/503.
-Callback dan Origin upstream ditentukan backend dari konfigurasi tepercaya,
-bukan `Host` atau URL pilihan client. Native tidak perlu menambahkan header
-Origin palsu/localhost untuk mengatasi error `MISSING_ORIGIN`.
+Login/register tidak mengirim callbackURL ke upstream dan tidak memerlukan
+redirect browser. Origin upstream tetap ditentukan backend dari konfigurasi
+tepercaya, bukan Host atau URL pilihan client, sehingga native tidak perlu
+menambahkan header Origin palsu/localhost untuk mengatasi MISSING_ORIGIN.
+Callback web reset password tetap ditentukan backend secara terpisah.
 
 Body maksimal 8 KiB. Nama 1–120 karakter setelah trim; email valid maksimal
 254 karakter; password signup 8–128 karakter, login 1–128 karakter, tanpa trim
@@ -188,7 +197,8 @@ email terdaftar atau berhasil terkirim**. Client tidak mengirim `redirectTo`.
 Backend menetapkan callback web:
 `https://musmove-backend.vercel.app/auth/reset-password`.
 Setelah menyelesaikan reset di web, pengguna kembali ke aplikasi dan login.
-Jangan memakai halaman `/auth/mobile` sebagai endpoint pertukaran token.
+Halaman `/auth/mobile` hanya dipertahankan untuk kompatibilitas tautan lama;
+login/register baru tidak memakainya. Bukan endpoint pertukaran token.
 
 ## 4. Error dan retry
 
@@ -216,9 +226,9 @@ terus-menerus. Semua request akun lama harus dibatalkan/diabaikan saat ganti aku
 - [ ] `AUTH_SECRET` pada Vercel adalah random kuat minimal 32 karakter, berbeda dari `SYNC_CURSOR_SECRET` dan `API_RATE_LIMIT_SECRET`. Tidak boleh ada dalam APK/IPA/repository.
 - [ ] `NEON_AUTH_BASE_URL` adalah URL HTTPS provider yang benar, hanya untuk server.
 - [ ] `AUTH_PUBLIC_ORIGIN` adalah origin HTTPS deployment yang benar; default `https://musmove-backend.vercel.app`. Jangan menyalin domain production ke environment lain tanpa meninjau callback.
-- [ ] Origin tersebut ditambahkan pada trusted domains Neon untuk branch yang sama. Callback signup/login ditetapkan backend ke `/auth/mobile`, dan reset ke `/auth/reset-password`; tidak ada open redirect pilihan client.
+- [ ] Origin tersebut ditambahkan pada trusted domains Neon untuk branch yang sama. Signup/login tidak mengirim callbackURL; hanya reset tetap ke `/auth/reset-password`. Tidak ada open redirect pilihan client.
 - [ ] `npm run security:check` lolos. `AUTH_SECRET` yang tidak valid membuat auth gagal tertutup; pengecekan auth tidak mematikan API data JWT yang sebelumnya berjalan.
-- [ ] Deploy kode, cek `/meta` memiliki capability `nativeAuthProxy: true`, lalu lakukan smoke test route. Capability bukan bukti secret/domain/email sudah benar.
+- [ ] Deploy kode, cek `/meta` memiliki capability `nativeAuthProxy: true` dan `nativeAuthNoCallback: true`, lalu lakukan smoke test route. Capability bukan bukti secret/domain/email sudah benar. Cek secara operasional, bukan request startup rutin mobile.
 - [ ] Dengan akun uji yang disetujui, uji signup/login, restore setelah restart aplikasi, expiry JWT, `/me`, logout, dan penolakan session sesudah logout.
 - [ ] Uji reset email nyata hanya setelah konfigurasi pengiriman dan allowlist benar. Email verification, OAuth, dan scan foto tetap bukan penambahan fitur pada pekerjaan ini.
 

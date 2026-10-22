@@ -119,3 +119,59 @@ Kirim dokumen ini sebagai tindak lanjut laporan 503. Untuk integrasi tetap gunak
 [panduan auth proxy](frontend-follow-up-auth-proxy.md),
 [panduan mobile](mobile-integration.md), dan [OpenAPI](openapi.yaml).
 Tidak ada perubahan bentuk payload sukses/error yang harus dimigrasikan di Flutter.
+
+## 6. Pembaruan 22 Oktober: sign-in menolak redirect normal
+
+Laporan mobile `backend-sign-in-503-report.md` membawa request ID
+`7a16532b-4691-4300-b2b9-1faafff99ffb`. Penelusuran read-only Vercel menemukan
+warning pada22 Oktober2026 pukul11:43:00 WIB dengan metadata aman berikut:
+
+```json
+{
+  "event": "auth_proxy_failure",
+  "requestId": "7a16532b-4691-4300-b2b9-1faafff99ffb",
+  "action": "sign-in/email",
+  "stage": "sign-in/email",
+  "reason": "interactive_flow_unsupported"
+}
+```
+
+upstreamStatus tidak dicatat pada warning tersebut. Tidak ada body, cookie,
+password atau secret provider yang dibaca/disalin dalam investigasi ini.
+Ini mengonfirmasi cabang penolakan interaktif pada proxy aktif, bukan timeout
+atau bukti penolakan password. Log tidak membedakan dua flag boolean pemicunya.
+
+Bug source yang cocok berhasil direproduksi secara terisolasi: proxy mengirim
+callbackURL lalu menolak redirect:true, walaupun JSON200/user/cookie provider
+valid. Pada [source resmi Better Auth](https://github.com/better-auth/better-auth/blob/main/packages/better-auth/src/api/routes/sign-in.ts),
+sign-in dapat mengembalikan redirect:true ketika callbackURL diberikan setelah
+session dibuat. Reproduksi menghasilkan503 sebelum panggilan get-session.
+Fixture lama selalu memberi redirect:false meskipun callbackURL dikirim,
+sehingga kasus ini belum tercakup. Ini bukan pembacaan respons akun production.
+
+Sesuai keputusan pengguna, perubahan source kini:
+
+- Hapus callbackURL upstream untuk login dan register. Origin tetap dikirim
+  untuk validasi provider; rememberMe tetap server-owned.
+- Hapus pemeriksaan flag redirect dan twoFactorRedirect beserta reason internal
+  interactive_flow_unsupported yang tidak lagi digunakan. Tidak ada fitur 2FA baru.
+- Jangan mengikuti URL JSON atau meneruskan Location/Set-Cookie ke Flutter.
+  Actual HTTP redirect tetap ditolak oleh fetch redirect:error/status validation.
+- Cookie harus dari allowlist yang sama dan sesi hidup harus memiliki subject
+  yang cocok serta expiry valid. Flag semata tidak dapat membuat session aktif.
+- Reset password tetap memakai redirectTo web reset yang sudah ada. Landing
+  /auth/mobile tetap tersedia untuk tautan lama, bukan tujuan login/register baru.
+- Tambah capability nativeAuthNoCallback:true untuk membedakan source deployment.
+  Payload Flutter, envelope lama, AUTH_SECRET dan skema database tidak diubah.
+
+Tes regresi mencakup tidak adanya callbackURL pada kedua request upstream,
+respons redirect:true yang kini melanjutkan validasi session, pengabaian flag
+twoFactorRedirect ketika sesi valid, serta penolakan flag tanpa user/cookie,
+session null/expired/berbeda akun. Tes restore/JWT/me/logout, origin, cookie,
+rate limit, parser, timeout dan diagnostik aman tetap dipertahankan.
+
+Perubahan belum dipush/dideploy oleh pekerjaan ini. Setelah deploy, verifikasi
+capability secara operasional dan lakukan satu login terkontrol dengan akun uji
+yang disetujui, lalu session/token/me/logout. Tes lokal bukan klaim login akun
+nyata sudah berhasil. Tidak ada perubahan konfigurasi provider, migrasi cloud,
+login akun nyata atau pengiriman email otomatis pada perbaikan ini.

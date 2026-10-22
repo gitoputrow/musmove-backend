@@ -85,9 +85,10 @@ test("Native auth proxy is isolated from live Neon, email delivery, and producti
       const overridden = override?.(path); if (overridden) return overridden;
       if (path === "sign-up/email" || path === "sign-in/email") {
         assert.equal(headers.get("cookie"), null);
-        assert.equal(body.callbackURL, `${origin}/auth/mobile`); assert.equal(body.rememberMe, true);
+        assert.equal(Object.hasOwn(body, "callbackURL"), false); assert.equal(body.rememberMe, true);
+        assert.deepEqual(Object.keys(body).sort(), path === "sign-up/email" ? ["email", "name", "password", "rememberMe"] : ["email", "password", "rememberMe"]);
         active = true; currentCookie = rawCookie;
-        return response({ user: { ...user, admin: "secret-provider-field" }, token: "raw-provider-token", redirect: false }, 200, currentCookie);
+        return response({ user: { ...user, admin: "secret-provider-field" }, token: "raw-provider-token", redirect: Boolean(body.callbackURL) }, 200, currentCookie);
       }
       if (path === "request-password-reset") {
         assert.equal(headers.get("cookie"), null); assert.deepEqual(body, { email: user.email, redirectTo: `${origin}/auth/reset-password` });
@@ -109,6 +110,43 @@ test("Native auth proxy is isolated from live Neon, email delivery, and producti
       assert.equal(registered.sessionToken.split(".").length, 5);
       const loggedIn = await data(await login()); assert.equal(loggedIn.status, "authenticated");
       assert.equal((await me.GET(request("me", "GET", undefined, `Bearer ${loggedIn.sessionToken}`))).status, 401);
+    });
+
+    await t.test("Provider redirect flags never replace the live session check or escape into the native response", async () => {
+      try {
+        for (const flags of [{ redirect: true }, { twoFactorRedirect: true }, { redirect: true, twoFactorRedirect: true }]) {
+          active = true; currentCookie = rawCookie;
+          override = path => {
+            if (path !== "sign-in/email") return;
+            const reply = response({ user, token: "raw-provider-token", ...flags, url: "https://attacker.example.test/must-never-be-forwarded" }, 200, rawCookie);
+            reply.headers.set("location", "https://attacker.example.test/must-never-be-forwarded");
+            return reply;
+          };
+          const before = calls, result = await data(await login());
+          assert.equal(calls - before, 2, "Login must still check the live provider session");
+          assert.equal(result.status, "authenticated"); assert.deepEqual(result.user, user);
+          assert.equal(result.sessionToken.split(".").length, 5);
+          assert.equal(result.redirect, undefined); assert.equal(result.twoFactorRedirect, undefined); assert.equal(result.url, undefined);
+        }
+      } finally { override = undefined; }
+    });
+
+    await t.test("Provider flags alone, a missing cookie, or an invalid live session cannot authenticate", async () => {
+      try {
+        override = path => path === "sign-in/email" ? response({ redirect: true, twoFactorRedirect: true }) : undefined;
+        await data(await login(), 503); assert.equal(warnings.at(-1)!.diagnostic.reason, "auth_user_invalid");
+        override = path => path === "sign-in/email" ? response({ user, redirect: true, twoFactorRedirect: true }) : undefined;
+        await data(await login(), 503); assert.equal(warnings.at(-1)!.diagnostic.reason, "session_cookie_missing");
+        for (const invalid of [null,
+          { user, session: { userId: "different-account", expiresAt: new Date(Date.now() + 86400000).toISOString() } },
+          { user, session: { userId, expiresAt: new Date(Date.now() - 60000).toISOString() } },
+        ]) {
+          override = path => path === "sign-in/email" ? response({ user, redirect: true, twoFactorRedirect: true }, 200, rawCookie) :
+            path === "get-session" ? response(invalid) : undefined;
+          const before = calls, result = await data(await login(), 401);
+          assert.equal(calls - before, 2); assert.equal(result.error.code, "AUTH_SESSION_INVALID"); assert.equal(result.sessionToken, undefined);
+        }
+      } finally { override = undefined; }
     });
 
     await t.test("Session restore, cookie rotation, JWT retrieval, and existing /me work end-to-end", async () => {
