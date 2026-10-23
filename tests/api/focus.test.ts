@@ -3,6 +3,7 @@ import { test } from "node:test";
 import { readFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import { PGlite } from "@electric-sql/pglite";
+import { readMigrationFiles } from "drizzle-orm/migrator";
 import { focusAreasSchema, readFocusAreas, resolveFocusFields, distributeFocusPrograms } from "../../src/modules/programs/focus";
 import { completeOnboardingSchema } from "../../src/modules/onboarding/dto";
 import { accountPatchSchema, profilePatchSchema } from "../../src/modules/online/dto";
@@ -80,5 +81,69 @@ test("migration backfills only known legacy choices without rewriting versions, 
     // Old backend versions still writing the string during rollout stay coherent.
     await db.query("UPDATE profiles SET focus='arm' WHERE user_id=$1", [ids[1]]);
     assert.deepEqual((await db.query<{ focus_areas: string[] }>("SELECT focus_areas FROM profiles WHERE user_id=$1", [ids[1]])).rows[0].focus_areas, ["arm"]);
+  } finally { await db.close(); }
+});
+
+test("focus rotation favors unserved targets without adding sessions or duplicating program IDs", () => {
+  const programs = ["leg", "chest", "back", "arm"].map(focus => ({ id: focus, focus }));
+  const history = ["leg", "chest"].map(programId => ({ programId, finishedAt: new Date("2026-10-20T00:00:00Z") }));
+  const result = distributeFocusPrograms(programs, ["leg", "chest", "back", "arm"], 2, history);
+  assert.deepEqual(result.weeklyPlan.map(p => p.focus), ["back", "arm"]);
+  assert.deepEqual(result.focusCoverage.unscheduled, ["leg", "chest"]);
+  assert.deepEqual(result.focusCoverage.unavailable, []);
+  assert.deepEqual(distributeFocusPrograms(programs, ["leg", "chest", "back", "arm"], 2, history), result);
+  assert.equal(distributeFocusPrograms(programs, ["leg", "chest", "back", "arm"], 0, history).weeklyPlan.length, 0);
+});
+
+test("three sessions cover three focuses; standard variants rotate before compact fallbacks", () => {
+  const exercises = [{ id: "a" }, { id: "b" }, { id: "c" }];
+  const programs = [
+    { id: "compact", focus: "chest", exercises: [{ id: "a" }] },
+    { id: "standard-a", focus: "chest", exercises },
+    { id: "standard-b", focus: "chest", exercises },
+    { id: "legs", focus: "leg", exercises }, { id: "back", focus: "back", exercises },
+  ];
+  const history = [{ programId: "standard-a", finishedAt: new Date("2026-10-20T00:00:00Z") }];
+  const result = distributeFocusPrograms(programs, ["leg", "chest", "back"], 3, history);
+  assert.deepEqual(result.focusCoverage.scheduled, ["leg", "chest", "back"]);
+  assert.deepEqual(result.focusCoverage.unscheduled, []);
+  assert.equal(result.weeklyPlan.find(p => p.focus === "chest")!.programId, "standard-b");
+  assert.equal(new Set(result.weeklyPlan.map(p => p.programId)).size, 3);
+  const one = distributeFocusPrograms(programs.filter(p => p.focus === "chest"), ["chest"], 3, history);
+  assert.deepEqual(one.weeklyPlan.map(p => p.programId), ["standard-b", "standard-a", "compact"]);
+  assert.equal(one.programs.find(p => p.id === "standard-a"), programs[1]);
+});
+
+test("focus credit survives filtered historical variants but never creates unavailable candidates", () => {
+  const programs = [{ id: "new-leg", focus: "leg" }, { id: "new-back", focus: "back" }];
+  const history = [{ programId: "retired-leg", focus: "leg", finishedAt: new Date("2026-10-20T00:00:00Z") }];
+  const result = distributeFocusPrograms(programs, ["leg", "back", "arm"], 1, history);
+  assert.equal(result.weeklyPlan[0].focus, "back");
+  assert.deepEqual(result.focusCoverage.unavailable, ["arm"]);
+});
+
+test("richer catalog migration adds 29 bounded templates without changing legacy IDs, entries or profiles", async () => {
+  const db = new PGlite();
+  try {
+    const migrations = readMigrationFiles({ migrationsFolder: "drizzle" });
+    for (const migration of migrations.slice(0, 22)) await db.exec(migration.sql.join("\n"));
+    const oldPrograms = (await db.query<{ id: string }>("SELECT * FROM workout_program_catalog ORDER BY id")).rows;
+    const oldEntries = (await db.query("SELECT * FROM workout_program_exercises ORDER BY program_id,position")).rows;
+    const userId = randomUUID();
+    await db.query("INSERT INTO users(id,issuer,subject) VALUES($1::uuid,$2,$1::text)", [userId, "synthetic"]);
+    await db.query("INSERT INTO profiles(user_id,focus,focus_areas,training_frequency) VALUES($1,NULL,ARRAY[$2,$3,$4],3)", [userId, "leg", "chest", "back"]);
+    const before = (await db.query("SELECT * FROM profiles")).rows;
+    await db.exec("BEGIN;");
+    await db.exec(migrations[22].sql.join("\n"));
+    await db.exec("COMMIT;");
+    assert.deepEqual((await db.query("SELECT * FROM profiles")).rows, before);
+    const programs = (await db.query<{ id: string }>("SELECT * FROM workout_program_catalog ORDER BY id")).rows;
+    const oldIds = oldPrograms.map(p => p.id);
+    assert.equal(programs.length, 41);
+    assert.deepEqual(programs.filter(p => oldIds.includes(p.id)), oldPrograms);
+    const entries = (await db.query<{ program_id: string }>("SELECT * FROM workout_program_exercises ORDER BY program_id,position")).rows;
+    assert.deepEqual(entries.filter(p => oldIds.includes(p.program_id)), oldEntries);
+    const counts = await db.query<{ n: number }>("SELECT count(*)::integer n FROM workout_program_exercises e WHERE e.program_id NOT IN (SELECT unnest($1::text[])) GROUP BY program_id", [oldIds]);
+    assert.equal(counts.rows.length, 29); assert.ok(counts.rows.every(row => row.n >= 3 && row.n <= 4));
   } finally { await db.close(); }
 });

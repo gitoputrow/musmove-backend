@@ -88,6 +88,16 @@ export async function readProgramCatalog(transaction: DatabaseTransaction, userI
     )).orderBy(desc(workoutSessions.finishedAt), desc(workoutSessions.id)).limit(20);
     const candidates = programs.filter((program) => program.mode === training.mode && preferences.focusAreas.some(area => area === program.focus));
     const personalized = personalizePrograms(candidates, catalog, profile, preferences.equipment, history);
+    // Include inactive historical templates in focus rotation, not in candidates.
+    // Custom/manual sessions and ambiguous legacy provenance must not pretend to
+    // be completion of a public recommendation with an accidentally matching ID.
+    const knownPrograms = await transaction.select({ id: workoutProgramCatalog.id, focus: workoutProgramCatalog.focus })
+      .from(workoutProgramCatalog).where(eq(workoutProgramCatalog.mode, training.mode));
+    const recommendedUses = history.filter(session => session.legacyMetadata?.source === "recommended" && session.finishedAt)
+      .map(session => ({ programId: session.planId, finishedAt: session.finishedAt! }));
+    // Preserve focus credit from an old/filtered variant using its catalog tag;
+    // exact variant usage remains scoped to the original public ID.
+    const focusHistory = recommendedUses.map(use => ({ ...use, focus: knownPrograms.find(p => p.id === use.programId)?.focus }));
     return { ...versions, preferences, ...personalized,
-      ...distributeFocusPrograms(personalized.programs, preferences.focusAreas, personalized.personalization.suggestedWeeklySessions) };
+      ...distributeFocusPrograms(personalized.programs, preferences.focusAreas, personalized.personalization.suggestedWeeklySessions, focusHistory) };
 }

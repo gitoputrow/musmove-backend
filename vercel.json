@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "buildCommand": "npm run security:check && npm run build"
+  "buildCommand": "npm run security:check && npm run build",
+  "regions": ["sin1"]
 }

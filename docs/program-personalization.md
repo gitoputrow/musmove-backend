@@ -1,4 +1,4 @@
-# Program personalization: multi-focus selection, v2 prescriptions
+# Program personalization v3: balanced focus and richer templates
 
 `GET /api/v1/programs/recommendations` uses the authenticated account's saved
 profile and training preferences, the database template/exercise catalogs,
@@ -83,7 +83,7 @@ and recommendations return409 PREFERENCES_REQUIRED, not full-body fallback.
 Candidate selection is OR across the canonical areas, retaining mode and all
 existing personalization/ability/equipment/duration guards. Each catalog program
 can keep its single focus tag. The response interleaves filtered unique programs
-by canonical focus order. `weeklyPlan` references at most the existing effective
+by recent focus usage, with canonical order only breaking ties. `weeklyPlan` references at most the effective
 weekly-session count, without duplicate program IDs or changed prescriptions.
 It is a suggestion, not a persisted calendar. Fewer candidates can mean fewer
 suggested slots. More selected areas do not increase training days or volume.
@@ -159,7 +159,7 @@ use dumbbells/bodyweight and may not require an equipment size check.
 - Loads never increase automatically. Reuse a confirmed historical or reported
   load; return `targetWeightKg: null` when no such data exists. Sex, body weight,
   height, and BMI are not used to invent a lifting load.
-- Frequency is returned as `suggestedWeeklySessions`, capped at 2/3/4 for
+- Frequency is returned as `suggestedWeeklySessions`, capped at 3/3/4 for
   beginner/intermediate/advanced. This is a planning default, not a calendar
   or a guarantee that every muscle group is trained sufficiently each week.
 - Estimated duration includes a 5-minute warmup, 3 seconds per repetition,
@@ -171,6 +171,56 @@ clinical model. The general approach follows individualized goals, gradual
 training and avoiding unnecessary failure-based prescriptions described by
 [ACSM's 2026 guidance](https://acsm.org/resistance-training-guidelines-update-2026/)
 and the [Physical Activity Guidelines](https://www.cdc.gov/physical-activity/media/pdfs/Physical_Activity_Guidelines_2nd_edition.pdf).
+
+## Balanced planning and explicit level inputs (23 October 2026)
+
+An omitted trainingLevel remains null in the account; it is not rewritten to
+beginner and never inferred from sex, body size or frequency. The existing
+onboarding/PATCH field already persists an explicit user choice. New clients
+should collect it. Recommendations now report trainingLevelSource (PROFILE or
+CONSERVATIVE_DEFAULT), missingProfileFields, frequencyCap and frequencyPolicy.
+Existing clients may omit the field without being locked out of completed setup.
+
+The v3 beginner ceiling permits up to3 requested sessions, retaining conservative
+sets/reps/unknown loads. Intermediate remains3, advanced4; a4+-week training
+break still caps frequency at2. The historical [2009 ACSM position stand](https://pubmed.ncbi.nlm.nih.gov/19204579/)
+described2–3 days for novices, not a universal maximum of2. The updated
+[2026 ACSM guidance](https://acsm.org/resistance-training-guidelines-update-2026/)
+emphasizes individualized, sustainable training. Our precise ceilings are product
+rules, not individualized medical clearance or a claim that this split meets all
+major-muscle training-frequency recommendations.
+
+Migration0022 adds29 templates (41 total), each new template containing3–4
+exercises from the existing catalog. Gym variations cover dumbbells, machines,
+barbells/cables; calisthenics variations include supported and equipped options.
+Some templates include core/accessory work; not every exercise must target the
+primary catalog focus. All12 old templates/IDs remain as compact alternatives
+or valid history references. Personalization still filters every exercise, and
+estimated duration must fit the user budget; it does not fill all45 minutes by
+inventing load or increasing sets. Migration changes no private account data.
+
+`recommendationTier` is standard when the personalized session has at least3
+total exercises, compact otherwise. Standard candidates precede compact fallbacks;
+this label does not mean physiological completeness or clinical approval.
+
+Within the bounded weeklyPlan, select each available focus before repeating a
+tag. Among tied focuses, prefer fewer recent completions, then older/no completion,
+then canonical order. Within a focus, prefer standard sessions, then less-used,
+less-recent variants, then ID. Counts use at most20 owned, nondeleted, completed
+sessions from the past30 days with matching mode; only explicit recommended
+source and a known public catalog ID provide rotation credit. An inactive/filtered
+historical variant still provides focus credit through its original catalog tag.
+Manual/custom and ambiguous legacy provenance cannot impersonate public-program
+completion. Existing load/ability evidence still follows its separate stricter rules.
+
+The planner is deterministic for identical data. Reopening the screen does not
+randomize it. After final workout submission, invalidate recommendations in memory
+and fetch on the next relevant screen access, not a new startup/polling timer.
+If focuses exceed slots, unscheduled remains explicit; later reported completions
+rotate priorities instead of perpetually excluding back/arms. It does not combine
+entire programs, add training days, repeat program IDs or fabricate unavailable
+exercises. weeklyPlan remains an unpersisted next-up-to-N suggestion, not a fixed
+calendar week or a quota subtracting already completed workouts.
 
 ## Profile context and limits
 
@@ -192,7 +242,7 @@ when applying explicit restrictions, rather than treating them as unrestricted.
 The balance component is a reminder; this API does not provide a complete
 balance/aerobic program.
 
-The response includes `personalization.algorithmVersion` (`"2"`), effective goal and
+The response includes `personalization.algorithmVersion` (`"3"`), effective goal and
 level, assumptions, requested/suggested frequency, load policy, and per-program
 adjustments showing substitutions and evidence source. No matching program
 returns `NO_MATCHING_PROGRAM`. Context gates additionally return
@@ -200,7 +250,10 @@ returns `NO_MATCHING_PROGRAM`. Context gates additionally return
 `RECOVERY_REQUIRED`. Context adjustments, blocked equipment, assumptions and
 gender/bodyweight handling policies are returned for the client to explain.
 Missing mode/valid focusAreas/duration returns HTTP409 PREFERENCES_REQUIRED.
-Migration0021, cloud deployment and an approved live account test must be
-verified before mobile enables multi-select; local implementation is not proof
-of deployed support. Check multiMuscleFocus capability operationally, not on
-every mobile startup. Flutter changes are outside this backend task.
+Multi-select requires migration0021 and multiMuscleFocus capability. Version3
+additionally requires catalog migration0022 and deployed source advertising
+balancedWorkoutRecommendations. Local implementation is not proof of deployed
+support; check capabilities operationally, not on every mobile startup. Current
+rollout/verification details are in the
+[recommendation follow-up](backend-workout-recommendations-follow-up.md).
+Flutter changes are outside this backend task.

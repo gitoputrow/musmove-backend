@@ -73,7 +73,9 @@ export function personalizePrograms(
   const level = profile.trainingLevel ?? "beginner";
   const goal = normalizeGoal(profile.goal);
   const userContext = deriveUserContext(profile, equipmentItems);
-  const frequencyCap = userContext.returning ? 2 : level === "beginner" ? 2 : level === "intermediate" ? 3 : 4;
+  // Three requested sessions do not become two merely because level was omitted.
+  // This is a product ceiling, not medical clearance or a calendar prescription.
+  const frequencyCap = userContext.returning ? 2 : level === "advanced" ? 4 : 3;
   const weeklySessions = Math.min(profile.trainingFrequency ?? 2, frequencyCap);
   const baseSets = userContext.returning ? 2 : level === "beginner" ? 2 : goal === "muscle" && level === "advanced" ? 4 : 3;
   const sets = userContext.tired ? Math.max(1, baseSets - 1) : baseSets;
@@ -87,13 +89,19 @@ export function personalizePrograms(
   if (!profile.goal || !supportedGoals.has(profile.goal)) assumptions.push("GOAL_DEFAULTED_TO_GENERAL_FITNESS");
   if (!profile.ageYears) assumptions.push("AGE_NOT_PROVIDED");
   if (!profile.exerciseCapabilities?.length && !history.length) assumptions.push("NO_ABILITY_ASSESSMENT_OR_RECENT_HISTORY");
+  if ((profile.trainingFrequency ?? 2) > frequencyCap) assumptions.push("TRAINING_FREQUENCY_CAPPED");
 
   const personalization = {
-    algorithmVersion: "2",
+    algorithmVersion: "3",
     trainingLevel: level,
+    trainingLevelSource: profile.trainingLevel ? "PROFILE" : "CONSERVATIVE_DEFAULT",
+    missingProfileFields: profile.trainingLevel ? [] : ["trainingLevel"],
     goal,
     requestedWeeklySessions: profile.trainingFrequency,
     suggestedWeeklySessions: weeklySessions,
+    frequencyCap,
+    frequencyPolicy: userContext.returning ? "RETURN_TO_TRAINING_CAP" : "REQUESTED_WITH_LEVEL_CAP",
+    selectionPolicy: "BALANCED_FOCUS_RECENT_HISTORY_VARIATION",
     assumptions,
     // formulaSex is the existing nutrition-formula field, not gender identity.
     profileContext: {
@@ -183,7 +191,8 @@ export function personalizePrograms(
       return [];
     }
     return [{ ...template, durationMinutes: estimatedMinutes, exercises: prescriptions,
-      restSeconds, suggestedWeeklySessions: weeklySessions, adjustments }];
+      restSeconds, suggestedWeeklySessions: weeklySessions, adjustments,
+      recommendationTier: prescriptions.length >= 3 ? "standard" : "compact" }];
   });
   return { programs, personalization, rejectedPrograms, reason: programs.length ? null : "NO_MATCHING_PROGRAM" };
 }

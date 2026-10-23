@@ -99,6 +99,69 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
       assert.equal(result.status, 201, JSON.stringify(result.body)); return { id, exerciseId, item: result.body.item };
     }
     const count = async (table: string, userId: string) => (await local.query<{ n: number }>(`SELECT count(*)::integer n FROM ${table} WHERE user_id=$1`, [userId])).rows[0].n;
+    async function exerciseIdsForFocus(focus: string) {
+      const entries = await db.select({ id: schema.workoutProgramExercises.exerciseId }).from(schema.workoutProgramExercises)
+        .innerJoin(schema.workoutProgramCatalog, eq(schema.workoutProgramExercises.programId, schema.workoutProgramCatalog.id))
+        .where(eq(schema.workoutProgramCatalog.focus, focus));
+      return [...new Set(entries.map(entry => entry.id))];
+    }
+
+    await t.test("Regression: missing-level account requesting leg/chest/back three times gets three standard sessions without profile mutation", async () => {
+      const a = await account();
+      const equipment = (await db.select().from(schema.equipmentCatalog)).filter(item => item.active && item.modes.includes("gym")).map(item => item.id);
+      const input = { ...onboarding(), profile: { ...onboarding().profile, focus: undefined, focusAreas: ["leg", "chest", "back"], sessionMinutes: 45,
+        trainingContext: { painAreas: [], recoveryStatus: "recovered" } }, trainingPreferences: { mode: "gym", equipment, noEquipment: false } };
+      assert.equal((await call("onboarding/complete", a.jwt, "POST", input)).status, 200);
+      const before = (await call("me", a.jwt)).body;
+      const result = await call("programs/recommendations", a.jwt); assert.equal(result.status, 200);
+      assert.equal(result.body.personalization.suggestedWeeklySessions, 3); assert.equal(result.body.weeklyPlan.length, 3);
+      assert.equal(result.body.personalization.trainingLevelSource, "CONSERVATIVE_DEFAULT");
+      assert.deepEqual(result.body.personalization.missingProfileFields, ["trainingLevel"]);
+      assert.deepEqual(result.body.focusCoverage.scheduled, ["leg", "chest", "back"]); assert.deepEqual(result.body.focusCoverage.unscheduled, []);
+      for (const slot of result.body.weeklyPlan) {
+        const plan = result.body.programs.find((p: { id: string }) => p.id === slot.programId);
+        assert.ok(plan); assert.equal(plan.recommendationTier, "standard"); assert.ok(plan.exercises.length >= 3);
+        assert.ok(plan.durationMinutes <= 45); assert.equal(new Set(plan.exercises.map((e: { id: string }) => e.id)).size, plan.exercises.length);
+        assert.ok(plan.exercises.every((e: { sets: number; targetWeightKg: number | null }) => e.sets === 2 && e.targetWeightKg === null));
+      }
+      assert.deepEqual((await call("me", a.jwt)).body, before);
+      assert.equal(before.profile.trainingLevel, null); assert.equal(await count("operation_receipts", a.id), 1);
+      // Changing to one available slot must rotate after reported completion,
+      // not keep choosing leg merely because it is first in canonical order.
+      assert.equal((await call("me", a.jwt, "PATCH", { baseVersions: { profile: "1" }, profile: { trainingFrequency: 1 } })).status, 200);
+      const first = (await call("programs/recommendations", a.jwt)).body;
+      const plan = first.programs.find((p: { id: string }) => p.id === first.weeklyPlan[0].programId);
+      assert.equal(first.weeklyPlan[0].focus, "leg");
+      // An identically named custom plan cannot count as public-program credit.
+      await db.insert(schema.workoutSessions).values({ userId: a.id, id: "custom-provenance", planId: plan.id, mode: "gym", status: "completed",
+        startedAt: new Date(startedAt), finishedAt: new Date(finishedAt), recordedOn: date, exerciseSnapshot: plan.exercises, setLog: [], legacyMetadata: { source: "custom" } });
+      assert.equal((await call("programs/recommendations", a.jwt)).body.weeklyPlan[0].focus, "leg");
+      const saved = await call("workouts", a.jwt, "POST", { id: "rotation-completed", source: "recommended", programId: plan.id, mode: "gym",
+        exerciseSnapshot: plan.exercises, setLog: [], startedAt, finishedAt, recordedOn: date });
+      assert.equal(saved.status, 201);
+      assert.equal((await call("programs/recommendations", a.jwt)).body.weeklyPlan[0].focus, "chest");
+      await db.update(schema.workoutProgramCatalog).set({ active: false }).where(eq(schema.workoutProgramCatalog.id, plan.id));
+      try { assert.equal((await call("programs/recommendations", a.jwt)).body.weeklyPlan[0].focus, "chest"); }
+      finally { await db.update(schema.workoutProgramCatalog).set({ active: true }).where(eq(schema.workoutProgramCatalog.id, plan.id)); }
+      // The performed snapshot survives all recommendation/catalog changes.
+      assert.deepEqual((await call("workouts/rotation-completed", a.jwt)).body.item.exerciseSnapshot, plan.exercises);
+    });
+
+    await t.test("Training level round-trips on initial setup and versioned PATCH; omission preserves, invalid input never writes", async () => {
+      const a = await account();
+      const setup = await call("onboarding/complete", a.jwt, "POST", { ...onboarding(), profile: { ...onboarding().profile, trainingLevel: "intermediate" } });
+      assert.equal(setup.status, 200); assert.equal(setup.body.profile.trainingLevel, "intermediate");
+      assert.equal((await call("me", a.jwt)).body.profile.trainingLevel, "intermediate");
+      const changed = await call("me", a.jwt, "PATCH", { baseVersions: { profile: "1" }, profile: { trainingLevel: "advanced" } });
+      assert.equal(changed.status, 200); assert.equal(changed.body.profile.trainingLevel, "advanced");
+      assert.equal((await call("programs/recommendations", a.jwt)).body.personalization.trainingLevelSource, "PROFILE");
+      for (const value of ["expert", "", 3]) assert.equal((await call("me", a.jwt, "PATCH", { baseVersions: { profile: "2" }, profile: { trainingLevel: value } })).status, 400);
+      const preserved = await call("me", a.jwt, "PATCH", { baseVersions: { profile: "2" }, profile: { displayName: "Changed name" } });
+      assert.equal(preserved.status, 200); assert.equal(preserved.body.profile.trainingLevel, "advanced");
+      const cleared = await call("me", a.jwt, "PATCH", { baseVersions: { profile: "3" }, profile: { trainingLevel: null } });
+      assert.equal(cleared.status, 200); assert.equal(cleared.body.profile.trainingLevel, null);
+      assert.equal((await call("programs/recommendations", a.jwt)).body.personalization.trainingLevelSource, "CONSERVATIVE_DEFAULT");
+    });
 
     await t.test("Multi-focus onboarding persists canonical arrays, returns ACK and replays atomically without crossing accounts", async () => {
       const a = await account(), b = await account(), key = randomUUID();
@@ -171,10 +234,11 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
       assert.equal((await patch("3", { trainingFrequency: 1 })).status, 200);
       const limited = (await call("programs/recommendations", a.jwt)).body;
       assert.equal(limited.weeklyPlan.length, 1); assert.deepEqual(limited.focusCoverage.unscheduled, ["back"]);
-      assert.equal((await patch("4", { excludedExerciseIds: ["row"] })).status, 200);
+      const backIds = await exerciseIdsForFocus("back"), chestIds = await exerciseIdsForFocus("chest");
+      assert.equal((await patch("4", { excludedExerciseIds: backIds })).status, 200);
       const partial = (await call("programs/recommendations", a.jwt)).body;
       assert.deepEqual(partial.focusCoverage.unavailable, ["back"]); assert.equal(partial.reason, null);
-      assert.equal((await patch("5", { excludedExerciseIds: ["row", "press"] })).status, 200);
+      assert.equal((await patch("5", { excludedExerciseIds: [...new Set([...backIds, ...chestIds])] })).status, 200);
       const empty = (await call("programs/recommendations", a.jwt)).body;
       assert.deepEqual(empty.programs, []); assert.deepEqual(empty.focusCoverage.unavailable, ["chest", "back"]); assert.equal(empty.reason, "NO_MATCHING_PROGRAM");
       assert.equal((await patch("6", { excludedExerciseIds: [] }, { equipment: [], noEquipment: true })).status, 200);
@@ -182,7 +246,9 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
       assert.equal((await call("me", a.jwt, "PATCH", { baseVersions: { profile: "7", trainingPreferences: "2" },
         profile: { sessionMinutes: 10, trainingLevel: "advanced" }, trainingPreferences: { equipment: ["dumbbell"], noEquipment: false } })).status, 200);
       const tooLong = (await call("programs/recommendations", a.jwt)).body;
-      assert.deepEqual(tooLong.programs, []); assert.ok(tooLong.rejectedPrograms.every((p: { reason: string }) => p.reason === "SESSION_DURATION_EXCEEDED"));
+      assert.deepEqual(tooLong.programs, []);
+      const durationRejected = tooLong.rejectedPrograms.filter((p: { reason: string }) => p.reason === "SESSION_DURATION_EXCEEDED").map((p: { programId: string }) => p.programId);
+      assert.ok(durationRejected.includes("app-gym-chest-v1")); assert.ok(durationRejected.includes("app-gym-back-v1"));
       assert.equal((await call("me", a.jwt, "PATCH", { baseVersions: { profile: "8", trainingPreferences: "3" },
         profile: { sessionMinutes: 60, trainingLevel: "beginner" }, trainingPreferences: { mode: "calisthenics", equipment: [], noEquipment: true } })).status, 200);
       const calisthenics = (await call("programs/recommendations", a.jwt)).body;

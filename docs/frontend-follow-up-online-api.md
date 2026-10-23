@@ -9,6 +9,16 @@ Implementasi **source lokal** selesai; bukan klaim sudah deploy. Revisi multi-ot
 memerlukan migrasi **0021_multi_muscle_focus** sebelum source baru digunakan.
 Tidak ada dependensi/env baru, penghapusan storage lama, atau write akun production.
 
+Pembaruan 23 Oktober 2026: rekomendasi v3 memperbaiki pembagian fokus dan variasi
+latihan. Memerlukan migrasi katalog **0022_richer_workout_programs** dan deploy
+source dengan `capabilities.balancedWorkoutRecommendations:true`. Migrasi ini
+hanya menambah template publik, bukan kolom atau data akun. Detail implementasi
+dan status rollout: [follow-up rekomendasi workout](backend-workout-recommendations-follow-up.md).
+Migrasi 0022 sudah berhasil diterapkan; katalog publik deployment mengembalikan
+41 template. Capability logika v3 belum muncul saat diperiksa, jadi source tetap
+perlu redeploy. Ada temuan dependency Next.js critical terpisah yang perlu dipatch
+sebelum deploy; detailnya ada di dokumen follow-up tersebut.
+
 **Kirim dokumen ini sebagai follow-up utama ke frontend.** Isinya seluruh
 perubahan yang dikerjakan: startup/setup/skip, profil dan preferensi gabungan,
 program custom/jadwal, exercise buatan, workout, jurnal/nutrisi, favorit tempat,
@@ -363,10 +373,69 @@ Rekomendasi:
   profil baru, tetapi input/fokus saja tidak mengubah angka formula nutrisi.
 
 Rollout: migrasi0021 dan source yang memuat `capabilities.multiMuscleFocus:true`
-harus tersedia sebelum frontend mengaktifkan checkbox. Fitur ini belum dipush,
-dimigrasikan ke production, atau dideploy oleh pekerjaan ini. Verifikasi capability
-secara operasional dan uji kontrak dengan akun uji yang disetujui; jangan menambah
-request /meta pada startup mobile.
+harus tersedia sebelum frontend mengaktifkan checkbox. Pengguna telah deploy
+source terbaru; migrasi0021 berhasil diterapkan pada database Neon yang
+dikonfigurasi project pada22 Oktober2026 setelah persetujuan perbaikan /me.
+Query profil lewat koneksi runtime sudah berhasil. Uji login/token/me dengan
+akun mobile nyata tetap perlu dikonfirmasi; jangan menambah request /meta pada
+startup mobile. Lihat [hasil perbaikan /me](backend-me-500-follow-up.md).
+
+### Rekomendasi v3: pembagian sesi dan variasi (23 Oktober 2026)
+
+- `personalization.algorithmVersion` menjadi `"3"`. Batas frekuensi adalah
+  beginner/intermediate 3, advanced 4, dan kembali latihan setelah jeda panjang 2.
+  Frekuensi saran tidak melebihi permintaan pengguna. Konteks/guard lain tetap berlaku.
+- Setiap fokus yang tersedia mendapat giliran sebelum fokus yang sama diulang.
+  Jika slot lebih sedikit daripada fokus, prioritas memakai jumlah penyelesaian
+  rekomendasi paling sedikit dalam histori terbaru, lalu yang paling lama/tidak
+  pernah selesai, lalu urutan kanonis. Jangan menyembunyikan `unscheduled`.
+- Tersedia 29 template baru berisi 3–4 latihan; 12 template lama dipertahankan.
+  `recommendationTier` = `standard` untuk minimal 3 latihan total, `compact` bila
+  kurang. Standard diprioritaskan, lalu variasi yang lebih jarang/lebih lama dipakai.
+  Ini bukan sertifikasi bahwa seluruh otot terlatih atau semua pengguna cocok.
+- Render sesi dari **weeklyPlan**, resolve `programId` terhadap **programs**;
+  jangan memakai `programs.take(frequency)` atau menganggap semua alternatif
+  sebagai sesi wajib. Daftar program dan rencana tidak selalu berurutan sama.
+- Mobile perlu mengumpulkan pilihan **trainingLevel** eksplisit:
+  `beginner`, `intermediate`, atau `advanced`, melalui profil onboarding/PATCH /me
+  yang sudah ada. Tetap opsional untuk kompatibilitas; jangan kirim pilihan
+  tebakan/default sebagai jawaban pengguna. Bila kosong, backend memakai dosis
+  konservatif dan mengembalikan `trainingLevelSource: "CONSERVATIVE_DEFAULT"`,
+  `missingProfileFields: ["trainingLevel"]`; profil di DB tetap null.
+- Setelah workout rekomendasi berhasil disimpan final, invalidasi cache
+  rekomendasi di memori dan refresh ketika layar terkait diakses lagi. Tidak ada
+  polling/startup request tambahan. Pembagian deterministik, bukan acak setiap buka.
+- Histori rotasi dibatasi 20 workout selesai nondeleted dalam 30 hari, mode sama;
+  hanya source recommended dan ID katalog dikenal yang dihitung. Manual/custom
+  tidak dianggap penyelesaian rekomendasi. Template historis nonaktif tetap dapat
+  memberi kredit fokus, tetapi tidak ditawarkan kembali.
+- `weeklyPlan` tetap saran hingga N sesi berikutnya, bukan kalender tetap atau
+  kuota mingguan yang dikurangi workout sebelumnya. Tidak menambah hari paksa,
+  menggandakan ID, atau menggabungkan seluruh program demi mengisi semua fokus.
+
+Contoh potongan respons untuk tiga fokus dengan tiga sesi dan level belum diisi:
+
+```json
+{
+  "personalization": {
+    "algorithmVersion": "3",
+    "trainingLevel": "beginner",
+    "trainingLevelSource": "CONSERVATIVE_DEFAULT",
+    "missingProfileFields": ["trainingLevel"],
+    "requestedWeeklySessions": 3,
+    "suggestedWeeklySessions": 3
+  },
+  "weeklyPlan": [
+    { "sessionNumber": 1, "programId": "app-gym-leg-a-v2", "focus": "leg" },
+    { "sessionNumber": 2, "programId": "app-gym-chest-a-v2", "focus": "chest" },
+    { "sessionNumber": 3, "programId": "app-gym-back-a-v2", "focus": "back" }
+  ]
+}
+```
+
+ID aktual bergantung alat, kemampuan, konteks, durasi, dan histori; contoh ini
+bukan hardcode untuk mobile. Capability hanya dicek operasional saat rollout,
+bukan menambah request /meta pada startup.
 
 ## 5. Program custom dan exercise
 
@@ -730,7 +799,7 @@ Pemeriksaan metadata Vercel read-only pada **21 Oktober 2026**:
 - Tidak ada uji JWT akun asli atau write data personal production dalam pekerjaan
   ini. Capability saja juga bukan bukti seluruh kontrak authenticated sudah diuji.
 
-Pemeriksaan metadata read-only terbaru, **22 Oktober 2026**, GET
+Pemeriksaan metadata read-only awal **22 Oktober 2026**, GET
 `https://musmove-backend.vercel.app/api/v1/meta` →200:
 
 - `manualWorkoutAtomicExercises` sekarang true; ketiadaannya pada21 Oktober
@@ -739,6 +808,17 @@ Pemeriksaan metadata read-only terbaru, **22 Oktober 2026**, GET
   deployment tujuan; jangan mengaktifkan checkbox hanya berdasarkan source lokal.
 - Hanya metadata publik yang dibaca. Tidak ada write personal, migrasi cloud,
   push/deploy atau uji JWT akun production oleh pekerjaan ini.
+
+Pembaruan berikutnya pada22 Oktober2026: metadata production sudah memuat
+multiMuscleFocus dan nativeAuthNoCallback. Setelah laporan /me500 dan persetujuan
+pengguna, migrasi0021 diterapkan ke database Neon yang dikonfigurasi project.
+Preflight memastikan koneksi runtime/admin menuju target yang sama dan hanya
+0021 yang pending; sesudahnya22 migrasi tercatat, tidak ada yang pending,
+constraint/trigger aktif, dan query readAccountSetup dengan role runtime berhasil.
+Ini mengatasi query kolom yang sebelumnya gagal42703. Pemeriksaan tersebut tidak
+memakai JWT akun mobile atau mengklaim hasil HTTP /me pengguna sudah200.
+Detail, batas verifikasi dan langkah uji ulang ada di
+[hasil perbaikan /me](backend-me-500-follow-up.md).
 
 Sebelum mengaktifkan fitur baru, terapkan migrasi0021 sekali melalui tooling
 migrasi admin yang sudah ada, lalu deploy source terbaru. Migrasi menambah kolom

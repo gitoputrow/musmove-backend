@@ -152,8 +152,9 @@ and movement restrictions. Database constraints reject missing, empty, null-item
 or unknown tags. These are conservative product annotations, not medical clearance
 or muscle-target labels. See [movement-tag definitions and full mapping](docs/exercise-movement-tags.md).
 
-`workout_program_catalog` and `workout_program_exercises` hold 12 curated
-templates: four full-body options and eight focus-specific options. Selection
+After migration0022, `workout_program_catalog` and `workout_program_exercises`
+hold41 templates:29 new3–4-exercise variants plus the12 original templates,
+which remain as compact alternatives/history references. Selection
 uses saved training mode, equipment, canonical profile `focusAreas` (`full`
 exclusively, or1–4 of `leg`, `chest`, `back`, `arm` with OR matching), and maximum
 session duration. Missing preferences return409;
@@ -171,7 +172,11 @@ Mobile should save setup/profile through the direct account APIs, call
 `/programs/recommendations`, then keep workout progress local and submit the
 performed `exerciseSnapshot` only after finishing via POST `/workouts`.
 Recommendations include a bounded `weeklyPlan` and explicit `focusCoverage`
-without increasing training days or volume. Existing workout snapshots stay
+with balanced focus and recent-completion variant rotation. Beginner/intermediate
+ceilings are3 sessions, advanced4, returning-after-a-break2, never higher than
+the requested frequency. Missing trainingLevel is explicitly reported, not
+persisted as an invented answer. Adding focus tags does not multiply volume.
+Existing workout snapshots stay
 independent of later catalog/profile edits.
 This backend change does not yet switch the Flutter application to these routes.
 

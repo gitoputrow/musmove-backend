@@ -67,6 +67,24 @@ test("unknown beginner regresses push-up and exposes assumptions", () => {
   assert.ok(result.personalization.assumptions.includes("TRAINING_LEVEL_DEFAULTED_TO_BEGINNER"));
 });
 
+test("missing level stays missing in storage but three requested sessions remain possible with conservative prescriptions", () => {
+  const input = profile({ trainingFrequency: 3, trainingLevel: null });
+  const result = personalizePrograms([gymTemplate], catalog, input, ["dumbbell"], []);
+  assert.equal(input.trainingLevel, null);
+  assert.equal(result.personalization.trainingLevel, "beginner");
+  assert.equal(result.personalization.trainingLevelSource, "CONSERVATIVE_DEFAULT");
+  assert.deepEqual(result.personalization.missingProfileFields, ["trainingLevel"]);
+  assert.equal(result.personalization.suggestedWeeklySessions, 3);
+  assert.equal(result.personalization.algorithmVersion, "3");
+  assert.equal(result.programs[0].exercises[0].sets, 2); assert.equal(result.programs[0].exercises[0].reps, 8);
+  assert.equal(result.programs[0].exercises[0].targetWeightKg, null);
+  const explicit = personalizePrograms([gymTemplate], catalog, profile({ trainingLevel: "beginner", trainingFrequency: 7 }), ["dumbbell"], []);
+  assert.equal(explicit.personalization.suggestedWeeklySessions, 3);
+  assert.equal(explicit.personalization.trainingLevelSource, "PROFILE");
+  assert.deepEqual(explicit.personalization.missingProfileFields, []);
+  assert.ok(explicit.personalization.assumptions.includes("TRAINING_FREQUENCY_CAPPED"));
+});
+
 test("goals adjust prescription and gender does not invent ability", () => {
   const base = profile({ trainingLevel: "advanced", goal: "strength", formulaSex: "female" });
   const female = personalizePrograms([gymTemplate], catalog, base, ["dumbbell"], []).programs[0];

@@ -111,6 +111,14 @@ Field profil opsional: `displayName`, `weightKg`, `heightCm`, `formulaSex`,
 `excludedExerciseIds`. Kontrak lengkap/batas nilainya ada di
 [OpenAPI](openapi.yaml), schema `OnboardingProfile`.
 
+Pembaruan23 Oktober2026: form mobile baru perlu meminta pilihan trainingLevel
+beginner/intermediate/advanced dan mengirim pilihan pengguna, bukan menebaknya.
+Field tetap opsional untuk kompatibilitas klien lama. Jika kosong, backend tidak
+menuliskan jawaban default; rekomendasi menandai trainingLevelSource sebagai
+CONSERVATIVE_DEFAULT serta missingProfileFields:["trainingLevel"]. Editor yang
+mengisi nilai menggunakan PATCH /me dengan baseVersions.profile terbaru. Lihat
+[follow-up rekomendasi v3](backend-workout-recommendations-follow-up.md).
+
 Field opsional yang tidak dikirim mempertahankan nilai lama. `null` eksplisit
 menghapus nilai nullable; objek `trainingContext` menggabungkan kunci yang
 dikirim dengan konteks lama, sedangkan null menghapus konteks seluruhnya.
