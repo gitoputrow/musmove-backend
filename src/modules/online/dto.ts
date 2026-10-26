@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { entityPayloadSchemas } from "@/src/modules/sync/dto";
 import { focusSchema, validateFocusPair } from "@/src/modules/programs/focus";
+import { activityCodes, sessionTimingSchema } from "@/src/modules/workouts/measurement";
 
 export const versionSchema = z.string().max(19).regex(/^(0|[1-9][0-9]*)$/)
   .pipe(z.string().refine(v => BigInt(v) <= BigInt("9223372036854775807"), "Version exceeds the supported range"));
@@ -47,23 +48,32 @@ export const accountPatchSchema = z.object({
 });
 export const completedWorkoutSchema = z.object({
   id: idSchema, source: z.enum(["custom", "recommended", "manual"]), programId: idSchema.optional(),
-  mode: z.enum(["gym", "calisthenics"]),
+  mode: z.enum(["gym", "calisthenics"]).optional(),
   exerciseSnapshot: entityPayloadSchemas.workout_session.shape.exerciseSnapshot,
   setLog: entityPayloadSchemas.workout_session.shape.setLog,
   startedAt: z.iso.datetime({ offset: true }), finishedAt: z.iso.datetime({ offset: true }), recordedOn: workoutDate,
   note: z.string().max(2000).nullable().optional(),
   newExercises: newExercisesSchema.optional(),
+  sessionTiming: sessionTimingSchema.optional(),
+  energyActivityCode: z.enum(activityCodes).optional(),
+  workoutBodyweightKg: z.number().finite().min(1).max(500).optional(),
 }).strict().superRefine((value, context) => {
+  const explicit = value.exerciseSnapshot.some(e => e.mode !== undefined) || value.setLog.some(e => e.exerciseMode !== undefined);
+  if (value.source === "manual" && value.mode === undefined) {
+    if (value.exerciseSnapshot.some(e => e.mode === undefined) || value.setLog.some(e => e.exerciseMode === undefined)) context.addIssue({ code: "custom", message: "Manual workouts without top-level mode require mode on every exercise and exerciseMode on every set log" });
+  } else {
+    if (value.mode === undefined) context.addIssue({ code: "custom", path: ["mode"], message: "Program workouts require mode" });
+    if (explicit) context.addIssue({ code: "custom", message: "Per-exercise modes require source manual and omission of top-level mode" });
+  }
   if ((value.source !== "manual") !== (value.programId !== undefined)) context.addIssue({
     code: "custom", path: ["programId"], message: "Provide programId for custom/recommended only; omit it for manual workouts",
   });
   if (value.newExercises !== undefined && value.source !== "manual") context.addIssue({
     code: "custom", path: ["newExercises"], message: "newExercises is supported only for manual workouts",
   });
-  const referenced = new Set(value.exerciseSnapshot.map(exercise => exercise.id));
+  const referenced = new Set(value.exerciseSnapshot.map(exercise => JSON.stringify([exercise.mode ?? value.mode, exercise.id])));
   for (const [index, exercise] of (value.newExercises ?? []).entries()) {
-    if (exercise.data.mode !== value.mode) context.addIssue({ code: "custom", path: ["newExercises", index, "data", "mode"], message: "New exercise mode must match the workout mode" });
-    if (!referenced.has(exercise.id)) context.addIssue({ code: "custom", path: ["newExercises", index, "id"], message: "Every new exercise must be referenced in exerciseSnapshot" });
+    if (!referenced.has(JSON.stringify([exercise.data.mode, exercise.id]))) context.addIssue({ code: "custom", path: ["newExercises", index, "id"], message: "Every new exercise must be referenced with its declared mode in exerciseSnapshot" });
   }
 });
 export const summaryQuerySchema = z.object({ from: z.iso.date(), to: z.iso.date() }).strict().refine(v => {

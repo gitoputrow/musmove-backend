@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { focusAreasSchema, validateFocusPair } from "@/src/modules/programs/focus";
 import { assertSafeJson } from "@/src/lib/body";
+import { holdSecondsSchema, muscleTargetsSchema, resultMetricsSchema, trackingTypeSchema, validPrescription } from "@/src/modules/workouts/measurement";
 
 export const boundedJsonPayload = z.unknown().superRefine((value, context) => {
   try { assertSafeJson(value); }
@@ -51,12 +52,15 @@ export const exerciseSchema = z
     enLabel: z.string().trim().min(1).max(80),
     id: z.string().trim().min(1).max(255),
     idLabel: z.string().trim().min(1).max(80),
-    reps: z.number().int().min(1).max(100),
+    reps: z.number().int().min(1).max(100).nullable(),
     requirements: z.array(z.array(z.string().trim().min(1).max(80)).max(20)).min(1).max(20),
     sets: z.number().int().min(1).max(10),
     targetWeightKg: z.number().finite().min(0).max(500).nullable(),
+    trackingType: trackingTypeSchema.optional(),
+    targetDurationSeconds: holdSecondsSchema.nullable().optional(),
+    muscleTargets: muscleTargetsSchema.nullable().optional(),
   })
-  .strict();
+  .strict().refine(validPrescription, "Repetition targets require reps and no time; duration targets require seconds and null reps");
 
 export const workoutSetLogSchema = z
   .object({
@@ -65,8 +69,13 @@ export const workoutSetLogSchema = z
     reps: z.number().int().min(0).max(100).nullable(),
     setNumber: z.number().int().min(1).max(10),
     weightKg: z.number().finite().min(0).max(500).nullable(),
+    durationSeconds: holdSecondsSchema.nullable().optional(),
   })
   .strict();
+
+// Workout-only extensions. Program prescriptions keep the strict legacy schema.
+export const workoutExerciseSchema = exerciseSchema.safeExtend({ mode: modeSchema.optional() });
+export const explicitWorkoutSetLogSchema = workoutSetLogSchema.extend({ exerciseMode: modeSchema.optional() });
 
 export const entityPayloadSchemas = {
   profile: z
@@ -91,10 +100,12 @@ export const entityPayloadSchemas = {
       exerciseCapabilities: z.array(z.object({
         exerciseId: z.string().trim().min(1).max(255),
         mode: modeSchema,
-        maxReps: z.number().int().min(0).max(100),
+        maxReps: z.number().int().min(0).max(100).nullable(),
+        trackingType: trackingTypeSchema.optional(),
+        maxDurationSeconds: z.number().int().min(0).max(3600).nullable().optional(),
         weightKg: z.number().finite().min(0).max(500).nullable(),
         bodyweightKg: z.number().finite().positive().max(9999.99).nullable().optional(),
-      }).strict()).max(100).refine((items) => new Set(items.map((item) => `${item.mode}:${item.exerciseId}`)).size === items.length, { message: "Duplicate exercise capability" }).nullable().optional(),
+      }).strict().refine(v => v.trackingType === "duration" ? v.maxReps === null && v.maxDurationSeconds != null : v.maxReps !== null && v.maxDurationSeconds == null, "Assessment must match its measurement type")).max(100).refine((items) => new Set(items.map((item) => `${item.mode}:${item.exerciseId}`)).size === items.length, { message: "Duplicate exercise capability" }).nullable().optional(),
       excludedExerciseIds: z.array(z.string().trim().min(1).max(255)).max(100).nullable().optional(),
       weightKg: z.number().finite().positive().max(9999.99).nullable().optional(),
     })
@@ -129,21 +140,24 @@ export const entityPayloadSchemas = {
     ),
   user_exercise: z
     .object({
-      defaultReps: z.number().int().min(1).max(100),
+      defaultReps: z.number().int().min(1).max(100).nullable(),
       defaultSets: z.number().int().min(1).max(10),
       mode: modeSchema,
       name: safeDisplayString,
+      trackingType: trackingTypeSchema.optional(),
+      defaultDurationSeconds: holdSecondsSchema.nullable().optional(),
     })
-    .strict(),
+    .strict().refine(v => validPrescription({ trackingType: v.trackingType, reps: v.defaultReps, targetDurationSeconds: v.defaultDurationSeconds }), "Default must match trackingType"),
   workout_session: z
     .object({
-      exerciseSnapshot: z.array(exerciseSchema).min(1).max(12),
+      exerciseSnapshot: z.array(workoutExerciseSchema).min(1).max(12),
       finishedAt: z.iso.datetime({ offset: true }).nullable(),
       legacyMetadata: z.record(z.string(), z.unknown()).nullable(),
-      mode: modeSchema,
+      resultMetrics: resultMetricsSchema.nullable().optional(),
+      mode: z.enum(["gym", "calisthenics", "mixed"]),
       planId: z.string().trim().min(1).max(255),
       recordedOn: z.iso.date().nullable(),
-      setLog: z.array(workoutSetLogSchema).max(120),
+      setLog: z.array(explicitWorkoutSetLogSchema).max(120),
       startedAt: z.iso.datetime({ offset: true }),
       status: z.enum(["active", "completed", "aborted"]),
     })
@@ -156,28 +170,42 @@ export const entityPayloadSchemas = {
     )
     .refine(
       (value) =>
-        new Set(value.exerciseSnapshot.map((exercise) => exercise.id)).size ===
+        new Set(value.exerciseSnapshot.map((exercise) => JSON.stringify([exercise.mode ?? value.mode, exercise.id]))).size ===
         value.exerciseSnapshot.length,
       { message: "Exercise IDs must be unique within a workout snapshot" },
     )
     .refine(
       (value) => {
         const exercises = new Map(
-          value.exerciseSnapshot.map((exercise) => [exercise.id, exercise.sets]),
+          value.exerciseSnapshot.map((exercise) => [JSON.stringify([exercise.mode ?? value.mode, exercise.id]), exercise.sets]),
         );
         const setKeys = new Set<string>();
         return value.setLog.every((entry) => {
-          const key = `${entry.exerciseId}\u0000${entry.setNumber}`;
+          const reference = JSON.stringify([entry.exerciseMode ?? value.mode, entry.exerciseId]);
+          const key = `${reference}\u0000${entry.setNumber}`;
           const valid =
-            exercises.has(entry.exerciseId) &&
-            entry.setNumber <= (exercises.get(entry.exerciseId) ?? 0) &&
+            exercises.has(reference) &&
+            entry.setNumber <= (exercises.get(reference) ?? 0) &&
             !setKeys.has(key);
           setKeys.add(key);
           return valid;
         });
       },
       { message: "Set logs must uniquely reference a set in the exercise snapshot" },
-    ),
+    ).superRefine((value, ctx) => {
+      for (const [index, log] of value.setLog.entries()) {
+        const exercise = value.exerciseSnapshot.find(e => e.id === log.exerciseId && (e.mode ?? value.mode) === (log.exerciseMode ?? value.mode));
+        if (!exercise) continue;
+        if (exercise.trackingType === "duration" ? log.reps !== null : log.durationSeconds != null) ctx.addIssue({ code: "custom", path: ["setLog", index], message: "Duration results require null reps; repetition results must not carry duration" });
+      }
+      const explicit = value.mode === "mixed" || value.exerciseSnapshot.some(e => e.mode !== undefined) || value.setLog.some(e => e.exerciseMode !== undefined);
+      if (!explicit) return;
+      if (value.legacyMetadata?.source !== "manual" || value.status !== "completed") ctx.addIssue({ code: "custom", message: "Explicit exercise modes are for completed manual workouts only" });
+      if (value.exerciseSnapshot.some(e => e.mode === undefined) || value.setLog.some(e => e.exerciseMode === undefined)) ctx.addIssue({ code: "custom", message: "Provide mode on every exercise and exerciseMode on every set log" });
+      const modes = new Set(value.exerciseSnapshot.map(e => e.mode));
+      const derived = modes.size === 1 ? value.exerciseSnapshot[0].mode : "mixed";
+      if (derived !== value.mode) ctx.addIssue({ code: "custom", path: ["mode"], message: "Workout mode must match its exercise modes" });
+    }),
   user_preferences: z
     .object({
       budgetIsManual: z.boolean(),
@@ -262,6 +290,14 @@ export function parseEntityPayload(entityType: EntityType, payload: unknown) {
     validateFocusPair(profile, ctx);
     if (profile.programSource === "app" && profile.focusAreas?.length === 0) {
       ctx.addIssue({ code: "custom", path: ["focusAreas"], message: "Choose focus areas for app-generated programs" });
+    }
+  }).parse(payload);
+  // New workout representation may only be created through the canonicalizing
+  // final-submit API, never via unchecked legacy sync or demo imports. Reads of
+  // new snapshots/changes remain lossless for upgraded clients.
+  if (entityType === "workout_session") return entityPayloadSchemas.workout_session.superRefine((workout, ctx) => {
+    if (workout.resultMetrics != null || workout.mode === "mixed" || workout.exerciseSnapshot.some(e => e.mode !== undefined || e.trackingType === "duration" || e.muscleTargets !== undefined) || workout.setLog.some(e => e.exerciseMode !== undefined || e.durationSeconds !== undefined)) {
+      ctx.addIssue({ code: "custom", message: "Explicit manual workouts must be submitted through POST /api/v1/workouts" });
     }
   }).parse(payload);
   return entityPayloadSchemas[entityType].parse(payload);

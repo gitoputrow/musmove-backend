@@ -3,7 +3,7 @@
   "info": {
     "title": "MusMove direct online APIs",
     "version": "1.1.0",
-    "description": "Source contract, not proof of deployment. Primary spec is openapi.yaml, which references these path items. Every mutation requires a UUID Idempotency-Key plus resource versions for updates/deletes. Scope/hash/receipt and domain writes commit atomically; same account/key/normalized body replays the original successful JSON/status, different content/path rejects409. Failed transactions save no receipt. No TTL cleanup/discovery endpoint, no skip endpoint, no new SETUP_REQUIRED recommendation guard. All ownership from Bearer JWT. JSON <=64KiB, depth32; mutation responses <=256KiB, reads <=3MiB. Account120/min and writes30/min;429 honors Retry-After; errors sanitized with requestId. Existing sync remains compatible. No new tables, cloud deployment, production personal writes or deletion of legacy device data."
+    "description": "Source contract, not proof of deployment. Primary spec is openapi.yaml, which references these path items. Every mutation requires a UUID Idempotency-Key plus resource versions for updates/deletes. Scope/hash/receipt and domain writes commit atomically; same account/key/normalized body replays the original successful JSON/status, different content/path rejects409. Failed transactions save no receipt. No TTL cleanup/discovery endpoint, no skip endpoint, no new SETUP_REQUIRED recommendation guard. All ownership from Bearer JWT. JSON <=64KiB, depth32; mutation responses <=256KiB, reads <=3MiB. Account120/min and writes30/min;429 honors Retry-After; errors sanitized with requestId. Legacy writes/receipts/history shapes retained; new free manual snapshots require upgraded readers, cannot be created via legacy sync/demo imports. Migration0023 changes workout-only mode type, not training mode. No new tables, cloud deployment, production personal writes or deletion of legacy device data."
   },
   "servers": [
     {
@@ -136,7 +136,7 @@
     "/workouts": {
       "get": {
         "operationId": "listWorkouts",
-        "description": "Legacy bounded offset cursor for owned history; from <= to. New collection cursors below are separately signed and cannot be used here.",
+        "description": "Owned history; from <= to. Optional mode is exact session classification: gym/calisthenics exclude mixed; omit for all modes. Preserve the same filters while paginating; reset cursor when filters change. Legacy bounded offset cursor, not a snapshot or signed collection cursor. All modes count once in unfiltered calendar/dashboard/statistics.",
         "parameters": [
           {
             "in": "query",
@@ -152,6 +152,18 @@
             "schema": {
               "type": "string",
               "format": "date"
+            }
+          },
+          {
+            "in": "query",
+            "name": "mode",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "gym",
+                "calisthenics",
+                "mixed"
+              ]
             }
           },
           {
@@ -218,7 +230,7 @@
       },
       "post": {
         "operationId": "recordCompletedWorkout",
-        "description": "Submit once after finishing: full performed exerciseSnapshot, complete setLog, startedAt, finishedAt and local recordedOn >=1900-01-01. Always creates status completed; no start, resume, per-set or abort API. Source custom/recommended requires programId with matching ownership/catalog and mode; source manual must omit programId. Only source manual accepts optional newExercises (even an empty array); at most12 unique account-local new IDs, every one referenced by exerciseSnapshot and mode matching the workout. Existing local IDs including tombstones or any catalog ID conflict409; another account's matching ID is independently scoped, never a private reference. All exercise rows, workout, sync events and one whole-response receipt commit atomically or fully roll back. Fresh responses include exercises with canonical fields/version strings, empty if none; pre-upgrade receipts may replay item-only JSON. Valid historical references may be soft-deleted/inactive. Server canonicalizes exercise labels/requirements but never rebuilds sets/reps from a program or current recommendations. Custom exercise requirements are unverified and use [[]]. Results remain self-reported, not proof that a program was recommended. Key retry replays without duplication, including new exercise IDs already committed on a lost ACK; changed payload/key reuse rejects409. finishedAt >= startedAt; recordedOn within one day of UTC start day.",
+        "description": "Submit once after finishing; never start/resume or per-set writes. custom/recommended require programId plus one gym/calisthenics mode and retain strict single-mode references. manual must omit programId. New free manual format omits top-level mode and requires mode per exerciseSnapshot item and exerciseMode per setLog entry; backend derives gym/calisthenics/mixed from verified references, independently of profile/setup. Legacy manual format with top-level mode and no per-exercise modes remains accepted; do not mix formats. Identity is (mode,id), never ID alone; two mode-qualified public IDs can coexist, but duplicate same-mode IDs or duplicate (mode,id,setNumber) reject400. Local/catalog shadow in the same mode rejects400 AMBIGUOUS_EXERCISE_REFERENCE rather than guessing. Canonicalize labels/requirements and verify ownership; historical owned/catalog references may be deleted/inactive. Keep actual reps/load per set unchanged. Manual-only optional newExercises: <=12 unique account-local IDs, explicit gym/calisthenics classification per new exercise matching its snapshot reference; no inference from profile/name. Existing own/tombstone/catalog ID conflicts409; foreign IDs never provide references, but a separately declared new local ID is independently owned. All exercises/workout/events/receipt commit or roll back together. <=12 exercises, <=120 logs, <=10 sets per exercise; frontend starts new selections at1 set, backend accepts1–10 and does not overwrite it with defaults. Fresh responses return item plus canonical created exercises; exact retry replays saved response, including legacy item-only receipts, with no duplicate writes. Changed body/key reuse409. completed only; full performed snapshots are immutable, not rebuilt from a program. finishedAt>=startedAt, recordedOn>=1900-01-01 and within1 day of UTC start day. New mixed shape requires migration0023 and upgraded readers before activation; see frontend-follow-up-record-workout-free-mode.md.",
         "parameters": [
           {
             "in": "header",
@@ -758,7 +770,7 @@
     "/programs/custom": {
       "get": {
         "operationId": "listCustomProgram",
-        "description": "Signed ID-keyset cursor bound to account, resource and mode filter. No disk cache or full-account bootstrap. Private draft list never publishes content.",
+        "description": "Signed ID-keyset cursor bound to account, resource and mode filter. Omit mode to list both modes (including owned exercises for free manual selection); follow nextCursor until null. Changing the filter requires a fresh cursor. No disk cache or full-account bootstrap. Private draft list never publishes content.",
         "parameters": [
           {
             "in": "query",
@@ -1125,7 +1137,7 @@
     "/exercises/custom": {
       "get": {
         "operationId": "listCustomExercise",
-        "description": "Signed ID-keyset cursor bound to account, resource and mode filter. No disk cache or full-account bootstrap. Private draft list never publishes content.",
+        "description": "Signed ID-keyset cursor bound to account, resource and mode filter. Omit mode to list both modes (including owned exercises for free manual selection); follow nextCursor until null. Changing the filter requires a fresh cursor. No disk cache or full-account bootstrap. Private draft list never publishes content.",
         "parameters": [
           {
             "in": "query",
@@ -1858,7 +1870,7 @@
     "/social/drafts": {
       "get": {
         "operationId": "listSocialDraft",
-        "description": "Signed ID-keyset cursor bound to account, resource and mode filter. No disk cache or full-account bootstrap. Private draft list never publishes content.",
+        "description": "Signed ID-keyset cursor bound to account, resource and mode filter. Omit mode to list both modes (including owned exercises for free manual selection); follow nextCursor until null. Changing the filter requires a fresh cursor. No disk cache or full-account bootstrap. Private draft list never publishes content.",
         "parameters": [
           {
             "in": "query",
@@ -2626,9 +2638,35 @@
                           ]
                         },
                         "maxReps": {
-                          "type": "integer",
-                          "minimum": 0,
-                          "maximum": 100
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 100
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "trackingType": {
+                          "type": "string",
+                          "enum": [
+                            "repetitions",
+                            "duration"
+                          ]
+                        },
+                        "maxDurationSeconds": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 3600
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         },
                         "weightKg": {
                           "anyOf": [
@@ -2826,9 +2864,16 @@
                   "maxLength": 80
                 },
                 "reps": {
-                  "type": "integer",
-                  "minimum": 1,
-                  "maximum": 100
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 100
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 },
                 "requirements": {
                   "minItems": 1,
@@ -2860,6 +2905,101 @@
                       "type": "null"
                     }
                   ]
+                },
+                "trackingType": {
+                  "type": "string",
+                  "enum": [
+                    "repetitions",
+                    "duration"
+                  ]
+                },
+                "targetDurationSeconds": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 3600
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "muscleTargets": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "version": {
+                          "type": "string",
+                          "const": "1"
+                        },
+                        "primary": {
+                          "minItems": 1,
+                          "maxItems": 14,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "chest",
+                              "shoulders",
+                              "biceps",
+                              "triceps",
+                              "forearms",
+                              "abs",
+                              "obliques",
+                              "upperBack",
+                              "lats",
+                              "lowerBack",
+                              "glutes",
+                              "quadriceps",
+                              "hamstrings",
+                              "calves"
+                            ]
+                          }
+                        },
+                        "secondary": {
+                          "maxItems": 14,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "chest",
+                              "shoulders",
+                              "biceps",
+                              "triceps",
+                              "forearms",
+                              "abs",
+                              "obliques",
+                              "upperBack",
+                              "lats",
+                              "lowerBack",
+                              "glutes",
+                              "quadriceps",
+                              "hamstrings",
+                              "calves"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "version",
+                        "primary",
+                        "secondary"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "mode": {
+                  "type": "string",
+                  "enum": [
+                    "gym",
+                    "calisthenics"
+                  ]
                 }
               },
               "required": [
@@ -2871,7 +3011,48 @@
                 "sets",
                 "targetWeightKg"
               ],
-              "additionalProperties": false
+              "additionalProperties": false,
+              "allOf": [
+                {
+                  "if": {
+                    "required": [
+                      "trackingType"
+                    ],
+                    "properties": {
+                      "trackingType": {
+                        "const": "duration"
+                      }
+                    }
+                  },
+                  "then": {
+                    "required": [
+                      "targetDurationSeconds"
+                    ],
+                    "properties": {
+                      "reps": {
+                        "type": "null"
+                      },
+                      "targetDurationSeconds": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 3600
+                      }
+                    }
+                  },
+                  "else": {
+                    "properties": {
+                      "reps": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 100
+                      },
+                      "targetDurationSeconds": {
+                        "type": "null"
+                      }
+                    }
+                  }
+                }
+              ]
             }
           },
           "setLog": {
@@ -2915,6 +3096,25 @@
                     {
                       "type": "null"
                     }
+                  ]
+                },
+                "durationSeconds": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 3600
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "exerciseMode": {
+                  "type": "string",
+                  "enum": [
+                    "gym",
+                    "calisthenics"
                   ]
                 }
               },
@@ -2970,9 +3170,16 @@
                   "type": "object",
                   "properties": {
                     "defaultReps": {
-                      "type": "integer",
-                      "minimum": 1,
-                      "maximum": 100
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 100
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     },
                     "defaultSets": {
                       "type": "integer",
@@ -2990,6 +3197,25 @@
                       "type": "string",
                       "minLength": 1,
                       "maxLength": 80
+                    },
+                    "trackingType": {
+                      "type": "string",
+                      "enum": [
+                        "repetitions",
+                        "duration"
+                      ]
+                    },
+                    "defaultDurationSeconds": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 3600
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -2998,7 +3224,48 @@
                     "mode",
                     "name"
                   ],
-                  "additionalProperties": false
+                  "additionalProperties": false,
+                  "allOf": [
+                    {
+                      "if": {
+                        "required": [
+                          "trackingType"
+                        ],
+                        "properties": {
+                          "trackingType": {
+                            "const": "duration"
+                          }
+                        }
+                      },
+                      "then": {
+                        "required": [
+                          "defaultDurationSeconds"
+                        ],
+                        "properties": {
+                          "defaultReps": {
+                            "type": "null"
+                          },
+                          "defaultDurationSeconds": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 3600
+                          }
+                        }
+                      },
+                      "else": {
+                        "properties": {
+                          "defaultReps": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100
+                          },
+                          "defaultDurationSeconds": {
+                            "type": "null"
+                          }
+                        }
+                      }
+                    }
+                  ]
                 }
               },
               "required": [
@@ -3007,12 +3274,50 @@
               ],
               "additionalProperties": false
             }
+          },
+          "sessionTiming": {
+            "type": "object",
+            "properties": {
+              "source": {
+                "type": "string",
+                "enum": [
+                  "timer",
+                  "user_reported"
+                ]
+              },
+              "durationSeconds": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 43200
+              }
+            },
+            "required": [
+              "source"
+            ],
+            "additionalProperties": false
+          },
+          "energyActivityCode": {
+            "type": "string",
+            "enum": [
+              "02054",
+              "02050",
+              "02024",
+              "02022",
+              "02020",
+              "02056",
+              "02057",
+              "02035"
+            ]
+          },
+          "workoutBodyweightKg": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 500
           }
         },
         "required": [
           "id",
           "source",
-          "mode",
           "exerciseSnapshot",
           "setLog",
           "startedAt",
@@ -3020,6 +3325,7 @@
           "recordedOn"
         ],
         "additionalProperties": false,
+        "description": "Measurement defaults to legacy repetitions when trackingType is absent. duration requires null target reps and targetDurationSeconds1–3600; actual setLog durationSeconds1–3600 or null/omitted unknown, null actual reps. Zero hold seconds is invalid, zero repetition count/extra load is valid. Completed may have unknown actuals; not proof all target sets were done. Manual timing optional: sessionTiming user_reported requires1–43200 seconds; timer derives positive elapsed seconds from timestamps and forbids supplied seconds. Program timing may only use timer. No timing means unknown duration, never sum holds. Optional energyActivityCode is an explicit whole-session category, not inferred from mode, with workoutBodyweightKg1–500 optional. Energy null when duration/category/age19–59/weight evidence is insufficient, >3h or no completed sets; gross estimate saved at submission. Snapshot muscleTargets supplied by client are not authoritative and are replaced by canonical data or null. resultMetrics is server-only and rejected as input. See frontend-follow-up-workout-result-metrics.md; requires migration0024 and upgraded nullable readers.",
         "allOf": [
           {
             "if": {
@@ -3034,8 +3340,676 @@
                 }
               }
             }
+          },
+          {
+            "if": {
+              "properties": {
+                "source": {
+                  "const": "manual"
+                }
+              },
+              "required": [
+                "source"
+              ]
+            },
+            "then": {
+              "not": {
+                "required": [
+                  "programId"
+                ]
+              }
+            },
+            "else": {
+              "required": [
+                "programId",
+                "mode"
+              ]
+            }
+          }
+        ],
+        "oneOf": [
+          {
+            "required": [
+              "mode"
+            ],
+            "properties": {
+              "exerciseSnapshot": {
+                "items": {
+                  "not": {
+                    "required": [
+                      "mode"
+                    ]
+                  }
+                }
+              },
+              "setLog": {
+                "items": {
+                  "not": {
+                    "required": [
+                      "exerciseMode"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          {
+            "properties": {
+              "source": {
+                "const": "manual"
+              },
+              "exerciseSnapshot": {
+                "items": {
+                  "required": [
+                    "mode"
+                  ]
+                }
+              },
+              "setLog": {
+                "items": {
+                  "required": [
+                    "exerciseMode"
+                  ]
+                }
+              }
+            },
+            "not": {
+              "required": [
+                "mode"
+              ]
+            }
           }
         ]
+      },
+      "ExercisePrescription": {
+        "type": "object",
+        "properties": {
+          "enLabel": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "idLabel": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "reps": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "requirements": {
+            "minItems": 1,
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "maxItems": 20,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              }
+            }
+          },
+          "sets": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "targetWeightKg": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 500
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "trackingType": {
+            "type": "string",
+            "enum": [
+              "repetitions",
+              "duration"
+            ]
+          },
+          "targetDurationSeconds": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 3600
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "muscleTargets": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "string",
+                    "const": "1"
+                  },
+                  "primary": {
+                    "minItems": 1,
+                    "maxItems": 14,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "chest",
+                        "shoulders",
+                        "biceps",
+                        "triceps",
+                        "forearms",
+                        "abs",
+                        "obliques",
+                        "upperBack",
+                        "lats",
+                        "lowerBack",
+                        "glutes",
+                        "quadriceps",
+                        "hamstrings",
+                        "calves"
+                      ]
+                    }
+                  },
+                  "secondary": {
+                    "maxItems": 14,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "chest",
+                        "shoulders",
+                        "biceps",
+                        "triceps",
+                        "forearms",
+                        "abs",
+                        "obliques",
+                        "upperBack",
+                        "lats",
+                        "lowerBack",
+                        "glutes",
+                        "quadriceps",
+                        "hamstrings",
+                        "calves"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "version",
+                  "primary",
+                  "secondary"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "enLabel",
+          "id",
+          "idLabel",
+          "reps",
+          "requirements",
+          "sets",
+          "targetWeightKg"
+        ],
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "trackingType"
+              ],
+              "properties": {
+                "trackingType": {
+                  "const": "duration"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "targetDurationSeconds"
+              ],
+              "properties": {
+                "reps": {
+                  "type": "null"
+                },
+                "targetDurationSeconds": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 3600
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "reps": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100
+                },
+                "targetDurationSeconds": {
+                  "type": "null"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "MuscleTargets": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string",
+            "const": "1"
+          },
+          "primary": {
+            "minItems": 1,
+            "maxItems": 14,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "chest",
+                "shoulders",
+                "biceps",
+                "triceps",
+                "forearms",
+                "abs",
+                "obliques",
+                "upperBack",
+                "lats",
+                "lowerBack",
+                "glutes",
+                "quadriceps",
+                "hamstrings",
+                "calves"
+              ]
+            }
+          },
+          "secondary": {
+            "maxItems": 14,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "chest",
+                "shoulders",
+                "biceps",
+                "triceps",
+                "forearms",
+                "abs",
+                "obliques",
+                "upperBack",
+                "lats",
+                "lowerBack",
+                "glutes",
+                "quadriceps",
+                "hamstrings",
+                "calves"
+              ]
+            }
+          }
+        },
+        "required": [
+          "version",
+          "primary",
+          "secondary"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutResultMetrics": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string",
+            "const": "1"
+          },
+          "duration": {
+            "type": "object",
+            "properties": {
+              "seconds": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 43200
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "source": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "timer",
+                      "user_reported"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "reason": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "const": "NOT_RECORDED"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "meaning": {
+                "type": "string",
+                "const": "elapsed_including_rest"
+              },
+              "verification": {
+                "type": "string",
+                "const": "client_reported"
+              }
+            },
+            "required": [
+              "seconds",
+              "source",
+              "reason",
+              "meaning",
+              "verification"
+            ],
+            "additionalProperties": false
+          },
+          "energy": {
+            "type": "object",
+            "properties": {
+              "kcal": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "reason": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "method": {
+                "type": "string",
+                "const": "standard_met_gross_v1"
+              },
+              "kind": {
+                "type": "string",
+                "const": "gross_including_resting_energy"
+              },
+              "activityCode": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "02054",
+                      "02050",
+                      "02024",
+                      "02022",
+                      "02020",
+                      "02056",
+                      "02057",
+                      "02035"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "met": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "durationSeconds": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "bodyweightKg": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "bodyweightSource": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "workout_user_reported",
+                      "profile_at_submission"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "ageYears": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "categorySource": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "const": "user_reported"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "reference": {
+                "type": "string"
+              },
+              "referenceUrl": {
+                "type": "string",
+                "format": "uri"
+              },
+              "estimated": {
+                "type": "boolean",
+                "const": true
+              }
+            },
+            "required": [
+              "kcal",
+              "reason",
+              "method",
+              "kind",
+              "activityCode",
+              "met",
+              "durationSeconds",
+              "bodyweightKg",
+              "bodyweightSource",
+              "ageYears",
+              "categorySource",
+              "reference",
+              "referenceUrl",
+              "estimated"
+            ],
+            "additionalProperties": false
+          },
+          "muscles": {
+            "type": "object",
+            "properties": {
+              "coverage": {
+                "type": "string",
+                "enum": [
+                  "unknown",
+                  "partial",
+                  "complete"
+                ]
+              },
+              "primary": {
+                "maxItems": 14,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "chest",
+                    "shoulders",
+                    "biceps",
+                    "triceps",
+                    "forearms",
+                    "abs",
+                    "obliques",
+                    "upperBack",
+                    "lats",
+                    "lowerBack",
+                    "glutes",
+                    "quadriceps",
+                    "hamstrings",
+                    "calves"
+                  ]
+                }
+              },
+              "secondary": {
+                "maxItems": 14,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "chest",
+                    "shoulders",
+                    "biceps",
+                    "triceps",
+                    "forearms",
+                    "abs",
+                    "obliques",
+                    "upperBack",
+                    "lats",
+                    "lowerBack",
+                    "glutes",
+                    "quadriceps",
+                    "hamstrings",
+                    "calves"
+                  ]
+                }
+              },
+              "completedExerciseCount": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 12
+              },
+              "unknownExercises": {
+                "maxItems": 12,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 255
+                    },
+                    "mode": {
+                      "type": "string",
+                      "enum": [
+                        "gym",
+                        "calisthenics"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "mode"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "mappingVersion": {
+                "type": "string",
+                "const": "1"
+              }
+            },
+            "required": [
+              "coverage",
+              "primary",
+              "secondary",
+              "completedExerciseCount",
+              "unknownExercises",
+              "mappingVersion"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "version",
+          "duration",
+          "energy",
+          "muscles"
+        ],
+        "additionalProperties": false
       },
       "UserPreferences": {
         "type": "object",
@@ -3335,7 +4309,9 @@
           "completed",
           "aborted",
           "active",
-          "durationMinutes"
+          "durationMinutes",
+          "knownDurationMinutes",
+          "workoutsMissingDuration"
         ],
         "properties": {
           "date": {
@@ -3352,7 +4328,16 @@
             "type": "integer"
           },
           "durationMinutes": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "knownDurationMinutes": {
             "type": "number"
+          },
+          "workoutsMissingDuration": {
+            "type": "integer"
           }
         }
       },
@@ -3418,9 +4403,16 @@
                   "maxLength": 80
                 },
                 "reps": {
-                  "type": "integer",
-                  "minimum": 1,
-                  "maximum": 100
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 100
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 },
                 "requirements": {
                   "minItems": 1,
@@ -3452,6 +4444,101 @@
                       "type": "null"
                     }
                   ]
+                },
+                "trackingType": {
+                  "type": "string",
+                  "enum": [
+                    "repetitions",
+                    "duration"
+                  ]
+                },
+                "targetDurationSeconds": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 3600
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "muscleTargets": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "version": {
+                          "type": "string",
+                          "const": "1"
+                        },
+                        "primary": {
+                          "minItems": 1,
+                          "maxItems": 14,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "chest",
+                              "shoulders",
+                              "biceps",
+                              "triceps",
+                              "forearms",
+                              "abs",
+                              "obliques",
+                              "upperBack",
+                              "lats",
+                              "lowerBack",
+                              "glutes",
+                              "quadriceps",
+                              "hamstrings",
+                              "calves"
+                            ]
+                          }
+                        },
+                        "secondary": {
+                          "maxItems": 14,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "chest",
+                              "shoulders",
+                              "biceps",
+                              "triceps",
+                              "forearms",
+                              "abs",
+                              "obliques",
+                              "upperBack",
+                              "lats",
+                              "lowerBack",
+                              "glutes",
+                              "quadriceps",
+                              "hamstrings",
+                              "calves"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "version",
+                        "primary",
+                        "secondary"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "mode": {
+                  "type": "string",
+                  "enum": [
+                    "gym",
+                    "calisthenics"
+                  ]
                 }
               },
               "required": [
@@ -3463,7 +4550,48 @@
                 "sets",
                 "targetWeightKg"
               ],
-              "additionalProperties": false
+              "additionalProperties": false,
+              "allOf": [
+                {
+                  "if": {
+                    "required": [
+                      "trackingType"
+                    ],
+                    "properties": {
+                      "trackingType": {
+                        "const": "duration"
+                      }
+                    }
+                  },
+                  "then": {
+                    "required": [
+                      "targetDurationSeconds"
+                    ],
+                    "properties": {
+                      "reps": {
+                        "type": "null"
+                      },
+                      "targetDurationSeconds": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 3600
+                      }
+                    }
+                  },
+                  "else": {
+                    "properties": {
+                      "reps": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 100
+                      },
+                      "targetDurationSeconds": {
+                        "type": "null"
+                      }
+                    }
+                  }
+                }
+              ]
             }
           },
           "finishedAt": {
@@ -3492,11 +4620,24 @@
               }
             ]
           },
+          "resultMetrics": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkoutResultMetrics"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true,
+            "description": "Persisted at final submit only; null for old history. Never regenerated from today's profile/catalog."
+          },
           "mode": {
             "type": "string",
             "enum": [
               "gym",
-              "calisthenics"
+              "calisthenics",
+              "mixed"
             ]
           },
           "planId": {
@@ -3558,6 +4699,25 @@
                       "type": "null"
                     }
                   ]
+                },
+                "durationSeconds": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 3600
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "exerciseMode": {
+                  "type": "string",
+                  "enum": [
+                    "gym",
+                    "calisthenics"
+                  ]
                 }
               },
               "required": [
@@ -3613,7 +4773,8 @@
           "id",
           "version",
           "updatedAt"
-        ]
+        ],
+        "description": "Legacy/program snapshots retain their original shape. New free manual snapshots carry exercise.mode and setLog.exerciseMode throughout; their session mode is derived, mixed only when both modes occur. mixed is completed manual only. Identity is the (mode,id) pair, including each log reference and duplicate-set check. Read-only compatibility streams preserve this shape; legacy sync/demo writes cannot create it. Older two-value enum readers must be upgraded before mixed data is enabled."
       },
       "WorkoutResponse": {
         "type": "object",
@@ -3803,10 +4964,18 @@
               "completedWorkouts",
               "abortedWorkouts",
               "durationMinutes",
+              "knownDurationMinutes",
+              "workoutsMissingDuration",
               "completedSets",
               "reportedReps",
               "reportedExternalVolumeKg",
-              "setsMissingLoad"
+              "totalHoldSeconds",
+              "setsMissingLoad",
+              "setsMissingReps",
+              "setsMissingDuration",
+              "unmatchedCompletedSets",
+              "repetitionSets",
+              "durationSets"
             ],
             "properties": {
               "completedWorkouts": {
@@ -3816,18 +4985,54 @@
                 "type": "integer"
               },
               "durationMinutes": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "knownDurationMinutes": {
                 "type": "number"
+              },
+              "workoutsMissingDuration": {
+                "type": "integer"
               },
               "completedSets": {
                 "type": "integer"
               },
               "reportedReps": {
-                "type": "number"
+                "type": [
+                  "number",
+                  "null"
+                ]
               },
               "reportedExternalVolumeKg": {
-                "type": "number"
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "totalHoldSeconds": {
+                "type": [
+                  "number",
+                  "null"
+                ]
               },
               "setsMissingLoad": {
+                "type": "integer"
+              },
+              "setsMissingReps": {
+                "type": "integer"
+              },
+              "setsMissingDuration": {
+                "type": "integer"
+              },
+              "unmatchedCompletedSets": {
+                "type": "integer"
+              },
+              "repetitionSets": {
+                "type": "integer"
+              },
+              "durationSets": {
                 "type": "integer"
               }
             }
@@ -3940,9 +5145,16 @@
                       "maxLength": 80
                     },
                     "reps": {
-                      "type": "integer",
-                      "minimum": 1,
-                      "maximum": 100
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 100
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     },
                     "requirements": {
                       "minItems": 1,
@@ -3974,6 +5186,94 @@
                           "type": "null"
                         }
                       ]
+                    },
+                    "trackingType": {
+                      "type": "string",
+                      "enum": [
+                        "repetitions",
+                        "duration"
+                      ]
+                    },
+                    "targetDurationSeconds": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 3600
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "muscleTargets": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "version": {
+                              "type": "string",
+                              "const": "1"
+                            },
+                            "primary": {
+                              "minItems": 1,
+                              "maxItems": 14,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "chest",
+                                  "shoulders",
+                                  "biceps",
+                                  "triceps",
+                                  "forearms",
+                                  "abs",
+                                  "obliques",
+                                  "upperBack",
+                                  "lats",
+                                  "lowerBack",
+                                  "glutes",
+                                  "quadriceps",
+                                  "hamstrings",
+                                  "calves"
+                                ]
+                              }
+                            },
+                            "secondary": {
+                              "maxItems": 14,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "chest",
+                                  "shoulders",
+                                  "biceps",
+                                  "triceps",
+                                  "forearms",
+                                  "abs",
+                                  "obliques",
+                                  "upperBack",
+                                  "lats",
+                                  "lowerBack",
+                                  "glutes",
+                                  "quadriceps",
+                                  "hamstrings",
+                                  "calves"
+                                ]
+                              }
+                            }
+                          },
+                          "required": [
+                            "version",
+                            "primary",
+                            "secondary"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -3985,7 +5285,48 @@
                     "sets",
                     "targetWeightKg"
                   ],
-                  "additionalProperties": false
+                  "additionalProperties": false,
+                  "allOf": [
+                    {
+                      "if": {
+                        "required": [
+                          "trackingType"
+                        ],
+                        "properties": {
+                          "trackingType": {
+                            "const": "duration"
+                          }
+                        }
+                      },
+                      "then": {
+                        "required": [
+                          "targetDurationSeconds"
+                        ],
+                        "properties": {
+                          "reps": {
+                            "type": "null"
+                          },
+                          "targetDurationSeconds": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 3600
+                          }
+                        }
+                      },
+                      "else": {
+                        "properties": {
+                          "reps": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100
+                          },
+                          "targetDurationSeconds": {
+                            "type": "null"
+                          }
+                        }
+                      }
+                    }
+                  ]
                 }
               },
               "mode": {
@@ -4038,9 +5379,16 @@
                   "type": "object",
                   "properties": {
                     "defaultReps": {
-                      "type": "integer",
-                      "minimum": 1,
-                      "maximum": 100
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 100
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     },
                     "defaultSets": {
                       "type": "integer",
@@ -4058,6 +5406,25 @@
                       "type": "string",
                       "minLength": 1,
                       "maxLength": 80
+                    },
+                    "trackingType": {
+                      "type": "string",
+                      "enum": [
+                        "repetitions",
+                        "duration"
+                      ]
+                    },
+                    "defaultDurationSeconds": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 3600
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -4066,7 +5433,48 @@
                     "mode",
                     "name"
                   ],
-                  "additionalProperties": false
+                  "additionalProperties": false,
+                  "allOf": [
+                    {
+                      "if": {
+                        "required": [
+                          "trackingType"
+                        ],
+                        "properties": {
+                          "trackingType": {
+                            "const": "duration"
+                          }
+                        }
+                      },
+                      "then": {
+                        "required": [
+                          "defaultDurationSeconds"
+                        ],
+                        "properties": {
+                          "defaultReps": {
+                            "type": "null"
+                          },
+                          "defaultDurationSeconds": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 3600
+                          }
+                        }
+                      },
+                      "else": {
+                        "properties": {
+                          "defaultReps": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100
+                          },
+                          "defaultDurationSeconds": {
+                            "type": "null"
+                          }
+                        }
+                      }
+                    }
+                  ]
                 }
               },
               "required": [
@@ -4122,9 +5530,16 @@
                       "maxLength": 80
                     },
                     "reps": {
-                      "type": "integer",
-                      "minimum": 1,
-                      "maximum": 100
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 100
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     },
                     "requirements": {
                       "minItems": 1,
@@ -4156,6 +5571,94 @@
                           "type": "null"
                         }
                       ]
+                    },
+                    "trackingType": {
+                      "type": "string",
+                      "enum": [
+                        "repetitions",
+                        "duration"
+                      ]
+                    },
+                    "targetDurationSeconds": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 3600
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "muscleTargets": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "version": {
+                              "type": "string",
+                              "const": "1"
+                            },
+                            "primary": {
+                              "minItems": 1,
+                              "maxItems": 14,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "chest",
+                                  "shoulders",
+                                  "biceps",
+                                  "triceps",
+                                  "forearms",
+                                  "abs",
+                                  "obliques",
+                                  "upperBack",
+                                  "lats",
+                                  "lowerBack",
+                                  "glutes",
+                                  "quadriceps",
+                                  "hamstrings",
+                                  "calves"
+                                ]
+                              }
+                            },
+                            "secondary": {
+                              "maxItems": 14,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "chest",
+                                  "shoulders",
+                                  "biceps",
+                                  "triceps",
+                                  "forearms",
+                                  "abs",
+                                  "obliques",
+                                  "upperBack",
+                                  "lats",
+                                  "lowerBack",
+                                  "glutes",
+                                  "quadriceps",
+                                  "hamstrings",
+                                  "calves"
+                                ]
+                              }
+                            }
+                          },
+                          "required": [
+                            "version",
+                            "primary",
+                            "secondary"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -4167,7 +5670,48 @@
                     "sets",
                     "targetWeightKg"
                   ],
-                  "additionalProperties": false
+                  "additionalProperties": false,
+                  "allOf": [
+                    {
+                      "if": {
+                        "required": [
+                          "trackingType"
+                        ],
+                        "properties": {
+                          "trackingType": {
+                            "const": "duration"
+                          }
+                        }
+                      },
+                      "then": {
+                        "required": [
+                          "targetDurationSeconds"
+                        ],
+                        "properties": {
+                          "reps": {
+                            "type": "null"
+                          },
+                          "targetDurationSeconds": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 3600
+                          }
+                        }
+                      },
+                      "else": {
+                        "properties": {
+                          "reps": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100
+                          },
+                          "targetDurationSeconds": {
+                            "type": "null"
+                          }
+                        }
+                      }
+                    }
+                  ]
                 }
               },
               "mode": {
@@ -4213,9 +5757,16 @@
                   "type": "object",
                   "properties": {
                     "defaultReps": {
-                      "type": "integer",
-                      "minimum": 1,
-                      "maximum": 100
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 100
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     },
                     "defaultSets": {
                       "type": "integer",
@@ -4233,6 +5784,25 @@
                       "type": "string",
                       "minLength": 1,
                       "maxLength": 80
+                    },
+                    "trackingType": {
+                      "type": "string",
+                      "enum": [
+                        "repetitions",
+                        "duration"
+                      ]
+                    },
+                    "defaultDurationSeconds": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 3600
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -4241,7 +5811,48 @@
                     "mode",
                     "name"
                   ],
-                  "additionalProperties": false
+                  "additionalProperties": false,
+                  "allOf": [
+                    {
+                      "if": {
+                        "required": [
+                          "trackingType"
+                        ],
+                        "properties": {
+                          "trackingType": {
+                            "const": "duration"
+                          }
+                        }
+                      },
+                      "then": {
+                        "required": [
+                          "defaultDurationSeconds"
+                        ],
+                        "properties": {
+                          "defaultReps": {
+                            "type": "null"
+                          },
+                          "defaultDurationSeconds": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 3600
+                          }
+                        }
+                      },
+                      "else": {
+                        "properties": {
+                          "defaultReps": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100
+                          },
+                          "defaultDurationSeconds": {
+                            "type": "null"
+                          }
+                        }
+                      }
+                    }
+                  ]
                 }
               },
               "required": [
@@ -4289,9 +5900,16 @@
                   "maxLength": 80
                 },
                 "reps": {
-                  "type": "integer",
-                  "minimum": 1,
-                  "maximum": 100
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 100
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 },
                 "requirements": {
                   "minItems": 1,
@@ -4323,6 +5941,94 @@
                       "type": "null"
                     }
                   ]
+                },
+                "trackingType": {
+                  "type": "string",
+                  "enum": [
+                    "repetitions",
+                    "duration"
+                  ]
+                },
+                "targetDurationSeconds": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 3600
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "muscleTargets": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "version": {
+                          "type": "string",
+                          "const": "1"
+                        },
+                        "primary": {
+                          "minItems": 1,
+                          "maxItems": 14,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "chest",
+                              "shoulders",
+                              "biceps",
+                              "triceps",
+                              "forearms",
+                              "abs",
+                              "obliques",
+                              "upperBack",
+                              "lats",
+                              "lowerBack",
+                              "glutes",
+                              "quadriceps",
+                              "hamstrings",
+                              "calves"
+                            ]
+                          }
+                        },
+                        "secondary": {
+                          "maxItems": 14,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "chest",
+                              "shoulders",
+                              "biceps",
+                              "triceps",
+                              "forearms",
+                              "abs",
+                              "obliques",
+                              "upperBack",
+                              "lats",
+                              "lowerBack",
+                              "glutes",
+                              "quadriceps",
+                              "hamstrings",
+                              "calves"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "version",
+                        "primary",
+                        "secondary"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [
@@ -4334,7 +6040,48 @@
                 "sets",
                 "targetWeightKg"
               ],
-              "additionalProperties": false
+              "additionalProperties": false,
+              "allOf": [
+                {
+                  "if": {
+                    "required": [
+                      "trackingType"
+                    ],
+                    "properties": {
+                      "trackingType": {
+                        "const": "duration"
+                      }
+                    }
+                  },
+                  "then": {
+                    "required": [
+                      "targetDurationSeconds"
+                    ],
+                    "properties": {
+                      "reps": {
+                        "type": "null"
+                      },
+                      "targetDurationSeconds": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 3600
+                      }
+                    }
+                  },
+                  "else": {
+                    "properties": {
+                      "reps": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 100
+                      },
+                      "targetDurationSeconds": {
+                        "type": "null"
+                      }
+                    }
+                  }
+                }
+              ]
             }
           },
           "mode": {
@@ -4419,9 +6166,16 @@
             "type": "object",
             "properties": {
               "defaultReps": {
-                "type": "integer",
-                "minimum": 1,
-                "maximum": 100
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               },
               "defaultSets": {
                 "type": "integer",
@@ -4439,6 +6193,25 @@
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 80
+              },
+              "trackingType": {
+                "type": "string",
+                "enum": [
+                  "repetitions",
+                  "duration"
+                ]
+              },
+              "defaultDurationSeconds": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 3600
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             },
             "required": [
@@ -4447,7 +6220,48 @@
               "mode",
               "name"
             ],
-            "additionalProperties": false
+            "additionalProperties": false,
+            "allOf": [
+              {
+                "if": {
+                  "required": [
+                    "trackingType"
+                  ],
+                  "properties": {
+                    "trackingType": {
+                      "const": "duration"
+                    }
+                  }
+                },
+                "then": {
+                  "required": [
+                    "defaultDurationSeconds"
+                  ],
+                  "properties": {
+                    "defaultReps": {
+                      "type": "null"
+                    },
+                    "defaultDurationSeconds": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 3600
+                    }
+                  }
+                },
+                "else": {
+                  "properties": {
+                    "defaultReps": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 100
+                    },
+                    "defaultDurationSeconds": {
+                      "type": "null"
+                    }
+                  }
+                }
+              }
+            ]
           }
         },
         "required": [
@@ -4468,9 +6282,16 @@
             "type": "object",
             "properties": {
               "defaultReps": {
-                "type": "integer",
-                "minimum": 1,
-                "maximum": 100
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               },
               "defaultSets": {
                 "type": "integer",
@@ -4488,6 +6309,25 @@
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 80
+              },
+              "trackingType": {
+                "type": "string",
+                "enum": [
+                  "repetitions",
+                  "duration"
+                ]
+              },
+              "defaultDurationSeconds": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 3600
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             },
             "additionalProperties": false
@@ -4497,15 +6337,23 @@
           "baseVersion",
           "changes"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "Measurement defaults are validated after merging changes with existing state; omitted trackingType preserves it. Measurement kind and mode are immutable for an existing exercise ID."
       },
       "CustomExercise": {
         "type": "object",
         "properties": {
           "defaultReps": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 100
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "defaultSets": {
             "type": "integer",
@@ -4523,6 +6371,25 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 80
+          },
+          "trackingType": {
+            "type": "string",
+            "enum": [
+              "repetitions",
+              "duration"
+            ]
+          },
+          "defaultDurationSeconds": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 3600
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "id": {
             "type": "string",
@@ -4549,6 +6416,47 @@
           "id",
           "version",
           "updatedAt"
+        ],
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "trackingType"
+              ],
+              "properties": {
+                "trackingType": {
+                  "const": "duration"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "defaultDurationSeconds"
+              ],
+              "properties": {
+                "defaultReps": {
+                  "type": "null"
+                },
+                "defaultDurationSeconds": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 3600
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "defaultReps": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100
+                },
+                "defaultDurationSeconds": {
+                  "type": "null"
+                }
+              }
+            }
+          }
         ]
       },
       "CustomExerciseResponse": {

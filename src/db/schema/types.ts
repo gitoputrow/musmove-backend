@@ -10,7 +10,9 @@ export type JsonObject = { [key: string]: JsonValue };
 export interface ExerciseCapability {
   exerciseId: string;
   mode: "gym" | "calisthenics";
-  maxReps: number;
+  maxReps: number | null;
+  trackingType?: "repetitions" | "duration";
+  maxDurationSeconds?: number | null;
   weightKg: number | null;
   bodyweightKg?: number | null;
 }
@@ -26,20 +28,30 @@ export interface TrainingContext {
   equipmentHeightLimits?: { equipment: string; minHeightCm: number; maxHeightCm: number }[];
 }
 
-export interface ExercisePrescription extends JsonObject {
+export type ExercisePrescription = JsonObject & {
   id: string;
   idLabel: string;
   enLabel: string;
   sets: number;
-  reps: number;
+  reps: number | null;
   targetWeightKg: number | null;
   requirements: string[][];
+  trackingType?: "repetitions" | "duration";
+  targetDurationSeconds?: number | null;
+  muscleTargets?: import("@/src/modules/workouts/measurement").MuscleTargets | null;
 }
 
-export interface WorkoutSetLog extends JsonObject {
+export type WorkoutExercisePrescription = ExercisePrescription & {
+  // Absent on legacy/program snapshots; required throughout explicit manual ones.
+  mode?: "gym" | "calisthenics";
+}
+
+export type WorkoutSetLog = JsonObject & {
   exerciseId: string;
   setNumber: number;
   completed: boolean;
   reps: number | null;
   weightKg: number | null;
+  exerciseMode?: "gym" | "calisthenics";
+  durationSeconds?: number | null;
 }

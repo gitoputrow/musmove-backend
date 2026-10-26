@@ -1,7 +1,7 @@
 export interface EquipmentItem { id: string; name: string; aliases: string[] }
 export interface EquipmentExercise {
   id: string; mode: "gym" | "calisthenics"; idLabel: string; enLabel: string;
-  defaultSets: number; defaultReps: number; requirements: string[][];
+  defaultSets: number; defaultReps: number | null; requirements: string[][];
 }
 
 export function normalizeEquipmentName(value: string) {

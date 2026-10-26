@@ -22,7 +22,8 @@ export const workoutProgramExercises = pgTable("workout_program_exercises", {
   mode: trainingModeEnum("mode").notNull(),
   exerciseId: varchar("exercise_id", { length: 255 }).notNull(),
   sets: smallint("sets").notNull(),
-  reps: smallint("reps").notNull(),
+  reps: smallint("reps"),
+  targetDurationSeconds: integer("target_duration_seconds"),
 }, (table) => [
   primaryKey({ columns: [table.programId, table.position] }),
   unique().on(table.programId, table.exerciseId),
@@ -31,4 +32,5 @@ export const workoutProgramExercises = pgTable("workout_program_exercises", {
   check("program_exercises_position", sql`${table.position} > 0`),
   check("program_exercises_sets", sql`${table.sets} between 1 and 10`),
   check("program_exercises_reps", sql`${table.reps} between 1 and 100`),
+  check("program_exercises_measurement", sql`(${table.reps} is not null and ${table.targetDurationSeconds} is null) or (${table.reps} is null and ${table.targetDurationSeconds} between 1 and 3600 and ${table.targetDurationSeconds} is not null)`),
 ]);

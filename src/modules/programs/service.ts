@@ -5,6 +5,7 @@ import { conflict } from "@/src/lib/api-error";
 import { personalizePrograms } from "./personalization";
 import type { DatabaseTransaction } from "@/src/modules/sync/entities";
 import { distributeFocusPrograms, readFocusAreas, resolveFocusFields, type FocusArea } from "./focus";
+import { validPrescription } from "@/src/modules/workouts/measurement";
 
 export interface ProgramPreferences {
   mode: "gym" | "calisthenics";
@@ -40,6 +41,9 @@ export async function readProgramCatalog(transaction: DatabaseTransaction, userI
       enLabel: exerciseCatalog.enLabel,
       sets: workoutProgramExercises.sets,
       reps: workoutProgramExercises.reps,
+      trackingType: exerciseCatalog.trackingType,
+      targetDurationSeconds: workoutProgramExercises.targetDurationSeconds,
+      muscleTargets: exerciseCatalog.muscleTargets,
       requirements: exerciseCatalog.requirements,
       active: exerciseCatalog.active,
     }).from(workoutProgramExercises).innerJoin(exerciseCatalog, and(
@@ -48,7 +52,7 @@ export async function readProgramCatalog(transaction: DatabaseTransaction, userI
     )).orderBy(asc(workoutProgramExercises.position));
     const programs = templates.flatMap((template) => {
       const items = entries.filter((entry) => entry.programId === template.id);
-      if (!items.length || items.some((entry) => !entry.active)) return [];
+      if (!items.length || items.some((entry) => !entry.active || !validPrescription(entry))) return [];
       return [{
         id: template.id,
         name: template.name,
@@ -59,6 +63,7 @@ export async function readProgramCatalog(transaction: DatabaseTransaction, userI
           id: entry.id, idLabel: entry.idLabel, enLabel: entry.enLabel,
           sets: entry.sets, reps: entry.reps, targetWeightKg: null as number | null,
           requirements: entry.requirements,
+          trackingType: entry.trackingType as "repetitions" | "duration", targetDurationSeconds: entry.targetDurationSeconds, muscleTargets: entry.muscleTargets,
         })),
       }];
     });

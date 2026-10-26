@@ -40,7 +40,7 @@ must never send a `userId` to select ownership. Current endpoints are:
 - `POST /imports/demo`
 - `GET /workouts?from=YYYY-MM-DD&to=YYYY-MM-DD`
 - `POST /workouts` (save once after finishing, including full performed snapshot and all set results; custom/recommended/manual)
-- Manual workout may include `newExercises` (up to12, all referenced and mode-matching) in the same atomic submit; fresh responses return `{item, exercises}`. No separate exercise registration or progress API.
+- Manual workout may include `newExercises` (up to12, all referenced with matching exercise modes) in the same atomic submit; fresh responses return `{item, exercises}`. New free manual format omits top-level mode and sends exercise.mode / setLog.exerciseMode; the backend derives gym/calisthenics/mixed independently of profile. Program workouts stay single-mode. Requires migration0023 and upgraded readers; see [frontend contract](docs/frontend-follow-up-record-workout-free-mode.md). No separate exercise registration or progress API.
 - `GET/DELETE /workouts/{id}` (history; no start/resume, per-set save or abort API)
 - `GET/POST /programs/custom`; `GET/PATCH/DELETE /programs/custom/{id}`
 - `GET/POST /exercises/custom`; `GET/PATCH/DELETE /exercises/custom/{id}`
@@ -140,12 +140,16 @@ and access model are separate; an unknown day-pass flag is not false.
 See the [places contract and research notes](docs/places.md). Existing mobile
 demo favorites are preserved, not remapped to unrelated real-world locations.
 
-The global exercise catalog is stored in `exercise_catalog` with 117 seeded
+The global exercise catalog is stored in `exercise_catalog` with 117 legacy seeded
 entries across gym and calisthenics. Existing IDs are preserved within each
 mode. The public API reads active records from Neon; catalog edits automatically
 advance `catalogVersion` through a database trigger. Exercise requirements are
 equipment keys; each inner array is one acceptable combination. The catalog
-uses repetition-based exercises compatible with the current mobile editor.
+adds two explicitly timed forearm plank entries after migration0024 (119 total).
+Readers must support nullable defaultReps plus trackingType/defaultDurationSeconds.
+Workout result snapshots, timing provenance, gross MET estimates and canonical
+muscle targets are documented in the [result metrics contract](docs/frontend-follow-up-workout-result-metrics.md).
+Migration0024 is prepared, not applied/deployed by this task; coordinate readers first.
 
 Every exercise has explicitly reviewed, nonempty `movement_tags` for body-region
 and movement restrictions. Database constraints reject missing, empty, null-item

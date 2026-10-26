@@ -61,6 +61,15 @@ async function main() {
         if (!priceMetadata.ready) issues.push("DATABASE_MIGRATIONS: apply migration 0018 food price metadata before deploying");
         const equipmentModes = (await client.query("SELECT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='equipment_catalog' AND column_name='modes' AND is_nullable='NO') AS ready")).rows[0];
         if (!equipmentModes.ready) issues.push("DATABASE_MIGRATIONS: apply migration 0020 equipment modes before deploying; review any older pending migrations first");
+        const workoutModes = (await client.query(`SELECT EXISTS(SELECT 1 FROM information_schema.columns
+          WHERE table_schema='public' AND table_name='workout_sessions' AND column_name='mode' AND udt_name='workout_mode')
+          AND EXISTS(SELECT 1 FROM pg_constraint WHERE conrelid='public.workout_sessions'::regclass
+            AND conname='workout_sessions_mixed_manual' AND convalidated) AS ready`)).rows[0];
+        if (!workoutModes.ready) issues.push("DATABASE_MIGRATIONS: apply migration 0023 workout-only mixed mode before enabling free manual workouts; upgrade mobile readers first");
+        const resultMetrics = (await client.query(`SELECT EXISTS(SELECT 1 FROM information_schema.columns
+          WHERE table_schema='public' AND table_name='workout_sessions' AND column_name='result_metrics')
+          AND EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='exercise_catalog' AND column_name='tracking_type') AS ready`)).rows[0];
+        if (!resultMetrics.ready) issues.push("DATABASE_MIGRATIONS: source now requires migration 0024 result metrics; coordinate nullable/duration readers before catalog rollout");
         await client.query("ROLLBACK");
       } finally { client.release(); }
     } catch {

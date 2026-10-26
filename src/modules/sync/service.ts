@@ -417,6 +417,8 @@ export async function bootstrap(userId: string) {
             name: row.name,
             defaultSets: row.defaultSets,
             defaultReps: row.defaultReps,
+            trackingType: row.trackingType,
+            defaultDurationSeconds: row.defaultDurationSeconds,
           })),
         ),
         workout_session: workoutRows.map((row) =>
@@ -430,6 +432,7 @@ export async function bootstrap(userId: string) {
             exerciseSnapshot: row.exerciseSnapshot,
             setLog: row.setLog,
             legacyMetadata: row.legacyMetadata,
+            resultMetrics: row.resultMetrics,
           })),
         ),
         user_preferences: preferenceRows.map((row) =>

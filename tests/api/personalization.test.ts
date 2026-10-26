@@ -17,6 +17,17 @@ const template: ProgramTemplate = {
 };
 const gymTemplate: ProgramTemplate = { ...template, mode: "gym", exercises: [{ ...catalog[3], sets: 3, reps: 10, targetWeightKg: null }] };
 
+test("duration prescriptions use seconds and duration assessments, never rep history or fabricated reps", () => {
+  const timed: CatalogExercise = { id: "plank", mode: "gym", idLabel: "Plank", enLabel: "Plank", requirements: [[]], trackingType: "duration", movementTags: ["floor_transfer"] };
+  const plan: ProgramTemplate = { ...gymTemplate, exercises: [{ id: "plank", idLabel: "Plank", enLabel: "Plank", requirements: [[]], sets: 1, reps: null, trackingType: "duration", targetDurationSeconds: 30, targetWeightKg: null }] };
+  const one = personalizePrograms([plan], [timed], profile({ trainingLevel: "beginner" }), [], []);
+  assert.equal(one.programs[0].exercises[0].reps, null); assert.equal(one.programs[0].exercises[0].targetDurationSeconds, 20);
+  const assessed = personalizePrograms([plan], [timed], profile({ exerciseCapabilities: [{ exerciseId: "plank", mode: "gym", trackingType: "duration", maxReps: null, maxDurationSeconds: 10, weightKg: null }] }), [], []);
+  assert.equal(assessed.programs[0].exercises[0].targetDurationSeconds, 8);
+  const blocked = personalizePrograms([plan], [timed], profile({ exerciseCapabilities: [{ exerciseId: "plank", mode: "gym", trackingType: "duration", maxReps: null, maxDurationSeconds: 0, weightKg: null }] }), [], []);
+  assert.deepEqual(blocked.programs, []);
+});
+
 test("invalid or empty movement tags cannot bypass explicit movement restrictions", () => {
   for (const movementTags of [[], ["sholder"], ["wrist", "wrist"], null, undefined]) {
     const malformed = catalog.map((item) => ({ ...item, movementTags }));
@@ -135,7 +146,7 @@ test("workout performance reuses load without automatic increases", () => {
     startedAt: new Date(), finishedAt: new Date(), recordedOn: null,
     exerciseSnapshot: gymTemplate.exercises,
     setLog: [1, 2, 3].map((setNumber) => ({ exerciseId: "press", setNumber, completed: true, reps: 7, weightKg: 6 })),
-    legacyMetadata: null, version: BigInt(1), updatedAt: new Date(), deletedAt: null,
+    legacyMetadata: null, resultMetrics: null, version: BigInt(1), updatedAt: new Date(), deletedAt: null,
   };
   const result = personalizePrograms([gymTemplate], catalog, profile({ trainingLevel: "intermediate" }), ["dumbbell"], [history]);
   assert.equal(result.programs[0].exercises[0].targetWeightKg, 6);

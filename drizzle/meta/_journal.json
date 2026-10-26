@@ -162,6 +162,20 @@
       "when": 1791657682443,
       "tag": "0022_richer_workout_programs",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1791657682444,
+      "tag": "0023_manual_mixed_workouts",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1791657682445,
+      "tag": "0024_workout_result_metrics",
+      "breakpoints": true
     }
   ]
 }

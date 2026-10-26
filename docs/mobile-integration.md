@@ -111,7 +111,7 @@ gerak, bukan daftar otot target atau jaminan keamanan medis.
 | `training_preferences` | Mode gym/calisthenics dan alat tersedia; `training_preferences` |
 | `custom_programs` | Program buatan pengguna dan jadwal; `custom_program` |
 | `user_exercises` | Exercise buatan pengguna; `user_exercise` |
-| `workout_sessions` | Sesi latihan, snapshot exercise, log set, status; `workout_session` |
+| `workout_sessions` | Sesi latihan, snapshot exercise, log set, status; `workout_session`. Migrasi0023 memberi enum workout_mode tersendiri, termasuk mixed untuk completed manual; mode profil/program tetap gym/calisthenics. |
 | `user_preferences` | Preferensi budget dan area tempat; `user_preferences` |
 | `place_favorites` | Tempat favorit per akun; `place_favorite` |
 | `meal_entries` | Jurnal makan, porsi/waktu, snapshot nutrisi; `meal_entry` |

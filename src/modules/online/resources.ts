@@ -9,6 +9,7 @@ import type { DatabaseTransaction } from "@/src/modules/sync/entities";
 import { readMeals } from "@/src/modules/meals/service";
 import { idSchema, listSchema, newExercisesSchema, resourceSchemas, versionSchema } from "./dto";
 import { columnsFor, expectVersion, mapRow, mutateOnline, payloadOf, publicItem, readItem, readOnline, requireLive, type Mutation, type Resource } from "./store";
+import { canonicalMeasurement } from "@/src/modules/workouts/canonical-measurement";
 
 const tables = { custom_program: "custom_programs", user_exercise: "user_exercises", meal_entry: "meal_entries", social_draft: "social_drafts" } as const;
 export function createSchema(type: Resource) {
@@ -28,11 +29,11 @@ export async function canonicalExercises(tx: DatabaseTransaction, userId: string
   return Promise.all(exercises.map(async prescription => {
     const [catalog] = await tx.select().from(exerciseCatalog).where(and(eq(exerciseCatalog.id, prescription.id),
       eq(exerciseCatalog.mode, mode as "gym" | "calisthenics"), allowHistorical ? undefined : eq(exerciseCatalog.active, true)));
-    if (catalog) return { ...prescription, idLabel: catalog.idLabel, enLabel: catalog.enLabel, requirements: catalog.requirements };
+    if (catalog) return { ...canonicalMeasurement(prescription, catalog), idLabel: catalog.idLabel, enLabel: catalog.enLabel, requirements: catalog.requirements };
     const [custom] = await tx.select().from(userExercises).where(and(eq(userExercises.userId, userId), eq(userExercises.id, prescription.id),
       eq(userExercises.mode, mode as "gym" | "calisthenics"), allowHistorical ? undefined : sql`${userExercises.deletedAt} IS NULL`));
     if (!custom) throw badRequest("EXERCISE_NOT_AVAILABLE", "Choose an active exercise of the selected mode belonging to this account or the catalog");
-    return { ...prescription, idLabel: custom.name, enLabel: custom.name, requirements: [[]] };
+    return { ...canonicalMeasurement(prescription, custom), idLabel: custom.name, enLabel: custom.name, requirements: [[]] };
   }));
 }
 export async function addExercises(ctx: Mutation, input: unknown) {

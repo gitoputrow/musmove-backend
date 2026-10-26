@@ -1,5 +1,14 @@
 # Follow-up mobile: workout disimpan hanya setelah selesai
 
+Pembaruan26 Oktober2026: gunakan [kontrak hasil workout](frontend-follow-up-workout-result-metrics.md)
+untuk target/actual waktu tahan, timing sesi, kalori/otot kanonis, nullable metrics,
+migrasi0024 dan urutan rollout. Contoh reps lama di bawah tetap kompatibel.
+
+Pembaruan 23 Oktober 2026: manual baru dapat berisi exercise lintas mode profil.
+Gunakan [kontrak Record Workout bebas mode](frontend-follow-up-record-workout-free-mode.md)
+untuk format snapshot/log beridentitas mode, respons mixed, migrasi0023 dan rollout.
+Contoh bermode tunggal di bawah tetap berlaku untuk program dan manual legacy.
+
 Tanggal: 20 Oktober 2026.
 Pembaruan 21 Oktober: newExercises opsional khusus source manual, disimpan
 atomik bersama workout. Kontrak/contoh lengkap termasuk seluruh fitur backend
@@ -92,7 +101,7 @@ keduanya saat retry operasi yang sama.
 | --- | --- |
 | source | custom, recommended, atau manual |
 | programId | Wajib untuk custom/recommended; **jangan dikirim** untuk manual |
-| mode | gym atau calisthenics |
+| mode | Wajib gym/calisthenics untuk program/manual legacy; manual baru menghilangkannya dan mengirim mode per exercise serta exerciseMode per log |
 | startedAt / finishedAt | ISO datetime dengan timezone; finishedAt tidak boleh sebelum startedAt |
 | recordedOn | Tanggal lokal mulai latihan, YYYY-MM-DD, minimal 1900-01-01; selisih maksimal satu hari dari UTC start day |
 | exerciseSnapshot | Prescription yang digunakan, 1–12 exercise unik |
@@ -114,7 +123,8 @@ Custom program harus milik akun JWT dan memiliki mode cocok. Recommended
 memerlukan ID katalog program dengan mode cocok. Source manual tidak memerlukan
 program; tetap memakai endpoint yang sama.
 
-Exercise harus dikenal di katalog atau milik akun sendiri, dengan mode cocok.
+Exercise harus dikenal di katalog atau milik akun sendiri, dengan mode cocok
+(mode per exercise untuk manual baru; mode sesi untuk format lama/program).
 Referensi historis yang sudah nonaktif/soft-deleted tetap dapat diterima agar
 perubahan selama latihan tidak membuang hasil yang sudah dilakukan. Exercise
 milik akun lain/tidak dikenal ditolak. Server mengkanonisasi label/requirements,

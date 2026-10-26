@@ -16,6 +16,7 @@ import {
 } from "@/src/db/schema";
 import type {
   ExercisePrescription,
+  WorkoutExercisePrescription,
   JsonObject,
   JsonValue,
   WorkoutSetLog,
@@ -152,7 +153,7 @@ export async function validateEntityTransition(
   if (entityType === "user_exercise") {
     const payload = entityPayloadSchemas.user_exercise.parse(rawPayload);
     const [current] = await transaction
-      .select({ mode: userExercises.mode })
+      .select({ mode: userExercises.mode, trackingType: userExercises.trackingType })
       .from(userExercises)
       .where(and(eq(userExercises.userId, userId), eq(userExercises.id, entityId)))
       .limit(1);
@@ -162,6 +163,7 @@ export async function validateEntityTransition(
         "The mode of an existing user exercise cannot be changed",
       );
     }
+    if (current && current.trackingType !== (payload.trackingType ?? "repetitions")) throw badRequest("IMMUTABLE_FIELD", "An existing exercise cannot change measurement type; create a new ID");
   }
 
   if (entityType === "workout_session") {
@@ -300,7 +302,7 @@ export async function upsertEntity(
     case "workout_session": {
       const payload = entityPayloadSchemas.workout_session.parse(rawPayload);
       const exerciseSnapshot =
-        payload.exerciseSnapshot as unknown as ExercisePrescription[];
+        payload.exerciseSnapshot as unknown as WorkoutExercisePrescription[];
       const setLog = payload.setLog as unknown as WorkoutSetLog[];
       const legacyMetadata = payload.legacyMetadata as JsonObject | null;
       const data = {
@@ -313,6 +315,7 @@ export async function upsertEntity(
         exerciseSnapshot,
         setLog,
         legacyMetadata,
+        resultMetrics: (payload.resultMetrics ?? null) as JsonObject | null,
       };
       await transaction
         .insert(workoutSessions)

@@ -1,11 +1,13 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import type { z } from "zod";
-import { workoutProgramCatalog } from "@/src/db/schema";
+import { profiles, workoutProgramCatalog } from "@/src/db/schema";
 import { ApiError, badRequest } from "@/src/lib/api-error";
 import { entityPayloadSchemas } from "@/src/modules/sync/dto";
 import { completedWorkoutSchema } from "./dto";
 import { addExercises, assertWorkoutTimes, canonicalExercises } from "./resources";
 import { mutateOnline, publicItem, readItem, readOnline, requireLive } from "./store";
+import { canonicalManualExercises } from "./manual-exercises";
+import { buildResultMetrics } from "@/src/modules/workouts/result-metrics";
 
 // One final submission, never a start/active/set-progress write. Mobile keeps
 // the performed prescription and complete set log in memory until finish.
@@ -19,7 +21,7 @@ export function recordCompletedWorkout(userId: string, key: string, input: z.inf
       if (!program || program.mode !== input.mode) throw new ApiError(404, "PROGRAM_NOT_AVAILABLE", "Program not found for this account and mode");
     } else if (input.source === "recommended") {
       const [program] = await ctx.tx.select({ id: workoutProgramCatalog.id }).from(workoutProgramCatalog).where(and(
-        eq(workoutProgramCatalog.id, input.programId!), eq(workoutProgramCatalog.mode, input.mode),
+        eq(workoutProgramCatalog.id, input.programId!), eq(workoutProgramCatalog.mode, input.mode!),
       ));
       if (!program) throw new ApiError(404, "PROGRAM_NOT_AVAILABLE", "Catalog program not found for this mode");
     }
@@ -29,10 +31,17 @@ export function recordCompletedWorkout(userId: string, key: string, input: z.inf
     const createdExercises = await addExercises(ctx, input.newExercises);
     // Record actual performed history even if an owned exercise was soft-deleted
     // or a public catalog exercise deactivated while the mobile was training.
-    const exercises = await canonicalExercises(ctx.tx, userId, input.mode, input.exerciseSnapshot, true);
-    const data = entityPayloadSchemas.workout_session.parse({ planId: input.programId ?? "manual", mode: input.mode, status: "completed",
+    const explicitManual = input.source === "manual" && input.mode === undefined;
+    const exercises = explicitManual ? await canonicalManualExercises(ctx.tx, userId, input.exerciseSnapshot) :
+      await canonicalExercises(ctx.tx, userId, input.mode!, input.exerciseSnapshot, true);
+    const modes = new Set(input.exerciseSnapshot.map(exercise => exercise.mode));
+    const mode = explicitManual ? (modes.size === 1 ? input.exerciseSnapshot[0].mode! : "mixed") : input.mode!;
+    const [profile] = await ctx.tx.select({ ageYears: profiles.ageYears, weightKg: profiles.weightKg }).from(profiles).where(and(eq(profiles.userId, userId), isNull(profiles.deletedAt)));
+    const resultMetrics = buildResultMetrics(input, profile, mode, exercises, input.setLog);
+    const data = entityPayloadSchemas.workout_session.parse({ planId: input.programId ?? "manual", mode, status: "completed",
       startedAt: input.startedAt, finishedAt: input.finishedAt, recordedOn: input.recordedOn,
       exerciseSnapshot: exercises, setLog: input.setLog,
+      resultMetrics,
       legacyMetadata: { source: input.source, ...(input.note === undefined ? {} : { note: input.note }) },
     });
     const item = await ctx.put("workout_session", input.id, "0", data);

@@ -10,6 +10,7 @@ export const workoutQuerySchema = z
     cursor: z.string().max(256).optional(),
     from: z.iso.date().optional(),
     limit: z.coerce.number().int().min(1).max(100).default(25),
+    mode: z.enum(["gym", "calisthenics", "mixed"]).optional(),
     to: z.iso.date().optional(),
   })
   .strict()
@@ -53,6 +54,8 @@ export async function listWorkouts(
   ];
   if (query.from) filters.push(gte(workoutSessions.recordedOn, query.from));
   if (query.to) filters.push(lte(workoutSessions.recordedOn, query.to));
+  // Exact session classification: mixed is not silently counted as either mode.
+  if (query.mode) filters.push(eq(workoutSessions.mode, query.mode));
 
   const rows = await getDatabase()
     .select()
@@ -80,6 +83,7 @@ export async function listWorkouts(
       exerciseSnapshot: row.exerciseSnapshot,
       setLog: row.setLog,
       legacyMetadata: row.legacyMetadata,
+      resultMetrics: row.resultMetrics,
       updatedAt: row.updatedAt.toISOString(),
     })),
     nextCursor: hasMore ? encodeOffset(offset + query.limit) : null,

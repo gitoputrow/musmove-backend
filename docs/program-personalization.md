@@ -1,5 +1,15 @@
 # Program personalization v3: balanced focus and richer templates
 
+26 October2026 measurement extension (migration0024): duration prescriptions use
+null reps plus targetDurationSeconds. Explicit time assessments use trackingType
+duration, null maxReps and maxDurationSeconds0–3600; zero blocks the movement.
+Without assessment, timed targets are capped at20s, at most10s when returning/tired,
+and never above the curated target. This is a product ceiling, not medical
+clearance. Existing41 templates stay unchanged; a timed program requires an
+explicitly configured time target. Estimate session planning time with target
+seconds, never fake repetitions; performed hold seconds are not actual session
+elapsed time. See [result metrics/rollout](frontend-follow-up-workout-result-metrics.md).
+
 `GET /api/v1/programs/recommendations` uses the authenticated account's saved
 profile and training preferences, the database template/exercise catalogs,
 and recent owned, non-deleted completed workouts. It never modifies workouts

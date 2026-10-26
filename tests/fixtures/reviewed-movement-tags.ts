@@ -6,3 +6,5 @@ import type { MovementTag } from "../../src/modules/catalog/movement-tags";
 const sql = readFileSync(fileURLToPath(new URL("../../drizzle/0011_complete_exercise_movement_tags.sql", import.meta.url)), "utf8");
 export const reviewedMovementTags = [...sql.matchAll(/\('(gym|calisthenics)', '([^']+)', '\{([^}]+)\}'::text\[\]\)/g)]
   .map((match) => ({ mode: match[1] as "gym" | "calisthenics", id: match[2], tags: match[3].split(",") as MovementTag[] }));
+// New explicitly timed entries introduced in0024; do not alter0011 history.
+for (const mode of ["gym", "calisthenics"] as const) reviewedMovementTags.push({ mode, id: "plank", tags: ["shoulder", "elbow", "back", "hip", "floor_transfer"] });

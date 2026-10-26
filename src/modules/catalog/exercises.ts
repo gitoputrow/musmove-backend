@@ -14,6 +14,9 @@ export async function getExerciseCatalog() {
       enLabel: exerciseCatalog.enLabel,
       defaultSets: exerciseCatalog.defaultSets,
       defaultReps: exerciseCatalog.defaultReps,
+      trackingType: exerciseCatalog.trackingType,
+      defaultDurationSeconds: exerciseCatalog.defaultDurationSeconds,
+      muscleTargets: exerciseCatalog.muscleTargets,
       requirements: exerciseCatalog.requirements,
     }).from(exerciseCatalog).where(eq(exerciseCatalog.active, true))
       .orderBy(asc(exerciseCatalog.mode), asc(exerciseCatalog.id));

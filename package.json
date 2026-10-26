@@ -17,7 +17,7 @@
     "catalogs:audit": "NODE_OPTIONS='--conditions=react-server' tsx scripts/audit-catalogs.ts",
     "test:follow-up": "NODE_OPTIONS='--conditions=react-server' tsx --test tests/api/follow-up.test.ts",
     "test:onboarding": "NODE_OPTIONS='--conditions=react-server' tsx --test tests/api/onboarding.test.ts",
-    "test:online": "NODE_OPTIONS='--conditions=react-server' tsx --test tests/api/online.test.ts tests/contracts/online-openapi.test.ts",
+    "test:online": "NODE_OPTIONS='--conditions=react-server' tsx --test tests/api/online.test.ts tests/api/manual-workout-migration.test.ts tests/api/workout-metrics.test.ts tests/contracts/online-openapi.test.ts",
     "test:auth": "NODE_OPTIONS='--conditions=react-server' tsx --test tests/api/auth-proxy.test.ts",
     "test:security": "NODE_OPTIONS='--conditions=react-server' tsx --test tests/api/security.test.ts tests/db/migration-env.test.ts",
     "db:test-security": "NODE_OPTIONS='--conditions=react-server' tsx tests/api/security-integration.ts",

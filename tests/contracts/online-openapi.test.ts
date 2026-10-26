@@ -28,6 +28,18 @@ test("Online OpenAPI artifact matches current DTO generator and all path items a
   assert.equal(spec.components.schemas.CompletedWorkoutInput.properties.newExercises.maxItems, 12);
   assert.ok(!spec.components.schemas.CompletedWorkoutInput.required.includes("newExercises"));
   assert.equal(spec.components.schemas.CompletedWorkoutInput.allOf[0].then.properties.source.const, "manual");
+  assert.ok(!spec.components.schemas.CompletedWorkoutInput.required.includes("mode"));
+  assert.equal(spec.components.schemas.CompletedWorkoutInput.oneOf.length, 2);
+  assert.deepEqual(spec.components.schemas.CompletedWorkoutInput.oneOf[1].properties.exerciseSnapshot.items.required, ["mode"]);
+  assert.deepEqual(spec.components.schemas.Workout.properties.mode.enum, ["gym", "calisthenics", "mixed"]);
+  assert.deepEqual(spec.paths["/workouts"].get.parameters.find((p: { name: string }) => p.name === "mode").schema.enum, ["gym", "calisthenics", "mixed"]);
+  assert.equal(spec.components.schemas.ExercisePrescription.properties.mode, undefined);
+  assert.deepEqual(spec.components.schemas.ExercisePrescription.properties.trackingType.enum, ["repetitions", "duration"]);
+  assert.equal(spec.components.schemas.ExercisePrescription.allOf[0].then.properties.reps.type, "null");
+  assert.equal(spec.components.schemas.Workout.properties.resultMetrics.readOnly, true);
+  assert.equal(spec.components.schemas.CompletedWorkoutInput.properties.resultMetrics, undefined);
+  assert.equal(spec.components.schemas.CompletedWorkoutInput.properties.setLog.items.properties.durationSeconds.anyOf.find((s: { type: string }) => s.type === "integer").maximum, 3600);
+  assert.deepEqual(spec.components.schemas.Statistics.properties.totals.properties.reportedExternalVolumeKg.type, ["number", "null"]);
   assert.equal(spec.components.schemas.CompletedWorkoutResponse.properties.exercises.items.$ref, "#/components/schemas/CustomExercise");
   assert.equal(spec.components.schemas.Dashboard.properties.activeWorkout, undefined);
   const profile = spec.components.schemas.AccountPatchInput.properties.profile;

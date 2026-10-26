@@ -8,6 +8,8 @@ export const GET = publicHandler(async () => apiJson({
     nativeAuthNoCallback: true, atomicAccountPatch: true, onlineResourceApi: true,
     completedWorkoutSubmission: true, manualWorkoutAtomicExercises: true, multiMuscleFocus: true,
     balancedWorkoutRecommendations: true,
+    manualWorkoutFreeMode: true,
+    workoutResultMetrics: true,
   },
   socialPublishingEnabled: process.env.SOCIAL_PUBLISHING_ENABLED === "true",
 }));

@@ -18,6 +18,8 @@ export interface CatalogExercise {
   enLabel: string;
   requirements: string[][];
   movementTags?: string[] | null;
+  trackingType?: "repetitions" | "duration";
+  muscleTargets?: import("@/src/modules/workouts/measurement").MuscleTargets | null;
 }
 
 export function normalizeGoal(value: string | null) {
@@ -47,6 +49,7 @@ function hasEquipment(exercise: CatalogExercise, equipment: Set<string>) {
 // Recent logs are evidence at a particular load, not a strength/max-effort test.
 // Never increase weight automatically, and never infer ability from sex/BMI.
 function recentPerformance(exercise: CatalogExercise, history: WorkoutSession[], profile: Profile) {
+  if (exercise.trackingType === "duration") return null; // Never convert hold time to repetitions/load evidence.
   for (const session of history) {
     if (session.mode !== exercise.mode) continue;
     const reportedBodyweight = session.legacyMetadata?.bodyweightKg;
@@ -136,11 +139,12 @@ export function personalizePrograms(
     const adjustments: { originalExerciseId: string; exerciseId: string; source: string }[] = [];
     for (const original of template.exercises) {
       const candidates = [original.id, ...(regressions[original.id] ?? [])];
-      let selected: { exercise: CatalogExercise; reps: number; weightKg: number | null; source: string } | undefined;
+      let selected: { exercise: CatalogExercise; reps: number | null; durationSeconds?: number; weightKg: number | null; source: string } | undefined;
       for (const candidateId of candidates) {
         if (excluded.has(candidateId) || prescriptions.some((item) => item.id === candidateId)) continue;
         const exercise = catalog.find((item) => item.id === candidateId && item.mode === template.mode);
         if (!exercise || !hasEquipment(exercise, equipment)) continue;
+        if ((original.trackingType ?? "repetitions") !== (exercise.trackingType ?? "repetitions")) continue;
         if (userContext.forbiddenMovementTags.size &&
           (!validMovementTags(exercise.movementTags) || exercise.movementTags.some((tag) => userContext.forbiddenMovementTags.has(tag)))) continue;
         const ability: ExerciseCapability | undefined = profile.exerciseCapabilities?.find((item) => item.exerciseId === candidateId && item.mode === template.mode);
@@ -149,8 +153,20 @@ export function personalizePrograms(
         if (ability?.maxReps === 0) continue;
         if (ability && template.mode === "calisthenics" &&
           !bodyweightEvidenceStillApplies(profile.weightKg, ability.bodyweightKg)) continue;
+        if (exercise.trackingType === "duration") {
+          // Timed prescriptions are never inferred from rep assessments or recent
+          // rep history. Keep the curated target conservatively capped; no load
+          // inference or automatic duration progression.
+          if (!original.targetDurationSeconds || ability && ability.trackingType !== "duration") continue;
+          const cap = ability?.maxDurationSeconds == null ? 20 : Math.floor(ability.maxDurationSeconds * 0.8);
+          if (cap < 1) continue;
+          selected = { exercise, reps: null, durationSeconds: Math.min(original.targetDurationSeconds, cap, userContext.returning || userContext.tired ? 10 : 3600), weightKg: ability?.weightKg ?? null,
+            source: ability ? "SELF_ASSESSMENT" : "CONSERVATIVE_START" };
+          break;
+        }
         const difficultBodyweight = template.mode === "calisthenics" && ["pushup", "diamond", "pullup", "knee_pushup"].includes(candidateId);
         if (level === "beginner" && difficultBodyweight && !ability && !performance) continue;
+        if (ability?.trackingType === "duration" || ability?.maxReps === null) continue;
         const abilityReps = ability ? Math.floor(ability.maxReps * 0.8) : null;
         if (abilityReps !== null && abilityReps < 3) continue;
         // Assessment and historical reps cannot be mixed across different loads.
@@ -178,14 +194,17 @@ export function personalizePrograms(
         sets: userContext.olderAdult && selected.source === "CONSERVATIVE_START" ? Math.min(sets, 2) : sets,
         reps: selected.reps,
         targetWeightKg: selected.weightKg, requirements: selected.exercise.requirements,
+        trackingType: selected.exercise.trackingType === "duration" ? "duration" : "repetitions",
+        targetDurationSeconds: selected.durationSeconds ?? null, muscleTargets: selected.exercise.muscleTargets ?? null,
       });
       adjustments.push({ originalExerciseId: original.id, exerciseId: selected.exercise.id, source: selected.source });
     }
 
-    // Explainable planning estimate: 5-minute warmup, 3 sec/rep, 30 sec setup,
+    // Explainable planning estimate: 5-minute warmup, 3 sec/rep or target hold
+    // seconds, 30 sec setup,
     // plus rest between sets. No claim of exact physiological timing.
     const estimatedMinutes = Math.ceil((300 + prescriptions.reduce((total, exercise) => total +
-      exercise.sets * exercise.reps * 3 + (exercise.sets - 1) * restSeconds + 30, 0)) / 60);
+      exercise.sets * (exercise.trackingType === "duration" ? exercise.targetDurationSeconds ?? 0 : (exercise.reps ?? 0) * 3) + (exercise.sets - 1) * restSeconds + 30, 0)) / 60);
     if (estimatedMinutes > (profile.sessionMinutes ?? 20)) {
       rejectedPrograms.push({ programId: template.id, reason: "SESSION_DURATION_EXCEEDED" });
       return [];

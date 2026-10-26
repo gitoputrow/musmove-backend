@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { bigint, boolean, check, jsonb, pgTable, primaryKey, smallint, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import { bigint, boolean, check, integer, jsonb, pgTable, primaryKey, smallint, text, timestamp, varchar } from "drizzle-orm/pg-core";
 import { trainingModeEnum } from "./enums";
 import type { MovementTag } from "@/src/modules/catalog/movement-tags";
 
@@ -9,7 +9,10 @@ export const exerciseCatalog = pgTable("exercise_catalog", {
   idLabel: varchar("id_label", { length: 80 }).notNull(),
   enLabel: varchar("en_label", { length: 80 }).notNull(),
   defaultSets: smallint("default_sets").notNull(),
-  defaultReps: smallint("default_reps").notNull(),
+  defaultReps: smallint("default_reps"),
+  trackingType: text("tracking_type").$type<"repetitions" | "duration">().notNull().default("repetitions"),
+  defaultDurationSeconds: integer("default_duration_seconds"),
+  muscleTargets: jsonb("muscle_targets").$type<import("@/src/modules/workouts/measurement").MuscleTargets>(),
   requirements: jsonb("requirements").$type<string[][]>().notNull(),
   movementTags: text("movement_tags").array().$type<MovementTag[]>().notNull(),
   active: boolean("active").notNull().default(true),
@@ -18,6 +21,8 @@ export const exerciseCatalog = pgTable("exercise_catalog", {
   primaryKey({ columns: [table.mode, table.id] }),
   check("exercise_catalog_sets_range", sql`${table.defaultSets} between 1 and 10`),
   check("exercise_catalog_reps_range", sql`${table.defaultReps} between 1 and 100`),
+  check("exercise_catalog_muscles_object", sql`${table.muscleTargets} is null or jsonb_typeof(${table.muscleTargets}) = 'object'`),
+  check("exercise_catalog_measurement", sql`(${table.trackingType}='repetitions' and ${table.defaultReps} is not null and ${table.defaultDurationSeconds} is null) or (${table.trackingType}='duration' and ${table.defaultReps} is null and ${table.defaultDurationSeconds} between 1 and 3600 and ${table.defaultDurationSeconds} is not null)`),
   check("exercise_catalog_requirements_array", sql`jsonb_typeof(${table.requirements}) = 'array' and jsonb_array_length(${table.requirements}) > 0`),
   check("exercise_catalog_movement_tags_valid", sql`array_ndims(${table.movementTags}) = 1 and cardinality(${table.movementTags}) between 1 and 11 and array_position(${table.movementTags}, NULL) is null and ${table.movementTags} <@ ARRAY['shoulder', 'elbow', 'wrist', 'back', 'hip', 'knee', 'ankle', 'floor_transfer', 'overhead_reach', 'deep_knee_bend', 'balance_challenge']::text[]`),
 ]);

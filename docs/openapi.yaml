@@ -738,7 +738,15 @@ paths:
       security: []
       responses:
         "200":
-          description: Public versioned exercise catalog.
+          description: Public versioned exercise catalog across both modes; after0024 tracking type, nullable rep defaults, time defaults and canonical muscles are included. No mode/profile filter.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [catalogVersion, exercises]
+                properties:
+                  catalogVersion: { type: string }
+                  exercises: { type: array, items: { $ref: "#/components/schemas/ExerciseCatalogItem" } }
   /account/deletion-requests:
     post:
       operationId: requestAccountDeletion
@@ -949,6 +957,20 @@ components:
           uniqueItems: true
           items: { type: string, enum: [gym, calisthenics] }
           description: Training taxonomy; shared equipment uses [gym, calisthenics]. Not a location or individualized exercise recommendation.
+    ExerciseCatalogItem:
+      type: object
+      required: [id, mode, idLabel, enLabel, defaultSets, defaultReps, requirements, trackingType, defaultDurationSeconds, muscleTargets]
+      properties:
+        id: { type: string }
+        mode: { type: string, enum: [gym, calisthenics] }
+        idLabel: { type: string }
+        enLabel: { type: string }
+        defaultSets: { type: integer, minimum: 1, maximum: 10 }
+        defaultReps: { type: [integer, "null"], minimum: 1, maximum: 100 }
+        requirements: { type: array, items: { type: array, items: { type: string } } }
+        trackingType: { type: string, enum: [repetitions, duration] }
+        defaultDurationSeconds: { type: [integer, "null"], minimum: 1, maximum: 3600 }
+        muscleTargets: { anyOf: [{ $ref: "./openapi-online.json#/components/schemas/MuscleTargets" }, { type: "null" }] }
     EquipmentExercise:
       type: object
       required: [id, mode, idLabel, enLabel, defaultSets, defaultReps, requirements, missingEquipmentOptions]
@@ -958,7 +980,10 @@ components:
         idLabel: { type: string }
         enLabel: { type: string }
         defaultSets: { type: integer }
-        defaultReps: { type: integer }
+        defaultReps: { type: [integer, "null"] }
+        trackingType: { type: string, enum: [repetitions, duration] }
+        defaultDurationSeconds: { type: [integer, "null"], minimum: 1, maximum: 3600 }
+        muscleTargets: { anyOf: [{ $ref: "./openapi-online.json#/components/schemas/MuscleTargets" }, { type: "null" }] }
         requirements:
           type: array
           items: { type: array, items: { type: string } }
@@ -1322,9 +1347,24 @@ components:
       properties:
         exerciseId: { type: string, minLength: 1, maxLength: 255 }
         mode: { type: string, enum: [gym, calisthenics] }
-        maxReps: { type: integer, minimum: 0, maximum: 100 }
+        maxReps: { type: [integer, "null"], minimum: 0, maximum: 100 }
+        trackingType: { type: string, enum: [repetitions, duration] }
+        maxDurationSeconds: { type: [integer, "null"], minimum: 0, maximum: 3600 }
         weightKg: { type: [number, "null"], minimum: 0, maximum: 500 }
         bodyweightKg: { type: [number, "null"], exclusiveMinimum: 0, maximum: 9999.99 }
+      if:
+        required: [trackingType]
+        properties:
+          trackingType: { const: duration }
+      then:
+        required: [maxDurationSeconds]
+        properties:
+          maxReps: { type: "null" }
+          maxDurationSeconds: { type: integer, minimum: 0, maximum: 3600 }
+      else:
+        properties:
+          maxReps: { type: integer, minimum: 0, maximum: 100 }
+          maxDurationSeconds: { type: "null" }
     RecommendedProgram:
       type: object
       required: [id, name, mode, focus, durationMinutes, exercises, restSeconds, suggestedWeeklySessions, adjustments, recommendationTier]
@@ -1337,7 +1377,7 @@ components:
         exercises:
           type: array
           minItems: 1
-          items: { $ref: "./openapi-online.json#/components/schemas/Workout/properties/exerciseSnapshot/items" }
+          items: { $ref: "./openapi-online.json#/components/schemas/ExercisePrescription" }
         restSeconds: { type: integer, minimum: 1 }
         suggestedWeeklySessions: { type: integer, minimum: 1, maximum: 4 }
         recommendationTier: { type: string, enum: [standard, compact], description: standard means at least3 total exercises; compact has1–2. Both still require every safety/equipment/duration filter. }

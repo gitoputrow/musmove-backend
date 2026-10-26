@@ -47,7 +47,7 @@ async function main() {
     const catalog = await client.query<{ count: number }>(
       "select count(*)::integer as count from exercise_catalog",
     );
-    if (catalog.rows[0]?.count !== 117) throw new Error("Catalog seed is incomplete");
+    if (catalog.rows[0]?.count !== 119) throw new Error("Catalog seed is incomplete");
     const taggedExercises = await client.query<{ mode: string; id: string; movement_tags: string[] }>(
       "select mode, id, movement_tags from exercise_catalog",
     );

@@ -23,10 +23,12 @@ import {
   programSourceEnum,
   trainingModeEnum,
   workoutStatusEnum,
+  workoutModeEnum,
 } from "./enums";
 import { mutableColumns } from "./helpers";
 import type {
   ExercisePrescription,
+  WorkoutExercisePrescription,
   ExerciseCapability,
   TrainingContext,
   JsonObject,
@@ -175,7 +177,9 @@ export const userExercises = pgTable(
     mode: trainingModeEnum("mode").notNull(),
     name: varchar("name", { length: 80 }).notNull(),
     defaultSets: smallint("default_sets").notNull(),
-    defaultReps: smallint("default_reps").notNull(),
+    defaultReps: smallint("default_reps"),
+    trackingType: text("tracking_type").$type<"repetitions" | "duration">().notNull().default("repetitions"),
+    defaultDurationSeconds: integer("default_duration_seconds"),
     ...mutableColumns(),
   },
   (table) => [
@@ -185,6 +189,7 @@ export const userExercises = pgTable(
     check("user_exercises_sets_range", sql`${table.defaultSets} between 1 and 10`),
     check("user_exercises_reps_range", sql`${table.defaultReps} between 1 and 100`),
     check("user_exercises_version_positive", sql`${table.version} > 0`),
+    check("user_exercises_measurement", sql`(${table.trackingType}='repetitions' and ${table.defaultReps} is not null and ${table.defaultDurationSeconds} is null) or (${table.trackingType}='duration' and ${table.defaultReps} is null and ${table.defaultDurationSeconds} between 1 and 3600 and ${table.defaultDurationSeconds} is not null)`),
   ],
 );
 
@@ -196,7 +201,7 @@ export const workoutSessions = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     id: varchar("id", { length: 255 }).notNull(),
     planId: varchar("plan_id", { length: 255 }).notNull(),
-    mode: trainingModeEnum("mode").notNull(),
+    mode: workoutModeEnum("mode").notNull(),
     status: workoutStatusEnum("status").notNull().default("active"),
     startedAt: timestamp("started_at", {
       mode: "date",
@@ -208,10 +213,11 @@ export const workoutSessions = pgTable(
     }),
     recordedOn: date("recorded_on", { mode: "string" }),
     exerciseSnapshot: jsonb("exercise_snapshot")
-      .$type<ExercisePrescription[]>()
+      .$type<WorkoutExercisePrescription[]>()
       .notNull(),
     setLog: jsonb("set_log").$type<WorkoutSetLog[]>().notNull(),
     legacyMetadata: jsonb("legacy_metadata").$type<JsonObject>(),
+    resultMetrics: jsonb("result_metrics").$type<JsonObject>(),
     ...mutableColumns(),
   },
   (table) => [
@@ -243,6 +249,8 @@ export const workoutSessions = pgTable(
         and jsonb_array_length(${table.exerciseSnapshot}) between 1 and 12`,
     ),
     check("workout_sessions_set_log_array", sql`jsonb_typeof(${table.setLog}) = 'array'`),
+    check("workout_sessions_metrics_object", sql`${table.resultMetrics} is null or jsonb_typeof(${table.resultMetrics}) = 'object'`),
+    check("workout_sessions_mixed_manual", sql`${table.mode} <> 'mixed' or (${table.status} = 'completed' and coalesce(${table.legacyMetadata}->>'source' = 'manual', false))`),
     check("workout_sessions_version_positive", sql`${table.version} > 0`),
   ],
 );

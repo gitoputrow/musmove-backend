@@ -29,6 +29,7 @@ export async function getEquipmentExercises(ids: string[], mode?: "gym" | "calis
       id: exerciseCatalog.id, mode: exerciseCatalog.mode, idLabel: exerciseCatalog.idLabel,
       enLabel: exerciseCatalog.enLabel, defaultSets: exerciseCatalog.defaultSets,
       defaultReps: exerciseCatalog.defaultReps, requirements: exerciseCatalog.requirements,
+      trackingType: exerciseCatalog.trackingType, defaultDurationSeconds: exerciseCatalog.defaultDurationSeconds, muscleTargets: exerciseCatalog.muscleTargets,
     }).from(exerciseCatalog).where(and(eq(exerciseCatalog.active, true), mode ? eq(exerciseCatalog.mode, mode) : undefined))
       .orderBy(asc(exerciseCatalog.enLabel), asc(exerciseCatalog.mode), asc(exerciseCatalog.id));
     const supported = rows.filter((row) => row.requirements.every((group) => group.every((id) => known.has(id))));

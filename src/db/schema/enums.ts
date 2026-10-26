@@ -28,6 +28,9 @@ export const workoutStatusEnum = pgEnum("workout_status", [
   "aborted",
 ]);
 
+// Never widen training_mode: profiles, equipment and programs remain single-mode.
+export const workoutModeEnum = pgEnum("workout_mode", ["gym", "calisthenics", "mixed"]);
+
 export const syncOperationEnum = pgEnum("sync_operation", [
   "upsert",
   "delete",

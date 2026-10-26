@@ -1,5 +1,12 @@
 # Follow-up frontend lengkap: seluruh perubahan API backend
 
+Pembaruan26 Oktober2026: [kontrak hasil workout](frontend-follow-up-workout-result-metrics.md)
+menambahkan trackingType, target/actual waktu tahan, timing sesi eksplisit,
+snapshot estimasi kalori gross dan pemetaan otot kanonis. Statistik kini
+membedakan unknown dari0. **Membutuhkan migrasi0024 dan pembaca nullable baru;
+migrasi/deploy metrics belum dilakukan.** Bagian baru ini melengkapi contoh
+repetisi lama, bukan mengubah data historis atau menambah request preview.
+
 Tanggal: 20 Oktober 2026. Mengikuti `backend-online-mode-follow-up.md` dari mobile.
 Pembaruan 21 Oktober 2026: workout manual mendukung gerakan baru dalam satu
 submit atomik, mengikuti `backend-manual-workout-atomic-follow-up.md`.
@@ -25,6 +32,16 @@ program custom/jadwal, exercise buatan, workout, jurnal/nutrisi, favorit tempat,
 draft/publikasi sosial, dashboard/statistik, penghapusan akun, serta aturan
 versi/retry dan rollout. Revisi workout terbaru sudah termasuk: **hanya simpan
 setelah selesai**, bukan start/resume atau simpan progres ke backend.
+
+Pembaruan 23 Oktober 2026 (Record Workout): manual mendukung lintas mode profil
+dan sesi gym+calisthenics. Kontrak rinci/contoh, error, rollout migrasi0023 dan
+kompatibilitas pembaca ada di
+[follow-up Record Workout bebas mode](frontend-follow-up-record-workout-free-mode.md).
+Custom Program/rekomendasi tetap bermode tunggal. Ini perubahan source, bukan
+klaim deployment; parser mobile harus mendukung mixed sebelum fitur diaktifkan.
+Migrasi0023 sudah berhasil diterapkan ke database yang dikonfigurasi, dengan
+verifikasi histori/profil/preferensi/receipt tetap sama. Source/capability baru
+belum dideploy; temuan dependency Next.js critical yang terpisah masih belum dipatch.
 
 Dokumen workout terpisah hanya penjelasan tambahan, **tidak perlu dikirim sebagai
 pengganti dokumen lengkap ini**. Penjelasan integrasi seluruh fitur ada di bawah.
@@ -540,6 +557,8 @@ Idempotency-Key: <UUID untuk submit hasil akhir>
 wajib mengirim programId dengan mode cocok: custom harus milik akun sendiri,
 recommended harus ID katalog program. Untuk catatan manual, source manual dan
 **hilangkan programId**. Endpoint manual terpisah tidak diperlukan.
+Contoh di atas tetap format workout dari program; untuk manual baru, lihat
+format bebas mode berikut. Jangan kirim mode profil sebagai pengganti mode exercise.
 
 Server menyimpan **status completed**; field status tidak boleh dikirim client.
 HTTP 201 baru mengembalikan `{item,exercises}`. Item berisi version `"1"`, snapshot
@@ -553,13 +572,41 @@ lama tersebut dapat hanya memiliki item. Mobile boleh memperlakukan exercises
 yang tidak ada sebagai array kosong pada replay lama, bukan meminta pendaftaran
 gerakan atau membuat workout baru.
 
+### Manual baru: bebas mode profil, snapshot/setLog beridentitas mode
+
+- POST /workouts, source manual, **tanpa top-level mode/programId**. Semua item
+  exerciseSnapshot wajib mempunyai mode gym/calisthenics; setiap entri setLog
+  wajib mempunyai exerciseMode yang sama dengan referensi snapshot.
+- Server menurunkan mode sesi gym/calisthenics/mixed dari exercise, bukan profil.
+  Identitas gerakan = (mode,id), identitas set = (exerciseMode,exerciseId,setNumber).
+  ID katalog sama pada dua mode tidak boleh digabung; ID+mode sama tetap unik.
+- Katalog publik dan GET /exercises/custom tanpa mode mencakup kedua mode.
+  Gerakan akun tetap terikat ownership dan pagination; ikuti nextCursor sampai null.
+- Default kartu manual satu set adalah perilaku mobile; backend menerima1–10
+  dan tidak menggantinya dengan default katalog. Reps/beban tiap set tetap utuh.
+- newExercises manual tetap atomik, tetapi mode setiap deklarasi harus cocok
+  dengan **exercise referensinya**, bukan mode keseluruhan sesi. Klasifikasi
+  gerakan baru harus eksplisit, tidak ditebak dari profil/nama.
+- Manual format lama (top-level mode dan tanpa mode per item/log) masih diterima.
+  Jangan campur format. Custom/recommended tetap memakai satu mode dan programId.
+- Respons item.mode bisa mixed; histori lama tetap bentuk semula. GET /workouts
+  menerima filter mode persis (gym/calisthenics/mixed); tanpa filter mencakup
+  semuanya. Kalender/dashboard/statistik menghitung mixed sekali, bukan dua sesi.
+- Pembaca mobile termasuk sync/snapshot harus siap mode baru sebelum data mixed
+  dibuat. Format eksplisit baru tidak boleh ditulis via legacy sync/push/demo
+  import; hanya POST /workouts yang memverifikasi referensi/ownership kanonis.
+- Memerlukan migrasi0023 dan deploy capability manualWorkoutFreeMode. Detail
+  lengkap dan status aktual: [kontrak bebas mode](frontend-follow-up-record-workout-free-mode.md).
+
 ### Gerakan baru pada catatan manual: satu submit atomik
 
 Untuk **source manual saja**, tambahkan field opsional `newExercises` pada body
 POST /workouts. Tidak ada request pendahuluan ke POST /exercises/custom. Semua
 isian dan ID tetap di memori sampai pengguna menekan Selesai/Simpan hasil final.
 
-Contoh lengkap, memakai ID ilustrasi yang valid (generate UUID sendiri):
+Contoh **format manual lama bermode tunggal** yang tetap valid (generate UUID
+sendiri). Untuk implementasi Record Workout baru, gunakan contoh bebas mode pada
+dokumen di atas; jangan menyalin top-level mode ini ke submit campuran:
 
 ```json
 {
@@ -596,7 +643,8 @@ Aturan kontrak:
 - newExercises opsional, maksimal 12, ID unik. Source custom/recommended menolak
   field ini, termasuk array kosong. Source manual tetap tidak mengirim programId.
 - Setiap gerakan baru **wajib direferensikan** oleh exerciseSnapshot dan mempunyai
-  mode sama dengan workout. Semua prescription dan set log tetap divalidasi.
+  mode sama dengan referensi exercise. Pada format lama, ini juga sama dengan
+  mode workout. Semua prescription dan set log tetap divalidasi.
 - Format ID sama dengan resource exercise: 1–255 karakter, diawali huruf/angka,
   selanjutnya huruf/angka atau `_`, `.`, `:`, `-`. `user-exercise-<UUID>` diterima;
   prefix tersebut bukan syarat wajib. Default sets 1–10, reps 1–100, nama
@@ -622,10 +670,23 @@ Aturan kontrak:
   mengembalikan receipt `{item,exercises}` awal tanpa konflik ID hasil commit
   sendiri atau duplikasi data. Ubah payload dengan key sukses yang sama →409
   IDEMPOTENCY_KEY_REUSE; jangan otomatis membuat ID/key baru saat hasil belum pasti.
-- Payload lama tanpa newExercises tetap diterima. Tidak ada DDL/env/dependensi
-  baru, endpoint tambahan, resume, autosave, atau penyimpanan offline baru.
+- Payload lama tanpa newExercises tetap diterima. Penambahan newExercises sendiri
+  tidak memerlukan DDL; revisi bebas mode23 Oktober memerlukan migrasi0023.
+  Tidak ada env/dependensi baru, endpoint tambahan, resume atau autosave.
 
 ### Histori tetap independen
+
+Untuk metrics26 Oktober, `resultMetrics` server-owned dikembalikan bersama item
+POST/GET/list dan tidak dihitung ulang dari katalog/profil pada read. Nilai lama
+tetap null/absent; receipt lama tetap direplay persis. Program/manual mendukung
+trackingType duration dengan repsnull, targetDurationSeconds dan actual
+setLog.durationSeconds yang terpisah; lihat kontrak di atas untuk batas lengkap.
+Timestamp manual lama bukan bukti durasi. sessionTiming harus eksplisit untuk
+durasi sesi baru; tanpa input yang cukup estimasi kalori tetap null dengan reason.
+Pemetaan primary/secondary hanya dari referensi completed yang kanonis, bukan
+movementTags/nama/fokus. Jangan menampilkan volume atau waktu parsial sebagai
+total lengkap. Statistik durationMinutes/reportedReps/reportedExternalVolumeKg
+sekarang dapat null, dengan counter missing dan hold time terpisah.
 
 Kirim snapshot prescription yang benar-benar digunakan dari memori mobile,
 jangan mengambil ulang program/rekomendasi untuk membentuk histori setelah
@@ -637,7 +698,8 @@ yang sudah soft-deleted masih dapat menjadi rujukan historis setelah latihan.
 Exercise yang tidak dikenal atau milik akun lain tetap ditolak.
 
 1–12 prescription unik; setLog maksimum120 dan setiap kunci exerciseId/setNumber
-unik serta harus merujuk prescription. `finishedAt >= startedAt`; recordedOn
+unik pada format lama, atau exerciseMode/exerciseId/setNumber pada manual baru,
+serta harus merujuk prescription. `finishedAt >= startedAt`; recordedOn
 adalah tanggal lokal mulai latihan (>=1900-01-01), maksimal selisih satu hari
 dari UTC start day. Note tersimpan di legacyMetadata.note, source di
 legacyMetadata.source. Setelah tersimpan, snapshot tidak bisa diedit/reopen;
