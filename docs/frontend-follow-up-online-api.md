@@ -1,8 +1,12 @@
 # Follow-up frontend lengkap: seluruh perubahan API backend
 
+Pembaruan27 Oktober2026: [estimasi kalori workout dihapus](frontend-follow-up-workout-without-calories.md).
+Durasi total tetap dipertahankan. Submit baru menghasilkan metrics2 tanpa energy;
+hapus input energyActivityCode/workoutBodyweightKg. Nutrisi tidak berubah.
+
 Pembaruan26 Oktober2026: [kontrak hasil workout](frontend-follow-up-workout-result-metrics.md)
 menambahkan trackingType, target/actual waktu tahan, timing sesi eksplisit,
-snapshot estimasi kalori gross dan pemetaan otot kanonis. Statistik kini
+pemetaan otot kanonis (estimasi kalori awal dibatalkan27 Oktober). Statistik kini
 membedakan unknown dari0. **Membutuhkan migrasi0024 dan pembaca nullable baru;
 migrasi/deploy metrics belum dilakukan.** Bagian baru ini melengkapi contoh
 repetisi lama, bukan mengubah data historis atau menambah request preview.
@@ -682,7 +686,8 @@ tetap null/absent; receipt lama tetap direplay persis. Program/manual mendukung
 trackingType duration dengan repsnull, targetDurationSeconds dan actual
 setLog.durationSeconds yang terpisah; lihat kontrak di atas untuk batas lengkap.
 Timestamp manual lama bukan bukti durasi. sessionTiming harus eksplisit untuk
-durasi sesi baru; tanpa input yang cukup estimasi kalori tetap null dengan reason.
+durasi sesi baru; tanpanya durasi tetap unknown. Metrics2 baru tidak mempunyai
+energy dan tidak menghitung kalori workout. Abaikan energy pada metrics1 historis.
 Pemetaan primary/secondary hanya dari referensi completed yang kanonis, bukan
 movementTags/nama/fokus. Jangan menampilkan volume atau waktu parsial sebagai
 total lengkap. Statistik durationMinutes/reportedReps/reportedExternalVolumeKg

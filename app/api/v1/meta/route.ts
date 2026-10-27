@@ -10,6 +10,8 @@ export const GET = publicHandler(async () => apiJson({
     balancedWorkoutRecommendations: true,
     manualWorkoutFreeMode: true,
     workoutResultMetrics: true,
+    workoutResultMetricsV2: true,
+    workoutCalorieEstimates: false,
   },
   socialPublishingEnabled: process.env.SOCIAL_PUBLISHING_ENABLED === "true",
 }));

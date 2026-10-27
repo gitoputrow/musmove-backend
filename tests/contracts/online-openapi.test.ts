@@ -38,6 +38,17 @@ test("Online OpenAPI artifact matches current DTO generator and all path items a
   assert.equal(spec.components.schemas.ExercisePrescription.allOf[0].then.properties.reps.type, "null");
   assert.equal(spec.components.schemas.Workout.properties.resultMetrics.readOnly, true);
   assert.equal(spec.components.schemas.CompletedWorkoutInput.properties.resultMetrics, undefined);
+  assert.equal(spec.components.schemas.CompletedWorkoutInput.properties.energyActivityCode, undefined);
+  assert.equal(spec.components.schemas.CompletedWorkoutInput.properties.workoutBodyweightKg, undefined);
+  assert.ok(spec.components.schemas.CompletedWorkoutInput.properties.sessionTiming);
+  assert.equal(spec.components.schemas.CurrentWorkoutResultMetrics.properties.version.const, "2");
+  assert.equal(spec.components.schemas.CurrentWorkoutResultMetrics.properties.energy, undefined);
+  assert.ok(spec.components.schemas.CurrentWorkoutResultMetrics.properties.duration);
+  assert.ok(spec.components.schemas.CurrentWorkoutResultMetrics.properties.muscles);
+  assert.equal(spec.components.schemas.LegacyWorkoutResultMetrics.deprecated, true);
+  assert.deepEqual(spec.components.schemas.WorkoutResultMetrics.oneOf, [
+    { $ref: "#/components/schemas/CurrentWorkoutResultMetrics" }, { $ref: "#/components/schemas/LegacyWorkoutResultMetrics" },
+  ]);
   assert.equal(spec.components.schemas.CompletedWorkoutInput.properties.setLog.items.properties.durationSeconds.anyOf.find((s: { type: string }) => s.type === "integer").maximum, 3600);
   assert.deepEqual(spec.components.schemas.Statistics.properties.totals.properties.reportedExternalVolumeKg.type, ["number", "null"]);
   assert.equal(spec.components.schemas.CompletedWorkoutResponse.properties.exercises.items.$ref, "#/components/schemas/CustomExercise");

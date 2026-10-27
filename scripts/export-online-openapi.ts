@@ -2,7 +2,7 @@
 // Regenerate docs/openapi-online.json from stdout; keep the primary YAML's refs.
 import { z } from "zod";
 import { entityPayloadSchemas, exerciseSchema } from "../src/modules/sync/dto";
-import { muscleTargetsSchema, resultMetricsSchema } from "../src/modules/workouts/measurement";
+import { currentResultMetricsSchema, legacyResultMetricsSchema, muscleTargetsSchema } from "../src/modules/workouts/measurement";
 import { accountPatchSchema, completedWorkoutSchema, dashboardQuerySchema, deleteSchema, idSchema, keySchema,
   newExercisesSchema, resourceSchemas, summaryQuerySchema, versionSchema } from "../src/modules/online/dto";
 
@@ -22,7 +22,10 @@ const schemas: Record<string, ObjectSchema> = {
   Version: fromZod(versionSchema), Id: fromZod(idSchema), DeleteInput: fromZod(deleteSchema), AccountPatchInput: fromZod(accountPatchSchema),
   CompletedWorkoutInput: fromZod(completedWorkoutSchema),
   ExercisePrescription: fromZod(exerciseSchema),
-  MuscleTargets: fromZod(muscleTargetsSchema), WorkoutResultMetrics: fromZod(resultMetricsSchema),
+  MuscleTargets: fromZod(muscleTargetsSchema),
+  CurrentWorkoutResultMetrics: { ...fromZod(currentResultMetricsSchema), description: "Version2: elapsed session duration and canonical muscle coverage only. No calorie/MET estimate or bodyweight snapshot." },
+  LegacyWorkoutResultMetrics: { ...fromZod(legacyResultMetricsSchema), deprecated: true, description: "Version1 immutable historical snapshot only. Ignore retired energy in the UI. Original reads/receipts are preserved, never recalculated." },
+  WorkoutResultMetrics: { oneOf: [ref("CurrentWorkoutResultMetrics"), ref("LegacyWorkoutResultMetrics")], discriminator: { propertyName: "version" } },
   UserPreferences: fromZod(entityPayloadSchemas.user_preferences.extend({ version: versionSchema, updatedAt: z.iso.datetime({ offset: true }) })),
   Setup: object({ setupCompleted: { type: "boolean" }, profile: nullable(original("SetupProfile")),
     trainingPreferences: nullable(original("SetupTrainingPreferences")), userPreferences: nullable(ref("UserPreferences")), versions: original("SetupVersions") }),
@@ -45,7 +48,7 @@ const meta = { id: idSchema, version: versionSchema, updatedAt: z.iso.datetime({
 const resourceNames = { custom_program: "CustomProgram", user_exercise: "CustomExercise", meal_entry: "Meal", social_draft: "SocialDraft" } as const;
 schemas.Workout = fromZod(z.object(entityPayloadSchemas.workout_session.shape).extend(meta));
 (schemas.Workout.properties as Record<string, unknown>).resultMetrics = { ...nullable(ref("WorkoutResultMetrics")), readOnly: true, description: "Persisted at final submit only; null for old history. Never regenerated from today's profile/catalog." };
-schemas.CompletedWorkoutInput.description = "Measurement defaults to legacy repetitions when trackingType is absent. duration requires null target reps and targetDurationSeconds1–3600; actual setLog durationSeconds1–3600 or null/omitted unknown, null actual reps. Zero hold seconds is invalid, zero repetition count/extra load is valid. Completed may have unknown actuals; not proof all target sets were done. Manual timing optional: sessionTiming user_reported requires1–43200 seconds; timer derives positive elapsed seconds from timestamps and forbids supplied seconds. Program timing may only use timer. No timing means unknown duration, never sum holds. Optional energyActivityCode is an explicit whole-session category, not inferred from mode, with workoutBodyweightKg1–500 optional. Energy null when duration/category/age19–59/weight evidence is insufficient, >3h or no completed sets; gross estimate saved at submission. Snapshot muscleTargets supplied by client are not authoritative and are replaced by canonical data or null. resultMetrics is server-only and rejected as input. See frontend-follow-up-workout-result-metrics.md; requires migration0024 and upgraded nullable readers.";
+schemas.CompletedWorkoutInput.description = "Measurement defaults to legacy repetitions when trackingType is absent. duration requires null target reps and targetDurationSeconds1–3600; actual setLog durationSeconds1–3600 or null/omitted unknown, null actual reps. Zero hold seconds is invalid, zero repetition count/extra load is valid. Completed may have unknown actuals; not proof all target sets were done. Session timing is retained: manual sessionTiming user_reported requires1–43200 seconds including rest; timer derives positive elapsed seconds from timestamps and forbids supplied seconds. Program timing may only use timer. No timing means unknown duration, never sum holds. Workout calorie estimation has been removed. energyActivityCode and workoutBodyweightKg are no longer accepted (400, even if null). New resultMetrics version2 contains duration and muscles only, without energy; historical version1 reads/receipts are preserved. No profile weight/age is needed to calculate workout metrics. Snapshot muscleTargets supplied by client are not authoritative and are replaced by canonical data or null. resultMetrics is server-only and rejected as input. See frontend-follow-up-workout-without-calories.md and frontend-follow-up-workout-result-metrics.md; migration0024 remains required for result_metrics storage and nullable readers.";
 schemas.WorkoutResponse = object({ item: ref("Workout") });
 schemas.CompletedWorkoutResponse = object({ item: ref("Workout"), exercises: {
   ...array(ref("CustomExercise")),

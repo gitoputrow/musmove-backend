@@ -4,36 +4,47 @@ import { test } from "node:test";
 import { PGlite } from "@electric-sql/pglite";
 import { readMigrationFiles } from "drizzle-orm/migrator";
 import { buildResultMetrics, muscleCoverage } from "../../src/modules/workouts/result-metrics";
-import { muscleTargetsSchema } from "../../src/modules/workouts/measurement";
+import { currentResultMetricsSchema, muscleTargetsSchema, resultMetricsSchema } from "../../src/modules/workouts/measurement";
 import { entityPayloadSchemas, parseEntityPayload } from "../../src/modules/sync/dto";
 import type { WorkoutExercisePrescription, WorkoutSetLog } from "../../src/db/schema/types";
 
-const clock = new Date("2026-10-26T01:00:00Z");
 const base = { source: "manual", startedAt: "2026-10-26T00:00:00Z", finishedAt: "2026-10-26T00:30:00Z" };
 const exercise: WorkoutExercisePrescription = { id: "hold", mode: "gym", idLabel: "Hold", enLabel: "Hold", requirements: [[]], sets: 1,
   reps: null, trackingType: "duration", targetDurationSeconds: 30, targetWeightKg: null,
   muscleTargets: { version: "1", primary: ["abs"], secondary: ["obliques"] } };
 const log: WorkoutSetLog = { exerciseId: "hold", exerciseMode: "gym", setNumber: 1, completed: true, reps: null, weightKg: null, durationSeconds: 20 };
 
-test("session and MET provenance are explicit, nullable, versioned and separate from summed hold time", () => {
-  const metrics = (input: Parameters<typeof buildResultMetrics>[0], profile = { ageYears: 25, weightKg: 70 }) => buildResultMetrics(input, profile, "gym", [exercise], [log], clock);
-  const unknown = metrics(base); assert.equal(unknown.duration.seconds, null); assert.equal(unknown.energy.kcal, null); assert.equal(unknown.energy.reason, "DURATION_UNKNOWN");
-  const timer = metrics({ ...base, sessionTiming: { source: "timer" }, energyActivityCode: "02054" });
-  assert.equal(timer.duration.seconds, 1800); assert.equal(timer.energy.kcal, 128.6); assert.equal(timer.energy.bodyweightSource, "profile_at_submission");
-  assert.equal(timer.energy.method, "standard_met_gross_v1"); assert.equal(timer.version, "1");
-  const manual = metrics({ ...base, sessionTiming: { source: "user_reported", durationSeconds: 600 }, energyActivityCode: "02056", workoutBodyweightKg: 60 });
-  assert.equal(manual.duration.seconds, 600); assert.equal(manual.energy.kcal, 31.5); assert.equal(manual.energy.bodyweightSource, "workout_user_reported");
+test("v2 retains explicit elapsed duration and muscles without calorie inputs or profile dependency", () => {
+  const metrics = (input: Parameters<typeof buildResultMetrics>[0]) => buildResultMetrics(input, "gym", [exercise], [log]);
+  const unknown = metrics(base); assert.equal(unknown.duration.seconds, null); assert.equal(unknown.duration.reason, "NOT_RECORDED");
+  const timer = metrics({ ...base, sessionTiming: { source: "timer" } });
+  assert.equal(timer.duration.seconds, 1800); assert.equal(timer.duration.source, "timer"); assert.equal(timer.version, "2");
+  assert.deepEqual(Object.keys(timer).sort(), ["duration", "muscles", "version"]);
+  assert.ok(currentResultMetricsSchema.safeParse(timer).success);
+  assert.equal(currentResultMetricsSchema.safeParse({ ...timer, energy: { kcal: 100 } }).success, false);
+  const manual = metrics({ ...base, sessionTiming: { source: "user_reported", durationSeconds: 600 } });
+  assert.equal(manual.duration.seconds, 600); assert.equal(manual.duration.source, "user_reported");
+  assert.equal(manual.duration.meaning, "elapsed_including_rest");
   const timed = { ...base, sessionTiming: { source: "timer" as const } };
-  assert.equal(metrics(timed).energy.reason, "ACTIVITY_REQUIRED");
-  for (const ageYears of [18, 60]) assert.equal(metrics({ ...timed, energyActivityCode: "02054" }, { ageYears, weightKg: 70 }).energy.reason, "AGE_OUTSIDE_REFERENCE");
-  assert.equal(metrics({ ...timed, energyActivityCode: "02054" }, { ageYears: 25, weightKg: 501 }).energy.reason, "BODYWEIGHT_OUT_OF_SCOPE");
-  const old = { ...timed, startedAt: "2025-01-01T00:00:00Z", finishedAt: "2025-01-01T00:30:00Z", energyActivityCode: "02054" as const };
-  assert.equal(metrics(old).energy.reason, "WORKOUT_BODYWEIGHT_REQUIRED"); assert.equal(metrics({ ...old, workoutBodyweightKg: 70 }).energy.kcal, 128.6);
-  assert.equal(metrics({ ...timed, energyActivityCode: "02054", finishedAt: "2026-10-26T05:00:00Z" }).energy.reason, "DURATION_OUT_OF_SCOPE");
+  const old = metrics({ ...timed, startedAt: "2025-01-01T00:00:00Z", finishedAt: "2025-01-01T00:30:00Z" });
+  assert.equal(old.duration.seconds, 1800, "Historical manual records do not require bodyweight");
+  assert.equal(metrics({ ...timed, finishedAt: "2026-10-26T05:00:00Z" }).duration.seconds, 18000, "Retired energy scope must not limit elapsed duration");
+  assert.equal(metrics({ ...timed, finishedAt: "2026-10-26T00:30:00.900Z" }).duration.seconds, 1800);
   assert.throws(() => metrics({ ...base, source: "custom", sessionTiming: { source: "user_reported", durationSeconds: 600 } }));
   assert.throws(() => metrics({ ...base, sessionTiming: { source: "timer" }, finishedAt: base.startedAt }));
+  assert.throws(() => metrics({ ...timed, finishedAt: "2026-10-26T12:00:01Z" }));
   assert.throws(() => metrics({ ...base, sessionTiming: { source: "user_reported", durationSeconds: 10 } }));
-  assert.equal(buildResultMetrics({ ...timed, energyActivityCode: "02054" }, { ageYears: 25, weightKg: 70 }, "gym", [exercise], [], clock).energy.reason, "NO_COMPLETED_SETS");
+  assert.equal(buildResultMetrics(timed, "gym", [exercise], []).muscles.coverage, "unknown");
+});
+
+test("legacy calorie snapshots remain readable and immutable, but new metrics never emit energy", () => {
+  const current = buildResultMetrics(base, "gym", [exercise], [log]);
+  const old = { ...current, version: "1", energy: { kcal: 128.6, method: "standard_met_gross_v1", activityCode: "02054", bodyweightKg: 70 } };
+  const original = JSON.stringify(old);
+  assert.deepEqual(resultMetricsSchema.parse(old), old);
+  assert.ok(resultMetricsSchema.safeParse(current).success);
+  assert.equal(JSON.stringify(old), original);
+  assert.equal("energy" in current, false);
 });
 
 test("muscle coverage uses mode-qualified completed references only, and unknown/partial never means full body", () => {

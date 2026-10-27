@@ -563,11 +563,11 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
       assert.equal((await call("workouts?mode=unknown", a.jwt)).status, 400);
     });
 
-    await t.test("Result metrics freeze per-set holds, canonical muscles, manual elapsed provenance and gross energy in the same receipt", async () => {
+    await t.test("Result metrics v2 freeze holds, muscles, duration and volume without workout calories in the same receipt", async () => {
       const a = await account(true), key = randomUUID();
       const finish = new Date(Date.now() - 1000).toISOString(), start = new Date(Date.parse(finish) - 1800000).toISOString();
       const input = { id: "result-metrics", source: "manual", startedAt: start, finishedAt: finish, recordedOn: start.slice(0, 10),
-        sessionTiming: { source: "user_reported", durationSeconds: 1800 }, energyActivityCode: "02035", workoutBodyweightKg: 70,
+        sessionTiming: { source: "user_reported", durationSeconds: 1800 },
         exerciseSnapshot: [{ ...prescription("bench_press"), mode: "gym" },
           { ...prescription("plank"), mode: "calisthenics", reps: null, trackingType: "duration", targetDurationSeconds: 20,
             muscleTargets: { version: "1", primary: ["biceps"], secondary: [] } }],
@@ -577,8 +577,8 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
           { exerciseId: "plank", exerciseMode: "calisthenics", setNumber: 2, completed: true, reps: null, weightKg: null, durationSeconds: 45 }] };
       const saved = await call("workouts", a.jwt, "POST", input, key); assert.equal(saved.status, 201, JSON.stringify(saved.body));
       assert.deepEqual(saved.body.item.setLog, input.setLog); assert.equal(saved.body.item.mode, "mixed");
-      const metrics = saved.body.item.resultMetrics; assert.equal(metrics.duration.seconds, 1800); assert.equal(metrics.energy.kcal, 183.8);
-      assert.equal(metrics.energy.kind, "gross_including_resting_energy"); assert.equal(metrics.energy.bodyweightKg, 70);
+      const metrics = saved.body.item.resultMetrics; assert.equal(metrics.duration.seconds, 1800); assert.equal(metrics.version, "2");
+      assert.equal("energy" in metrics, false); assert.deepEqual(Object.keys(metrics).sort(), ["duration", "muscles", "version"]);
       assert.equal(metrics.muscles.coverage, "complete"); assert.ok(metrics.muscles.primary.includes("abs")); assert.ok(metrics.muscles.primary.includes("chest"));
       assert.ok(!metrics.muscles.primary.includes("biceps")); assert.equal(saved.body.item.exerciseSnapshot[1].reps, null);
       const totals = (await call(`statistics?from=${start.slice(0, 10)}&to=${start.slice(0, 10)}`, a.jwt)).body.totals;
@@ -594,6 +594,29 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
       } finally { await db.update(schema.exerciseCatalog).set({ muscleTargets: plank.muscleTargets }).where(eq(schema.exerciseCatalog.id, "plank")); }
     });
 
+    await t.test("Historical v1 energy snapshots and exact receipts survive the v2 removal without rewriting history", async () => {
+      const a = await account(), key = randomUUID();
+      const input = { id: "legacy-energy", source: "manual", mode: "gym", startedAt, finishedAt, recordedOn: date,
+        sessionTiming: { source: "user_reported", durationSeconds: 1800 },
+        exerciseSnapshot: [prescription("bench_press")], setLog: [{ exerciseId: "bench_press", setNumber: 1, completed: true, reps: 8, weightKg: 10 }] };
+      const saved = await call("workouts", a.jwt, "POST", input, key); assert.equal(saved.status, 201);
+      // Simulate a pre-removal immutable row and receipt. The former calorie
+      // inputs were optional, so this request body was also valid in v1.
+      const legacy = { ...saved.body.item.resultMetrics, version: "1", energy: { kcal: 128.6, method: "standard_met_gross_v1", bodyweightKg: 70 } };
+      const response = { ...saved.body, item: { ...saved.body.item, resultMetrics: legacy } };
+      await db.update(schema.workoutSessions).set({ resultMetrics: legacy }).where(eq(schema.workoutSessions.userId, a.id));
+      const [receipt] = await db.select().from(schema.operationReceipts).where(eq(schema.operationReceipts.operationId, key));
+      await db.update(schema.operationReceipts).set({ result: { ...receipt.result, response } }).where(eq(schema.operationReceipts.operationId, key));
+      const before = (await local.query("SELECT result_metrics,version,updated_at FROM workout_sessions WHERE user_id=$1", [a.id])).rows;
+      const receipts = (await local.query("SELECT * FROM operation_receipts WHERE user_id=$1", [a.id])).rows;
+      assert.deepEqual((await call("workouts/legacy-energy", a.jwt)).body.item, response.item);
+      assert.deepEqual((await call("workouts", a.jwt)).body.items[0], response.item);
+      assert.deepEqual((await call("workouts", a.jwt, "POST", input, key)).body, response);
+      assert.deepEqual(((await bootstrap(a.id)).entities.workout_session[0].payload as { resultMetrics: unknown }).resultMetrics, legacy);
+      assert.deepEqual((await local.query("SELECT result_metrics,version,updated_at FROM workout_sessions WHERE user_id=$1", [a.id])).rows, before);
+      assert.deepEqual((await local.query("SELECT * FROM operation_receipts WHERE user_id=$1", [a.id])).rows, receipts);
+    });
+
     await t.test("Timed custom exercises/programs keep null reps, canonical unknown muscles, strict mode and immutable measurement kind", async () => {
       const a = await account();
       const data = { mode: "gym", name: "My timed exercise", defaultSets: 1, defaultReps: null, trackingType: "duration", defaultDurationSeconds: 30 };
@@ -603,7 +626,7 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
       const input = { id: "timed-program-history", source: "custom", mode: "gym", programId: "timed-program", startedAt, finishedAt, recordedOn: date,
         sessionTiming: { source: "timer" }, exerciseSnapshot: [timed], setLog: [{ exerciseId: "own-hold", setNumber: 1, completed: true, reps: null, weightKg: 0, durationSeconds: 35 }] };
       const saved = await call("workouts", a.jwt, "POST", input); assert.equal(saved.status, 201, JSON.stringify(saved.body));
-      assert.equal(saved.body.item.resultMetrics.duration.seconds, 1800); assert.equal(saved.body.item.resultMetrics.energy.kcal, null);
+      assert.equal(saved.body.item.resultMetrics.duration.seconds, 1800); assert.equal("energy" in saved.body.item.resultMetrics, false);
       assert.equal(saved.body.item.resultMetrics.muscles.coverage, "unknown"); assert.equal(saved.body.item.exerciseSnapshot[0].muscleTargets, null);
       assert.equal((await call("exercises/custom/own-hold", a.jwt, "PATCH", { baseVersion: "1", changes: { trackingType: "repetitions", defaultReps: 8, defaultDurationSeconds: null } })).body.error.code, "IMMUTABLE_FIELD");
       const manual = { id: "atomic-timed", source: "manual", startedAt, finishedAt, recordedOn: date,
@@ -629,6 +652,9 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
         { ...base, exerciseSnapshot: [{ ...prescription("bench_press"), mode: "gym" }], setLog: [{ ...log, exerciseId: "bench_press" }] },
         { ...base, exerciseSnapshot: [{ ...hold, id: "bench_press" }], setLog: [] },
         { ...base, resultMetrics: { energy: { kcal: 500 } } },
+        { ...base, resultMetrics: { version: "2", duration: {}, muscles: {} } },
+        { ...base, energyActivityCode: "02054" }, { ...base, workoutBodyweightKg: 70 },
+        { ...base, energyActivityCode: null }, { ...base, workoutBodyweightKg: null },
         { ...base, sessionTiming: { source: "user_reported" } }, { ...base, sessionTiming: { source: "timer", durationSeconds: 30 } },
         { ...base, sessionTiming: { source: "user_reported", durationSeconds: 0 } },
         { ...base, sessionTiming: { source: "user_reported", durationSeconds: 10 } },
@@ -636,7 +662,7 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
       for (const input of invalid) assert.equal((await call("workouts", a.jwt, "POST", input)).status, 400, JSON.stringify(input));
       assert.equal(await count("workout_sessions", a.id), 0); assert.equal(await count("operation_receipts", a.id), 0);
       const unknown = await call("workouts", a.jwt, "POST", { ...base, id: "unknown-hold", setLog: [{ ...log, durationSeconds: null }] }); assert.equal(unknown.status, 201);
-      assert.equal(unknown.body.item.resultMetrics.energy.kcal, null);
+      assert.equal("energy" in unknown.body.item.resultMetrics, false); assert.equal(unknown.body.item.resultMetrics.duration.seconds, null);
       const rep = { id: "zero-rep", source: "manual", mode: "gym", startedAt, finishedAt, recordedOn: date,
         exerciseSnapshot: [prescription("bench_press")], setLog: [{ exerciseId: "bench_press", setNumber: 1, completed: true, reps: 8, weightKg: 0 }] };
       assert.equal((await call("workouts", a.jwt, "POST", rep)).status, 201);

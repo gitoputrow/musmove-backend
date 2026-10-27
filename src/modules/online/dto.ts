@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { entityPayloadSchemas } from "@/src/modules/sync/dto";
 import { focusSchema, validateFocusPair } from "@/src/modules/programs/focus";
-import { activityCodes, sessionTimingSchema } from "@/src/modules/workouts/measurement";
+import { sessionTimingSchema } from "@/src/modules/workouts/measurement";
 
 export const versionSchema = z.string().max(19).regex(/^(0|[1-9][0-9]*)$/)
   .pipe(z.string().refine(v => BigInt(v) <= BigInt("9223372036854775807"), "Version exceeds the supported range"));
@@ -55,8 +55,6 @@ export const completedWorkoutSchema = z.object({
   note: z.string().max(2000).nullable().optional(),
   newExercises: newExercisesSchema.optional(),
   sessionTiming: sessionTimingSchema.optional(),
-  energyActivityCode: z.enum(activityCodes).optional(),
-  workoutBodyweightKg: z.number().finite().min(1).max(500).optional(),
 }).strict().superRefine((value, context) => {
   const explicit = value.exerciseSnapshot.some(e => e.mode !== undefined) || value.setLog.some(e => e.exerciseMode !== undefined);
   if (value.source === "manual" && value.mode === undefined) {

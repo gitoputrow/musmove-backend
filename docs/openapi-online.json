@@ -3295,24 +3295,6 @@
               "source"
             ],
             "additionalProperties": false
-          },
-          "energyActivityCode": {
-            "type": "string",
-            "enum": [
-              "02054",
-              "02050",
-              "02024",
-              "02022",
-              "02020",
-              "02056",
-              "02057",
-              "02035"
-            ]
-          },
-          "workoutBodyweightKg": {
-            "type": "number",
-            "minimum": 1,
-            "maximum": 500
           }
         },
         "required": [
@@ -3325,7 +3307,7 @@
           "recordedOn"
         ],
         "additionalProperties": false,
-        "description": "Measurement defaults to legacy repetitions when trackingType is absent. duration requires null target reps and targetDurationSeconds1–3600; actual setLog durationSeconds1–3600 or null/omitted unknown, null actual reps. Zero hold seconds is invalid, zero repetition count/extra load is valid. Completed may have unknown actuals; not proof all target sets were done. Manual timing optional: sessionTiming user_reported requires1–43200 seconds; timer derives positive elapsed seconds from timestamps and forbids supplied seconds. Program timing may only use timer. No timing means unknown duration, never sum holds. Optional energyActivityCode is an explicit whole-session category, not inferred from mode, with workoutBodyweightKg1–500 optional. Energy null when duration/category/age19–59/weight evidence is insufficient, >3h or no completed sets; gross estimate saved at submission. Snapshot muscleTargets supplied by client are not authoritative and are replaced by canonical data or null. resultMetrics is server-only and rejected as input. See frontend-follow-up-workout-result-metrics.md; requires migration0024 and upgraded nullable readers.",
+        "description": "Measurement defaults to legacy repetitions when trackingType is absent. duration requires null target reps and targetDurationSeconds1–3600; actual setLog durationSeconds1–3600 or null/omitted unknown, null actual reps. Zero hold seconds is invalid, zero repetition count/extra load is valid. Completed may have unknown actuals; not proof all target sets were done. Session timing is retained: manual sessionTiming user_reported requires1–43200 seconds including rest; timer derives positive elapsed seconds from timestamps and forbids supplied seconds. Program timing may only use timer. No timing means unknown duration, never sum holds. Workout calorie estimation has been removed. energyActivityCode and workoutBodyweightKg are no longer accepted (400, even if null). New resultMetrics version2 contains duration and muscles only, without energy; historical version1 reads/receipts are preserved. No profile weight/age is needed to calculate workout metrics. Snapshot muscleTargets supplied by client are not authoritative and are replaced by canonical data or null. resultMetrics is server-only and rejected as input. See frontend-follow-up-workout-without-calories.md and frontend-follow-up-workout-result-metrics.md; migration0024 remains required for result_metrics storage and nullable readers.",
         "allOf": [
           {
             "if": {
@@ -3685,12 +3667,12 @@
         ],
         "additionalProperties": false
       },
-      "WorkoutResultMetrics": {
+      "CurrentWorkoutResultMetrics": {
         "type": "object",
         "properties": {
           "version": {
             "type": "string",
-            "const": "1"
+            "const": "2"
           },
           "duration": {
             "type": "object",
@@ -3747,155 +3729,6 @@
               "reason",
               "meaning",
               "verification"
-            ],
-            "additionalProperties": false
-          },
-          "energy": {
-            "type": "object",
-            "properties": {
-              "kcal": {
-                "anyOf": [
-                  {
-                    "type": "number",
-                    "minimum": 0
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "reason": {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              },
-              "method": {
-                "type": "string",
-                "const": "standard_met_gross_v1"
-              },
-              "kind": {
-                "type": "string",
-                "const": "gross_including_resting_energy"
-              },
-              "activityCode": {
-                "anyOf": [
-                  {
-                    "type": "string",
-                    "enum": [
-                      "02054",
-                      "02050",
-                      "02024",
-                      "02022",
-                      "02020",
-                      "02056",
-                      "02057",
-                      "02035"
-                    ]
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "met": {
-                "anyOf": [
-                  {
-                    "type": "number",
-                    "exclusiveMinimum": 0
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "durationSeconds": {
-                "anyOf": [
-                  {
-                    "type": "integer",
-                    "exclusiveMinimum": 0,
-                    "maximum": 9007199254740991
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "bodyweightKg": {
-                "anyOf": [
-                  {
-                    "type": "number",
-                    "exclusiveMinimum": 0
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "bodyweightSource": {
-                "anyOf": [
-                  {
-                    "type": "string",
-                    "enum": [
-                      "workout_user_reported",
-                      "profile_at_submission"
-                    ]
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "ageYears": {
-                "anyOf": [
-                  {
-                    "type": "integer",
-                    "minimum": -9007199254740991,
-                    "maximum": 9007199254740991
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "categorySource": {
-                "anyOf": [
-                  {
-                    "type": "string",
-                    "const": "user_reported"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ]
-              },
-              "reference": {
-                "type": "string"
-              },
-              "referenceUrl": {
-                "type": "string",
-                "format": "uri"
-              },
-              "estimated": {
-                "type": "boolean",
-                "const": true
-              }
-            },
-            "required": [
-              "kcal",
-              "reason",
-              "method",
-              "kind",
-              "activityCode",
-              "met",
-              "durationSeconds",
-              "bodyweightKg",
-              "bodyweightSource",
-              "ageYears",
-              "categorySource",
-              "reference",
-              "referenceUrl",
-              "estimated"
             ],
             "additionalProperties": false
           },
@@ -4006,10 +3839,210 @@
         "required": [
           "version",
           "duration",
-          "energy",
           "muscles"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "Version2: elapsed session duration and canonical muscle coverage only. No calorie/MET estimate or bodyweight snapshot."
+      },
+      "LegacyWorkoutResultMetrics": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string",
+            "const": "1"
+          },
+          "duration": {
+            "type": "object",
+            "properties": {
+              "seconds": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 43200
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "source": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "timer",
+                      "user_reported"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "reason": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "const": "NOT_RECORDED"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "meaning": {
+                "type": "string",
+                "const": "elapsed_including_rest"
+              },
+              "verification": {
+                "type": "string",
+                "const": "client_reported"
+              }
+            },
+            "required": [
+              "seconds",
+              "source",
+              "reason",
+              "meaning",
+              "verification"
+            ],
+            "additionalProperties": false
+          },
+          "muscles": {
+            "type": "object",
+            "properties": {
+              "coverage": {
+                "type": "string",
+                "enum": [
+                  "unknown",
+                  "partial",
+                  "complete"
+                ]
+              },
+              "primary": {
+                "maxItems": 14,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "chest",
+                    "shoulders",
+                    "biceps",
+                    "triceps",
+                    "forearms",
+                    "abs",
+                    "obliques",
+                    "upperBack",
+                    "lats",
+                    "lowerBack",
+                    "glutes",
+                    "quadriceps",
+                    "hamstrings",
+                    "calves"
+                  ]
+                }
+              },
+              "secondary": {
+                "maxItems": 14,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "chest",
+                    "shoulders",
+                    "biceps",
+                    "triceps",
+                    "forearms",
+                    "abs",
+                    "obliques",
+                    "upperBack",
+                    "lats",
+                    "lowerBack",
+                    "glutes",
+                    "quadriceps",
+                    "hamstrings",
+                    "calves"
+                  ]
+                }
+              },
+              "completedExerciseCount": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 12
+              },
+              "unknownExercises": {
+                "maxItems": 12,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 255
+                    },
+                    "mode": {
+                      "type": "string",
+                      "enum": [
+                        "gym",
+                        "calisthenics"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "mode"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "mappingVersion": {
+                "type": "string",
+                "const": "1"
+              }
+            },
+            "required": [
+              "coverage",
+              "primary",
+              "secondary",
+              "completedExerciseCount",
+              "unknownExercises",
+              "mappingVersion"
+            ],
+            "additionalProperties": false
+          },
+          "energy": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {},
+            "description": "Retired opaque energy snapshot. Historical reads only; ignore in UI. Never generated for new workouts."
+          }
+        },
+        "required": [
+          "version",
+          "duration",
+          "muscles",
+          "energy"
+        ],
+        "additionalProperties": false,
+        "deprecated": true,
+        "description": "Version1 immutable historical snapshot only. Ignore retired energy in the UI. Original reads/receipts are preserved, never recalculated."
+      },
+      "WorkoutResultMetrics": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/CurrentWorkoutResultMetrics"
+          },
+          {
+            "$ref": "#/components/schemas/LegacyWorkoutResultMetrics"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "version"
+        }
       },
       "UserPreferences": {
         "type": "object",

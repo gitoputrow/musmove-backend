@@ -1,7 +1,7 @@
 # Follow-up mobile: workout disimpan hanya setelah selesai
 
 Pembaruan26 Oktober2026: gunakan [kontrak hasil workout](frontend-follow-up-workout-result-metrics.md)
-untuk target/actual waktu tahan, timing sesi, kalori/otot kanonis, nullable metrics,
+untuk target/actual waktu tahan, timing sesi, otot kanonis, nullable metrics,
 migrasi0024 dan urutan rollout. Contoh reps lama di bawah tetap kompatibel.
 
 Pembaruan 23 Oktober 2026: manual baru dapat berisi exercise lintas mode profil.

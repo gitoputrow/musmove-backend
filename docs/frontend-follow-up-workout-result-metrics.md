@@ -1,4 +1,11 @@
-# Follow-up frontend: hasil workout, waktu tahan, kalori dan otot
+# Follow-up frontend: hasil workout, waktu tahan, volume dan otot
+
+Pembaruan **27 Oktober 2026**: estimasi kalori workout dibatalkan. Hasil baru
+memakai metrics **version2**, hanya duration/muscles tanpa energy. Input
+energyActivityCode/workoutBodyweightKg dihapus (400 jika tetap dikirim).
+**Durasi total sesi tetap ada.** Lihat
+[follow-up tanpa kalori](frontend-follow-up-workout-without-calories.md) untuk
+perubahan UI, kompatibilitas metrics1 historis dan rollout.
 
 Tanggal: 26 Oktober 2026. Mengikuti `backend-workout-result-metrics-request.md`.
 Source backend selesai; **bukan klaim deployment**. Migrasi0024 belum dijalankan
@@ -89,8 +96,6 @@ tambahkan programId/mode sesi dan hilangkan mode per exercise/exerciseMode per l
   "finishedAt": "2026-10-26T07:30:00+07:00",
   "recordedOn": "2026-10-26",
   "sessionTiming": { "source": "user_reported", "durationSeconds": 1800 },
-  "energyActivityCode": "02035",
-  "workoutBodyweightKg": 70,
   "exerciseSnapshot": [
     { "id": "bench_press", "mode": "gym", "idLabel": "Bench press barbel", "enLabel": "Barbell bench press", "requirements": [["barbell", "bench"]], "sets": 2, "reps": 10, "targetWeightKg": null, "trackingType": "repetitions" },
     { "id": "plank", "mode": "calisthenics", "idLabel": "Plank lengan bawah", "enLabel": "Forearm plank", "requirements": [[]], "sets": 2, "reps": null, "targetWeightKg": null, "trackingType": "duration", "targetDurationSeconds": 30 }
@@ -104,22 +109,21 @@ tambahkan programId/mode sesi dan hilangkan mode per exercise/exerciseMode per l
 }
 ```
 
-Nilai hanya contoh pelaporan, bukan anjuran latihan. Activity code harus benar-benar
-dipilih sesuai jenis sesi; jangan hardcode02035 untuk semua sesi/mixed.
+Nilai hanya contoh pelaporan, bukan anjuran latihan. Tidak ada input MET,
+jenis aktivitas tambahan, atau berat badan khusus workout.
 
 Respons201 tetap `{item,exercises}`. Item memuat snapshot/log kanonis beserta
-`resultMetrics` yang disimpan, termasuk durasi, energi, dan cakupan otot.
+`resultMetrics` version2 yang disimpan, termasuk durasi dan cakupan otot.
 Gunakan item dari ACK ini atau GET histori untuk hasil tersimpan. Jika preview
-dibuka sebelum submit/ACK, kalori backend belum tersedia dan tetap `—`; jangan
-membuat request estimasi terpisah atau rumus fallback. Retry submit yang hasilnya
+dibuka sebelum submit/ACK, tampilkan durasi/volume dari draft dengan label belum
+tersimpan; jangan menampilkan kalori atau membuat request preview. Retry submit yang hasilnya
 belum pasti tetap mengikuti key/body sama, bukan dianggap selesai tanpa ACK.
-Potongan hasil contoh, dengan asumsi profil ageYears25 dan input valid:
+Potongan hasil contoh, tanpa ketergantungan berat/usia profil:
 
 ```json
 {
-  "version": "1",
+  "version": "2",
   "duration": { "seconds": 1800, "source": "user_reported", "reason": null, "meaning": "elapsed_including_rest", "verification": "client_reported" },
-  "energy": { "kcal": 183.8, "reason": null, "method": "standard_met_gross_v1", "kind": "gross_including_resting_energy", "activityCode": "02035", "met": 5, "durationSeconds": 1800, "bodyweightKg": 70, "bodyweightSource": "workout_user_reported", "ageYears": 25, "categorySource": "user_reported", "reference": "2024 Adult Compendium (ages 19–59)", "referenceUrl": "https://pacompendium.com/conditioning-exercise/", "estimated": true },
   "muscles": { "coverage": "complete", "primary": ["abs", "chest"], "secondary": ["lowerBack", "obliques", "shoulders", "triceps"], "completedExerciseCount": 2, "unknownExercises": [], "mappingVersion": "1" }
 }
 ```
@@ -128,49 +132,18 @@ Contoh log tetap dua reps berbeda dan dua waktu tahan berbeda setelah roundtrip.
 Ringkasan mobile:4 completed set;18 repetisi;760 kg volume eksternal repetisi;
 75 detik hold;30 menit elapsed. Cakupan metrik berbeda, jangan dijumlahkan silang.
 
-## 4. Estimasi energi: metode, input dan batas
+## 4. Estimasi energi dibatalkan
 
-`kcal = MET × 3.5 × bodyweightKg ÷ 200 × menit sesi`, dibulatkan1 desimal.
-Ini **gross estimate**, termasuk energi istirahat metabolik, bukan active/net
-calories atau hasil pengukuran sensor. Jangan tampilkan sebagai angka pasti atau
-otomatis menambahkan/menguranginya dari target nutrisi/budget makanan.
+Backend tidak lagi menghitung estimasi kalori/MET workout atau membaca profil
+untuk input energi. Submit baru tidak menerima energyActivityCode maupun
+workoutBodyweightKg. Metrics2 tidak mempunyai key energy, termasuk energy null.
+Mobile menghapus tampilan kalori workout, bukan menggantinya dengan0/—, serta
+tetap mempertahankan durasi, volume, set/reps, hold dan peta otot.
 
-Pilihan activity code pada POST (kategori seluruh sesi, dilaporkan user):
-
-| Code | Label ringkas mobile | MET |
-| --- | --- | --- |
-| 02054 | Resistance, beberapa gerakan8–15 reps | 3.5 |
-| 02050 | Weight lifting, vigorous | 6 |
-| 02024 | Calisthenics, light | 2.8 |
-| 02022 | Calisthenics, moderate | 3.8 |
-| 02020 | Calisthenics, vigorous | 7.5 |
-| 02056 | Bodyweight resistance, general | 3 |
-| 02057 | Bodyweight resistance, high intensity | 6.5 |
-| 02035 | Circuit, moderate | 5 |
-
-Backend tidak menerima angka MET/kcal dari client. Mode, goal, gender, nama
-gerakan, kg volume dan total hold tidak digunakan untuk menebak kategori atau
-intensitas. Elapsed dengan istirahat panjang dapat membuat estimasi kategori
-kurang representatif; belum ada segmentasi intensitas/rest atau estimasi tiap set.
-
-Untuk v1, usia profil19–59 dan durasi energi maksimal3 jam, berat1–500 kg.
-Ini batas penerapan produk/reference, bukan batas kemampuan manusia. Bila ada
-workoutBodyweightKg, itu berat saat workout yang dilaporkan user. Tanpanya,
-berat profil saat submit hanya dipakai jika finishedAt dalam24 jam dari server.
-Catatan lebih lama perlu berat workout eksplisit; jangan memakai berat profil
-sekarang seolah-olah berat historis. Age/source/input disimpan bersama hasil.
-
-kcal null dengan reason: DURATION_UNKNOWN, ACTIVITY_REQUIRED, AGE_REQUIRED,
-AGE_OUTSIDE_REFERENCE, BODYWEIGHT_REQUIRED, WORKOUT_BODYWEIGHT_REQUIRED,
-BODYWEIGHT_OUT_OF_SCOPE, DURATION_OUT_OF_SCOPE, NO_COMPLETED_SETS, atau
-FUTURE_WORKOUT. Reason dipilih berurutan sesuai input yang belum memenuhi aturan.
-Durasi dan activity code yang valid tetap bisa tersimpan saat energi null.
-Tampilkan `—` + alasan singkat; jangan membuat formula fallback di mobile.
-
-Sumber: [kategori/MET Compendium2024](https://pacompendium.com/conditioning-exercise/),
-[cakupan usia19–59](https://pacompendium.com/adult-compendium/),
-[batas ketepatan MET individual](https://pacompendium.com/corrected-mets/), dan
-[rumus energi ACE](https://www.acefitness.org/resources/pros/expert-articles/6434/5-things-to-know-about-metabolic-equivalents/).
+Metrics1 historis dengan energy tetap dapat dibaca sebagai snapshot opaque,
+tetapi harus diabaikan di UI. Snapshot/receipt lama tidak ditulis ulang.
+Kalori makanan, kebutuhan kalori/protein dan berat profil nutrisi tidak berubah.
+Lihat [detail transisi frontend](frontend-follow-up-workout-without-calories.md).
 
 ## 5. Diagram otot: snapshot kanonis dan unknown
 
@@ -226,9 +199,13 @@ knownDurationMinutes adalah subtotal yang **berlabel jelas**, bukan total lengka
 workoutsMissingDuration menghitung yang belum diketahui. Jangan menjumlahkan
 durationMinutes null sebagai0. Semua mode tetap dihitung satu sesi, bukan dua.
 
-ResultMetrics lama null/absent tetap unknown. Migrasi tidak mengisi elapsed,
+ResultMetrics lama null/absent tetap unknown; metrics1 historis tetap dibaca
+tanpa menampilkan energy. Submit baru selalu metrics2. Migrasi tidak mengisi elapsed,
 kalori, anatomi, jenis baru, atau waktu per set pada JSON histori lama. Receipt
-lama direplay persis, termasuk bila belum ada resultMetrics/exercises. Setelah
+lama direplay persis jika body masih lolos kontrak saat ini, termasuk bila belum
+ada resultMetrics/exercises. Payload retry lama dengan key energi memerlukan
+rekonsiliasi sebagaimana [panduan transisi](frontend-follow-up-workout-without-calories.md).
+Setelah
 sukses commit, snapshot, log, metode, input dan hasil tidak berubah oleh profil,
 katalog/program, atau pembaruan rumus. Timeout hasil belum pasti →retry **body,
 workout ID dan key sama**, bukan GET preview atau key baru. Validasi/DB gagal
@@ -252,7 +229,7 @@ baru. Nullable defaultReps katalog baru dan nullable statistik mematahkan asumsi
 parser lama; jangan jalankan seed/deploy sepihak saat pembaca lama masih dipakai.
 Sesudah time-based data tersimpan, rollback ke validator reps-only tidak aman.
 
-Status pekerjaan: source/kontrak dan tes lokal selesai; **migrasi0024 belum
+Status historis pekerjaan26 Oktober: source/kontrak dan tes lokal selesai; **migrasi0024 belum
 dijalankan pada Neon, belum push/deploy Vercel, tidak mengubah Flutter**.
 Migrasi0023 sebelumnya sudah diterapkan; itu bukan dukungan metrics0024.
 
@@ -261,7 +238,7 @@ tercatat, hanya0024 tertunda, tidak ada hash tidak dikenal. Kolom result_metrics
 belum ada. Jangan deploy source baru sebelum koordinasi reader dan penerapan0024.
 Tidak ada write ke database Neon dalam pekerjaan metrics ini.
 
-Verifikasi lokal:43 tes online/kontrak/migrasi,26 program,12 follow-up,
+Verifikasi historis implementasi26 Oktober (sebelum penghapusan kalori):43 tes online/kontrak/migrasi,26 program,12 follow-up,
 11 onboarding,16 auth,10 security,11 equipment dan5 movement-tag lolos;
 schema smoke, lint/typecheck, secret pattern scan dan referensi OpenAPI diperiksa.
 Seluruh mutasi tes memakai PGlite/identitas sintetis, bukan akun/Neon/email nyata.

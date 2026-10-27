@@ -1,6 +1,6 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import type { z } from "zod";
-import { profiles, workoutProgramCatalog } from "@/src/db/schema";
+import { workoutProgramCatalog } from "@/src/db/schema";
 import { ApiError, badRequest } from "@/src/lib/api-error";
 import { entityPayloadSchemas } from "@/src/modules/sync/dto";
 import { completedWorkoutSchema } from "./dto";
@@ -36,8 +36,7 @@ export function recordCompletedWorkout(userId: string, key: string, input: z.inf
       await canonicalExercises(ctx.tx, userId, input.mode!, input.exerciseSnapshot, true);
     const modes = new Set(input.exerciseSnapshot.map(exercise => exercise.mode));
     const mode = explicitManual ? (modes.size === 1 ? input.exerciseSnapshot[0].mode! : "mixed") : input.mode!;
-    const [profile] = await ctx.tx.select({ ageYears: profiles.ageYears, weightKg: profiles.weightKg }).from(profiles).where(and(eq(profiles.userId, userId), isNull(profiles.deletedAt)));
-    const resultMetrics = buildResultMetrics(input, profile, mode, exercises, input.setLog);
+    const resultMetrics = buildResultMetrics(input, mode, exercises, input.setLog);
     const data = entityPayloadSchemas.workout_session.parse({ planId: input.programId ?? "manual", mode, status: "completed",
       startedAt: input.startedAt, finishedAt: input.finishedAt, recordedOn: input.recordedOn,
       exerciseSnapshot: exercises, setLog: input.setLog,

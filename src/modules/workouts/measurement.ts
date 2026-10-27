@@ -8,22 +8,24 @@ export const muscleTargetsSchema = z.object({
   secondary: z.array(z.enum(muscleAreas)).max(14),
 }).strict().refine(v => new Set([...v.primary, ...v.secondary]).size === v.primary.length + v.secondary.length, "Muscle areas must be unique");
 export type MuscleTargets = z.infer<typeof muscleTargetsSchema>;
-export const activityCodes = ["02054", "02050", "02024", "02022", "02020", "02056", "02057", "02035"] as const;
 export const sessionTimingSchema = z.object({
   source: z.enum(["timer", "user_reported"]), durationSeconds: z.number().int().min(1).max(43200).optional(),
 }).strict().superRefine((v, ctx) => {
   if ((v.source === "user_reported") !== (v.durationSeconds !== undefined)) ctx.addIssue({ code: "custom", message: "user_reported requires seconds; timer uses actual startedAt/finishedAt only" });
 });
-export const resultMetricsSchema = z.object({
-  version: z.literal("1"),
+const resultMetricFields = {
   duration: z.object({ seconds: z.number().int().min(1).max(43200).nullable(), source: z.enum(["timer", "user_reported"]).nullable(), reason: z.literal("NOT_RECORDED").nullable(), meaning: z.literal("elapsed_including_rest"), verification: z.literal("client_reported") }).strict(),
-  energy: z.object({ kcal: z.number().nonnegative().nullable(), reason: z.string().nullable(), method: z.literal("standard_met_gross_v1"), kind: z.literal("gross_including_resting_energy"),
-    activityCode: z.enum(activityCodes).nullable(), met: z.number().positive().nullable(), durationSeconds: z.number().int().positive().nullable(), bodyweightKg: z.number().positive().nullable(),
-    bodyweightSource: z.enum(["workout_user_reported", "profile_at_submission"]).nullable(), ageYears: z.number().int().nullable(), categorySource: z.literal("user_reported").nullable(),
-    reference: z.string(), referenceUrl: z.url(), estimated: z.literal(true) }).strict(),
   muscles: z.object({ coverage: z.enum(["unknown", "partial", "complete"]), primary: z.array(z.enum(muscleAreas)).max(14), secondary: z.array(z.enum(muscleAreas)).max(14), completedExerciseCount: z.number().int().min(0).max(12),
     unknownExercises: z.array(z.object({ id: z.string().min(1).max(255), mode: z.enum(["gym", "calisthenics"]) }).strict()).max(12), mappingVersion: z.literal("1") }).strict(),
+};
+export const currentResultMetricsSchema = z.object({ version: z.literal("2"), ...resultMetricFields }).strict();
+// Read-only compatibility for immutable historical snapshots/receipts. No code
+// computes or creates this retired energy payload; clients must not display it.
+export const legacyResultMetricsSchema = z.object({
+  version: z.literal("1"), ...resultMetricFields,
+  energy: z.record(z.string(), z.unknown()).describe("Retired opaque energy snapshot. Historical reads only; ignore in UI. Never generated for new workouts."),
 }).strict();
+export const resultMetricsSchema = z.discriminatedUnion("version", [currentResultMetricsSchema, legacyResultMetricsSchema]);
 export function validPrescription(v: { trackingType?: string; reps: number | null; targetDurationSeconds?: number | null }) {
   return v.trackingType === "duration" ? v.reps === null && v.targetDurationSeconds != null : v.reps !== null && v.targetDurationSeconds == null;
 }

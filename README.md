@@ -147,8 +147,11 @@ advance `catalogVersion` through a database trigger. Exercise requirements are
 equipment keys; each inner array is one acceptable combination. The catalog
 adds two explicitly timed forearm plank entries after migration0024 (119 total).
 Readers must support nullable defaultReps plus trackingType/defaultDurationSeconds.
-Workout result snapshots, timing provenance, gross MET estimates and canonical
+Workout result snapshots, timing provenance, external load volume and canonical
 muscle targets are documented in the [result metrics contract](docs/frontend-follow-up-workout-result-metrics.md).
+Workout calorie estimates were removed on27 October2026; new metrics version2
+retain duration and muscles, without energy or extra activity/bodyweight inputs.
+See the [frontend removal handoff](docs/frontend-follow-up-workout-without-calories.md).
 Migration0024 is prepared, not applied/deployed by this task; coordinate readers first.
 
 Every exercise has explicitly reviewed, nonempty `movement_tags` for body-region
