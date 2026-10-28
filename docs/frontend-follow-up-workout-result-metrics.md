@@ -7,6 +7,10 @@ energyActivityCode/workoutBodyweightKg dihapus (400 jika tetap dikirim).
 [follow-up tanpa kalori](frontend-follow-up-workout-without-calories.md) untuk
 perubahan UI, kompatibilitas metrics1 historis dan rollout.
 
+Pembaruan **28 Oktober 2026**: migrasi0025 menambahkan enam variasi chest press
+plate-loaded dan tiga alat spesifik. Jumlah seed setelah0025 menjadi125 exercise;
+119 di bawah adalah jumlah setelah0024, sebelum penambahan tersebut.
+
 Tanggal: 26 Oktober 2026. Mengikuti `backend-workout-result-metrics-request.md`.
 Source backend selesai; **bukan klaim deployment**. Migrasi0024 belum dijalankan
 oleh pekerjaan ini. Persiapan parser nullable/duration diperlukan sebelum rollout.

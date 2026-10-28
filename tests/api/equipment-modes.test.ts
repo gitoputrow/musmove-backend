@@ -31,11 +31,11 @@ test("Every persisted equipment is classified; migration preserves IDs/aliases a
     assert.equal(BigInt((await local.query<{ version: string }>("SELECT version::text FROM catalog_state WHERE name='equipment'")).rows[0].version), BigInt(version) + BigInt(1));
     for (const migration of migrations.slice(index + 1)) for (const statement of migration.sql) await local.exec(statement);
     globalDb.musmoveDatabase = drizzle(local, { schema }) as unknown as Database;
-    const catalog = await getEquipmentCatalog(); assert.equal(catalog.equipment.length, 28);
+    const catalog = await getEquipmentCatalog(); assert.equal(catalog.equipment.length, 31);
     for (const item of catalog.equipment) {
       assert.deepEqual(item.modes, shared.includes(item.id) ? ["gym", "calisthenics"] : calisthenicsOnly.includes(item.id) ? ["calisthenics"] : ["gym"]);
     }
-    assert.equal((await getEquipmentCatalog(undefined, "gym")).equipment.length, 26);
+    assert.equal((await getEquipmentCatalog(undefined, "gym")).equipment.length, 29);
     assert.equal((await getEquipmentCatalog(undefined, "calisthenics")).equipment.length, 8);
     assert.equal((await getEquipmentCatalog("dambel", "calisthenics")).matchType, "no_match");
     assert.deepEqual((await getEquipmentCatalog("dambel", "gym")).equipment[0].modes, ["gym"]);

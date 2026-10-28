@@ -1,5 +1,9 @@
 # Exercise movement tags
 
+Setelah migrasi0024 dan0025 terdapat 125 exercise (95 gym, 30 calisthenics).
+Enam chest press plate-loaded baru menggunakan tag `shoulder`, `elbow`, `wrist`;
+target otot disimpan terpisah sebagai `muscleTargets`, bukan disimpulkan dari tag.
+
 Seluruh 117 exercise (88 gym, 29 calisthenics), termasuk yang nonaktif, diberi
 pemetaan eksplisit berdasarkan pasangan mode/id pada migrasi
 `0011_complete_exercise_movement_tags.sql`. Sebelumnya 95 record belum memiliki

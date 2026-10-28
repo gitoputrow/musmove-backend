@@ -176,6 +176,13 @@
       "when": 1791657682445,
       "tag": "0024_workout_result_metrics",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1791657682446,
+      "tag": "0025_plate_loaded_chest_press",
+      "breakpoints": true
     }
   ]
 }

@@ -426,7 +426,7 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
       const a = await account(), b = await account(), before = (await call("me", a.jwt)).body;
       const changeCursor = (await bootstrap(a.id)).cursor;
       const catalog = await call("catalog/exercises"); assert.equal(catalog.status, 200);
-      assert.equal(catalog.body.exercises.length, 119);
+      assert.equal(catalog.body.exercises.length, 125);
       assert.deepEqual([...new Set(catalog.body.exercises.map((e: { mode: string }) => e.mode))].sort(), ["calisthenics", "gym"]);
       const input = { id: "mixed-manual", source: "manual", startedAt, finishedAt, recordedOn: date,
         exerciseSnapshot: [{ ...prescription("bench_press"), mode: "gym" }, { ...prescription("pullup"), mode: "calisthenics" }],

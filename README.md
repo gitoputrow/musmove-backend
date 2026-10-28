@@ -126,7 +126,7 @@ Production uses shared PostgreSQL rate limits and refuses incomplete security
 configuration. `vercel.json` blocks deployment until `npm run security:check`
 passes; do not bypass it with owner credentials or placeholder secrets.
 
-`equipment_catalog` contains 28 canonical tools and name aliases. Exercise
+`equipment_catalog` contains 31 canonical tools and name aliases after migration0025. Exercise
 links reuse existing `requirements` AND/OR groups; reference protection
 prevents dangling keys. The private photo API validates/normalizes uploads
 and calls a separate pinned SigLIP 2 Python service, without storing photos.
@@ -146,13 +146,17 @@ mode. The public API reads active records from Neon; catalog edits automatically
 advance `catalogVersion` through a database trigger. Exercise requirements are
 equipment keys; each inner array is one acceptable combination. The catalog
 adds two explicitly timed forearm plank entries after migration0024 (119 total).
+Migration0025 adds six named gym plate-loaded chest press entries (125 total)
+and three angle-specific plate-loaded machines. Exact existing IDs or normalized
+English labels are kept instead of overwritten or duplicated.
 Readers must support nullable defaultReps plus trackingType/defaultDurationSeconds.
 Workout result snapshots, timing provenance, external load volume and canonical
 muscle targets are documented in the [result metrics contract](docs/frontend-follow-up-workout-result-metrics.md).
 Workout calorie estimates were removed on27 October2026; new metrics version2
 retain duration and muscles, without energy or extra activity/bodyweight inputs.
 See the [frontend removal handoff](docs/frontend-follow-up-workout-without-calories.md).
-Migration0024 is prepared, not applied/deployed by this task; coordinate readers first.
+Migration0024 must be present before the nullable/duration catalog is deployed;
+coordinate older mobile readers before applying catalog changes.
 
 Every exercise has explicitly reviewed, nonempty `movement_tags` for body-region
 and movement restrictions. Database constraints reject missing, empty, null-item
