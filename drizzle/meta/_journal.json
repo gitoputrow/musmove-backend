@@ -183,6 +183,13 @@
       "when": 1791657682446,
       "tag": "0025_plate_loaded_chest_press",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1791657682447,
+      "tag": "0026_lat_pulldown_plate_rows",
+      "breakpoints": true
     }
   ]
 }

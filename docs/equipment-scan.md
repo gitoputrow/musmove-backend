@@ -32,8 +32,8 @@ GET /api/v1/catalog/equipment?q=dambel
 GET /api/v1/catalog/equipment?q=bar
 GET /api/v1/catalog/equipment?mode=gym
 GET /api/v1/catalog/equipment?mode=calisthenics&q=bar
-GET /api/v1/equipment/exercises?equipmentIds=dumbbell&mode=gym
-GET /api/v1/equipment/exercises?equipmentIds=dumbbell,bench&mode=gym
+GET /api/v1/catalog/exercises?equipmentIds=dumbbell&mode=gym
+GET /api/v1/catalog/exercises?equipmentIds=dumbbell,bench&mode=gym
 ```
 
 ### Jenis alat gym dan kalistenik (migrasi 0020)
@@ -63,8 +63,7 @@ Contoh item (alias dipersingkat):
 
 Filter `mode` opsional menerima `gym` atau `calisthenics`. Alat bersama muncul
 di kedua filter. Filter diterapkan sebelum pencarian nama; parameter tidak
-valid atau berulang ditolak 400. `selectedEquipment` pada pencocokan exercise
-juga memuat `modes`. Hubungan exercise tetap memakai requirements AND/OR,
+valid atau berulang ditolak 400. Hubungan exercise tetap memakai requirements AND/OR,
 bukan ditebak hanya dari kategori alat; metadata ini tidak mengubah program user.
 
 Migration `0020_equipment_modes` mengisi seluruh 28 alat, menolak modes kosong,
@@ -85,22 +84,12 @@ gitignored `.local-backups/migration-0019-meal-columns-2026-10-19.json`.
 Security preflight lokal lolos. API Vercel perlu redeploy source terbaru agar
 respons equipment mengirim `modes` dan menerima filter `mode`.
 
-`GET /api/v1/equipment/exercises` (public) memerlukan 1–32 ID alat aktif,
-dipisahkan koma, tanpa duplikat. `mode` opsional (`gym`, `calisthenics`).
-Response mencakup `equipmentCatalogVersion`, `exerciseCatalogVersion`,
-`selectedEquipment`, `ready`, `needsMoreEquipment`, `warnings`.
-Kedua bucket berisi ID/mode, label Indonesia/English, default sets/reps,
-requirements dan `missingEquipmentOptions`. Alternatif missing equipment
-yang redundan dihilangkan tanpa merusak aturan AND/OR.
-
-`ready` **hanya** berarti kebutuhan alat lengkap sesuai pilihan user, bukan
-jaminan kemampuan/kesehatan user atau rekomendasi program personal.
-Dumbbell Curl/Floor Press dapat lengkap dengan dumbbell saja; Dumbbell Bench
-Press masih perlu bench. Mesin yang mirip tidak otomatis dianggap interchangeable.
-Latihan bodyweight tanpa requirement tidak dimasukkan sebagai hasil setiap alat.
-Matras bersifat opsional pada katalog sekarang, jadi `mat` dikenali tetapi
-belum menghasilkan latihan yang secara eksplisit mensyaratkannya. Tidak
-mengarang requirement matras pada semua latihan lantai.
+Pencarian exercise berdasarkan alat kini menggunakan `GET /api/v1/catalog/exercises?equipmentIds=...`.
+Hasil hanya menunjukkan exercise terkait dengan sedikitnya satu alat pilihan,
+bukan jaminan semua kebutuhan alat terpenuhi atau rekomendasi personal. Endpoint
+lama `/equipment/exercises` dan bucket `ready`/`needsMoreEquipment` dihapus.
+Lihat [panduan filter exercise](panduan-frontend-filter-exercise.md) untuk
+kontrak dan migrasi frontend.
 
 ## API foto dan konfirmasi
 

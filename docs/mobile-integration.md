@@ -328,10 +328,9 @@ Key payload memakai camelCase; nama kolom SQL snake_case bukan kontrak request.
 | GET | `/auth/token` | Session | JWT akses data dan envelope session terbaru |
 | POST | `/auth/sign-out` | Session | Logout provider; tanpa body/query |
 | POST | `/auth/request-password-reset` | Publik | Permintaan reset email dengan callback server-owned |
-| GET | `/catalog/exercises` | Publik | Semua exercise aktif dan versi katalog |
+| GET | `/catalog/exercises` | Publik | Exercise aktif; filter `equipment`, `equipmentIds`, dan `mode` opsional |
 | GET | `/catalog/programs` | Publik | Template program, bukan hasil personalisasi |
 | GET | `/catalog/equipment` | Publik | Semua alat atau pencarian `q` |
-| GET | `/equipment/exercises` | Publik | Exercise sesuai `equipmentIds` dan optional `mode` |
 | GET | `/catalog/meals` | Publik | Katalog pangan, search/filter/pagination |
 | GET | `/catalog/places` | Publik | Tempat, filter/pagination/jarak opsional |
 | GET | `/me` | Privat | Identitas akun backend saat ini |
@@ -380,7 +379,7 @@ Contoh query yang valid:
 ```text
 /catalog/meals?q=tempe&foodGroup=legumes&limit=50&offset=0
 /catalog/equipment?q=dambel
-/equipment/exercises?equipmentIds=dumbbell,bench&mode=gym
+/catalog/exercises?equipmentIds=dumbbell,bench&mode=gym
 /catalog/places?mode=gym&gymCategory=conventional&dayPassAvailable=true
 /places?latitude=-6.2&longitude=106.8&radiusKm=5&limit=50&offset=0
 /meals?date=2026-10-17&limit=50&offset=0
@@ -729,7 +728,8 @@ bukan Rp0. Demo tidak memiliki priceDetails dan tetap ilustrasi.
 - `/catalog/places` untuk guest; `/places` untuk akun dengan `isFavorite`.
   Favorit disimpan lewat push seperti bagian 5.5, bukan POST `/places`.
 - Scan nama memakai `/catalog/equipment?q=...`; user memilih ID kanonis,
-  lalu panggil `/equipment/exercises?equipmentIds=...`.
+  lalu panggil `/catalog/exercises?equipmentIds=...`. Respons tidak lagi
+  berisi `ready` atau `needsMoreEquipment`; lihat panduan filter exercise.
 - Scan foto memakai satu field multipart `photo`, JWT API, JPEG/PNG/static WebP,
   maksimal 4 MiB dan 16 Mi-pixels. Kompres di mobile sebelum upload; jangan base64
   atau mengirim URL foto. Jangan mengirim token service AI dari mobile.

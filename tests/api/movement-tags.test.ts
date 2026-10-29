@@ -9,10 +9,10 @@ function tags(mode: "gym" | "calisthenics", id: string) {
   return row.tags;
 }
 
-test("125 explicit unique annotations, all using nonempty known tags", () => {
-  assert.equal(reviewedMovementTags.length, 125);
-  assert.equal(new Set(reviewedMovementTags.map((r) => `${r.mode}/${r.id}`)).size, 125);
-  assert.equal(reviewedMovementTags.filter((r) => r.mode === "gym").length, 95);
+test("130 explicit unique annotations, all using nonempty known tags", () => {
+  assert.equal(reviewedMovementTags.length, 130);
+  assert.equal(new Set(reviewedMovementTags.map((r) => `${r.mode}/${r.id}`)).size, 130);
+  assert.equal(reviewedMovementTags.filter((r) => r.mode === "gym").length, 100);
   assert.equal(reviewedMovementTags.filter((r) => r.mode === "calisthenics").length, 30);
   assert.ok(reviewedMovementTags.every((r) => validMovementTags(r.tags)));
   assert.equal(MOVEMENT_TAGS.length, 11);

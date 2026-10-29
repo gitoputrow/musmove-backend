@@ -44,9 +44,8 @@ must never send a `userId` to select ownership. Current endpoints are:
 - `GET/DELETE /workouts/{id}` (history; no start/resume, per-set save or abort API)
 - `GET/POST /programs/custom`; `GET/PATCH/DELETE /programs/custom/{id}`
 - `GET/POST /exercises/custom`; `GET/PATCH/DELETE /exercises/custom/{id}`
-- `GET /catalog/exercises` (public and versioned)
+- `GET /catalog/exercises?equipment=plate` (public and versioned; optional category, mode and equipmentIds filters)
 - `GET /catalog/equipment?q=dambel` (public equipment catalog/name aliases)
-- `GET /equipment/exercises?equipmentIds=dumbbell,bench&mode=gym` (public equipment matches and missing tools)
 - `POST /equipment/recognize` (private multipart photo; self-hosted SigLIP 2, candidates require confirmation)
 - `GET /catalog/programs` (public template catalog)
 - `GET /programs/recommendations` (private selection using saved preferences)
@@ -126,7 +125,7 @@ Production uses shared PostgreSQL rate limits and refuses incomplete security
 configuration. `vercel.json` blocks deployment until `npm run security:check`
 passes; do not bypass it with owner credentials or placeholder secrets.
 
-`equipment_catalog` contains 31 canonical tools and name aliases after migration0025. Exercise
+`equipment_catalog` contains 35 canonical tools and name aliases after migration0026. Exercise
 links reuse existing `requirements` AND/OR groups; reference protection
 prevents dangling keys. The private photo API validates/normalizes uploads
 and calls a separate pinned SigLIP 2 Python service, without storing photos.
@@ -149,6 +148,9 @@ adds two explicitly timed forearm plank entries after migration0024 (119 total).
 Migration0025 adds six named gym plate-loaded chest press entries (125 total)
 and three angle-specific plate-loaded machines. Exact existing IDs or normalized
 English labels are kept instead of overwritten or duplicated.
+Migration0026 adds five lat-pulldown/plate-loaded row variations and four
+equipment entries, while deactivating two superseded row exercises. The catalog
+contains 130 stored exercises (128 active); historical references remain intact.
 Readers must support nullable defaultReps plus trackingType/defaultDurationSeconds.
 Workout result snapshots, timing provenance, external load volume and canonical
 muscle targets are documented in the [result metrics contract](docs/frontend-follow-up-workout-result-metrics.md).

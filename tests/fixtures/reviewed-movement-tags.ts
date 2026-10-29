@@ -15,3 +15,8 @@ if (!plateTags) throw new Error("Missing reviewed plate-loaded movement tags");
 for (const match of plateSql.matchAll(/\('([a-z_]+_plate_loaded)',\s*'[^']+',\s*'[^']+'\)/g)) {
   reviewedMovementTags.push({ mode: "gym", id: match[1], tags: ["shoulder", "elbow", "wrist"] });
 }
+// Explicit per-exercise annotations in0026; parse the migration as the source.
+const backSql = readFileSync(fileURLToPath(new URL("../../drizzle/0026_lat_pulldown_plate_rows.sql", import.meta.url)), "utf8");
+for (const match of backSql.matchAll(/\('([a-z_]+)',\s*'[^']+',\s*'[^']+',\s*ARRAY\[([^\]]+)\],\s*ARRAY\[/g)) {
+  reviewedMovementTags.push({ mode: "gym", id: match[1], tags: [...match[2].matchAll(/'([^']+)'/g)].map(tag => tag[1] as MovementTag) });
+}

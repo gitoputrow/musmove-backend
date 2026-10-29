@@ -8,14 +8,14 @@ async function main() {
   const { getPool } = await import("../../src/db/client");
   const { getEquipmentCatalog, getEquipmentExercises } = await import("../../src/modules/equipment/service");
   const catalogRoute = await import("../../app/api/v1/catalog/equipment/route");
-  const exercisesRoute = await import("../../app/api/v1/equipment/exercises/route");
+  const exercisesRoute = await import("../../app/api/v1/catalog/exercises/route");
   const photoRoute = await import("../../app/api/v1/equipment/recognize/route");
   try {
     const catalog = await getEquipmentCatalog();
-    assert.equal(catalog.equipment.length, 31);
+    assert.equal(catalog.equipment.length, 35);
     assert.equal(catalog.matchType, "catalog");
     assert.ok(catalog.equipment.every(item => item.modes.length > 0 && item.modes.every(mode => ["gym", "calisthenics"].includes(mode))));
-    assert.equal((await getEquipmentCatalog(undefined, "gym")).equipment.length, 29);
+    assert.equal((await getEquipmentCatalog(undefined, "gym")).equipment.length, 33);
     assert.equal((await getEquipmentCatalog(undefined, "calisthenics")).equipment.length, 8);
     assert.equal((await getEquipmentCatalog("dambel", "calisthenics")).equipment.length, 0);
     assert.deepEqual((await getEquipmentCatalog("palang", "calisthenics")).equipment[0].modes, ["gym", "calisthenics"]);
@@ -42,14 +42,14 @@ async function main() {
     const modeResponse = await catalogRoute.GET(new Request("http://localhost/api/v1/catalog/equipment?mode=calisthenics"));
     assert.equal(modeResponse.status, 200);
     assert.ok((await modeResponse.json()).equipment.every((item: { modes: string[] }) => item.modes.includes("calisthenics")));
-    const ex = await exercisesRoute.GET(new Request("http://localhost/api/v1/equipment/exercises?equipmentIds=dumbbell,bench&mode=gym"));
+    const ex = await exercisesRoute.GET(new Request("http://localhost/api/v1/catalog/exercises?equipmentIds=dumbbell,bench&mode=gym"));
     assert.equal(ex.status, 200);
-    assert.ok((await ex.json()).ready.some((e: { id: string }) => e.id === "flat_dumbbell_bench_press"));
-    assert.equal((await exercisesRoute.GET(new Request("http://localhost/api/v1/equipment/exercises?equipmentIds=unknown"))).status, 400);
+    assert.ok((await ex.json()).exercises.some((e: { id: string }) => e.id === "flat_dumbbell_bench_press"));
+    assert.equal((await exercisesRoute.GET(new Request("http://localhost/api/v1/catalog/exercises?equipmentIds=unknown"))).status, 400);
     assert.throws(() => equipmentExercisesSchema.parse({ equipmentIds: "dumbbell,dumbbell" }));
     assert.equal((await photoRoute.POST(new Request("http://localhost/api/v1/equipment/recognize", { method: "POST" }))).status, 401);
     assert.equal((await photoRoute.OPTIONS(new Request("http://localhost/api/v1/equipment/recognize", { method: "OPTIONS" }))).status, 204);
-    console.info("Equipment integration passed: 31 persisted tools, aliases, real exercise matches/missing tools, routes and photo authentication");
+    console.info("Equipment integration passed: 35 persisted tools, aliases, real exercise matches/missing tools, routes and photo authentication");
   } finally { await getPool().end(); }
 }
 

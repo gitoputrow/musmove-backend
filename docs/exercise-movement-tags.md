@@ -1,6 +1,8 @@
 # Exercise movement tags
 
-Setelah migrasi0024 dan0025 terdapat 125 exercise (95 gym, 30 calisthenics).
+Setelah migrasi0026 terdapat 130 exercise tersimpan (100 gym, 30 calisthenics),
+termasuk dua row nonaktif yang dipertahankan untuk histori. Lima variasi baru
+memiliki tag eksplisit pada migrasi0026. Setelah migrasi0025 terdapat 125 exercise.
 Enam chest press plate-loaded baru menggunakan tag `shoulder`, `elbow`, `wrist`;
 target otot disimpan terpisah sebagai `muscleTargets`, bukan disimpulkan dari tag.
 
