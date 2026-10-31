@@ -31,7 +31,7 @@ async function main() {
     }
 
     const equipment = await client.query<{ count: number }>("select count(*)::integer as count from equipment_catalog");
-    if (equipment.rows[0].count !== 35) throw new Error("Equipment catalog seed is incomplete");
+    if (equipment.rows[0].count !== 39) throw new Error("Equipment catalog seed is incomplete");
     const unmapped = await client.query<{ count: number }>(`
       select count(*)::integer as count from exercise_catalog e,
       jsonb_array_elements(e.requirements) g(value), jsonb_array_elements_text(g.value) key(id)
@@ -47,7 +47,7 @@ async function main() {
     const catalog = await client.query<{ count: number }>(
       "select count(*)::integer as count from exercise_catalog",
     );
-    if (catalog.rows[0]?.count !== 130) throw new Error("Catalog seed is incomplete");
+    if (catalog.rows[0]?.count !== 143) throw new Error("Catalog seed is incomplete");
     const taggedExercises = await client.query<{ mode: string; id: string; movement_tags: string[] }>(
       "select mode, id, movement_tags from exercise_catalog",
     );

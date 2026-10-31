@@ -12,7 +12,7 @@ const catalog: CatalogExercise[] = [
   { id: "press", mode: "gym", idLabel: "Press", enLabel: "Press", requirements: [["dumbbell"]], movementTags: ["shoulder", "wrist", "floor_transfer"] },
 ];
 const template: ProgramTemplate = {
-  id: "test", mode: "calisthenics", name: "Test", focus: "chest", durationMinutes: 20,
+  id: "test", mode: "calisthenics", name: "Test", focus: "chest",
   exercises: [{ ...catalog[0], sets: 3, reps: 10, targetWeightKg: null }],
 };
 const gymTemplate: ProgramTemplate = { ...template, mode: "gym", exercises: [{ ...catalog[3], sets: 3, reps: 10, targetWeightKg: null }] };
@@ -42,7 +42,7 @@ test("reviewed real-catalog tags distinguish floor, overhead, knee and support r
     requirements: item.id === "chair_sit_to_stand" ? [["chair"]] : [[]], movementTags: item.tags,
   }));
   function one(id: string, mode: "gym" | "calisthenics" = "gym"): ProgramTemplate {
-    return { id: `test-${id}`, name: id, mode, focus: "full", durationMinutes: 20,
+    return { id: `test-${id}`, name: id, mode, focus: "full",
       exercises: [{ id, idLabel: id, enLabel: id, sets: 2, reps: 8, targetWeightKg: null, requirements: [[]] }] };
   }
   const floor = profile({ trainingLevel: "advanced", trainingContext: { mobilityLimitations: ["floor_transfer"] } });
@@ -132,9 +132,11 @@ test("explicit inability and exclusions override experience", () => {
   assert.equal(result.programs[0].exercises[0].id, "wall_pushup");
 });
 
-test("equipment, time, age and excluded exercises gate selection", () => {
+test("equipment, age and excluded exercises gate selection, but duration does not", () => {
   assert.equal(personalizePrograms([gymTemplate], catalog, profile(), [], []).programs.length, 0);
-  assert.equal(personalizePrograms([gymTemplate], catalog, profile({ trainingLevel: "advanced", sessionMinutes: 5 }), ["dumbbell"], []).programs.length, 0);
+  const short = personalizePrograms([gymTemplate], catalog, profile({ trainingLevel: "advanced", sessionMinutes: 5 }), ["dumbbell"], []);
+  assert.equal(short.programs.length, 1);
+  assert.ok(!("durationMinutes" in short.programs[0]));
   assert.equal(personalizePrograms([template], catalog, profile({ ageYears: 15 }), [], []).reason, "ADULT_PROGRAMS_ONLY");
   assert.equal(personalizePrograms([template], catalog, profile({ ageYears: null }), [], []).reason, "AGE_REQUIRED");
   assert.equal(personalizePrograms([template], catalog, profile({ excludedExerciseIds: ["pushup", "knee_pushup", "wall_pushup"] }), [], []).programs.length, 0);

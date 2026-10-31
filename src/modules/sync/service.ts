@@ -406,7 +406,6 @@ export async function bootstrap(userId: string) {
           snapshotItem(row.id, row.version, row.updatedAt, json({
             mode: row.mode,
             name: row.name,
-            durationMinutes: row.durationMinutes,
             weekday: row.weekday,
             exercisePrescriptions: row.exercisePrescriptions,
           })),

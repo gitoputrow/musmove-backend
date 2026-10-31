@@ -4381,7 +4381,6 @@
           "mode",
           "name",
           "weekday",
-          "durationMinutes",
           "version"
         ],
         "properties": {
@@ -4401,9 +4400,6 @@
             "type": "integer",
             "minimum": 1,
             "maximum": 7
-          },
-          "durationMinutes": {
-            "type": "integer"
           },
           "version": {
             "$ref": "#/components/schemas/Version"
@@ -5388,7 +5384,6 @@
               }
             },
             "required": [
-              "durationMinutes",
               "exercisePrescriptions",
               "mode",
               "name",
@@ -5905,11 +5900,6 @@
       "CustomProgram": {
         "type": "object",
         "properties": {
-          "durationMinutes": {
-            "type": "integer",
-            "minimum": 10,
-            "maximum": 180
-          },
           "exercisePrescriptions": {
             "minItems": 1,
             "maxItems": 12,
@@ -6159,7 +6149,6 @@
           }
         },
         "required": [
-          "durationMinutes",
           "exercisePrescriptions",
           "mode",
           "name",

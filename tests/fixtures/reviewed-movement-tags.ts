@@ -20,3 +20,7 @@ const backSql = readFileSync(fileURLToPath(new URL("../../drizzle/0026_lat_pulld
 for (const match of backSql.matchAll(/\('([a-z_]+)',\s*'[^']+',\s*'[^']+',\s*ARRAY\[([^\]]+)\],\s*ARRAY\[/g)) {
   reviewedMovementTags.push({ mode: "gym", id: match[1], tags: [...match[2].matchAll(/'([^']+)'/g)].map(tag => tag[1] as MovementTag) });
 }
+const tricepsSql = readFileSync(fileURLToPath(new URL("../../drizzle/0027_triceps_lateral_tbar.sql", import.meta.url)), "utf8");
+for (const match of tricepsSql.matchAll(/\('([a-z_]+)',\s*'[^']+',\s*'[^']+',\s*ARRAY\[([^\]]+)\],\s*ARRAY\[/g)) {
+  reviewedMovementTags.push({ mode: "gym", id: match[1], tags: [...match[2].matchAll(/'([^']+)'/g)].map(tag => tag[1] as MovementTag) });
+}

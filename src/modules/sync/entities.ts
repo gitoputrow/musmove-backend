@@ -265,6 +265,8 @@ export async function upsertEntity(
     }
     case "custom_program": {
       const payload = entityPayloadSchemas.custom_program.parse(rawPayload);
+      const { durationMinutes: _legacyDuration, ...program } = payload;
+      void _legacyDuration;
       const exercisePrescriptions =
         payload.exercisePrescriptions as unknown as ExercisePrescription[];
       await transaction
@@ -272,14 +274,14 @@ export async function upsertEntity(
         .values({
           userId,
           id: entityId,
-          ...payload,
+          ...program,
           exercisePrescriptions,
           version,
         })
         .onConflictDoUpdate({
           target: [customPrograms.userId, customPrograms.id],
           set: {
-            ...payload,
+            ...program,
             exercisePrescriptions,
             version,
             updatedAt: now,
@@ -433,6 +435,11 @@ export async function resolveEntityPayload(
   payload: unknown,
   entityId?: string,
 ) {
+  if (entityType === "custom_program") {
+    const { durationMinutes: _legacyDuration, ...program } = entityPayloadSchemas.custom_program.parse(payload);
+    void _legacyDuration;
+    return program;
+  }
   if (entityType === "meal_entry") {
     if (!entityId) throw new Error("Meal resolution requires an entity ID");
     return resolveMealPayload(transaction, userId, entityId, entityPayloadSchemas.meal_entry.parse(payload));

@@ -29,7 +29,8 @@ const camel = (v: string) => v.replace(/_([a-z])/g, (_, c: string) => c.toUpperC
 
 export function columnsFor(type: OnlineEntity) {
   // Explicit DTO projection: future internal columns must not become API fields.
-  const fields = Object.keys(entityPayloadSchemas[type].shape).map(key => key === "nutrition" ? "nutrition_per_serving" : key.replace(/[A-Z]/g, c => `_${c.toLowerCase()}`));
+  const fields = Object.keys(entityPayloadSchemas[type].shape).filter(key => type !== "custom_program" || key !== "durationMinutes")
+    .map(key => key === "nutrition" ? "nutrition_per_serving" : key.replace(/[A-Z]/g, c => `_${c.toLowerCase()}`));
   return sql.join([
     ...(descriptors[type].key === "user_id" ? [] : [descriptors[type].key]), ...fields,
     ...(type === "meal_entry" ? ["calories_kcal", "protein_grams"] : []), "version", "updated_at", "deleted_at",

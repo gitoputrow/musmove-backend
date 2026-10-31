@@ -122,7 +122,7 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
       for (const slot of result.body.weeklyPlan) {
         const plan = result.body.programs.find((p: { id: string }) => p.id === slot.programId);
         assert.ok(plan); assert.equal(plan.recommendationTier, "standard"); assert.ok(plan.exercises.length >= 3);
-        assert.ok(plan.durationMinutes <= 45); assert.equal(new Set(plan.exercises.map((e: { id: string }) => e.id)).size, plan.exercises.length);
+        assert.ok(!("durationMinutes" in plan)); assert.equal(new Set(plan.exercises.map((e: { id: string }) => e.id)).size, plan.exercises.length);
         assert.ok(plan.exercises.every((e: { sets: number; targetWeightKg: number | null }) => e.sets === 2 && e.targetWeightKg === null));
       }
       assert.deepEqual((await call("me", a.jwt)).body, before);
@@ -231,7 +231,7 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
       assert.ok(multi.body.weeklyPlan.length <= single.personalization.suggestedWeeklySessions);
       assert.deepEqual(multi.body.programs.find((p: { focus: string }) => p.focus === "chest"), single.programs[0]);
       assert.equal(new Set(multi.body.programs.map((p: { id: string }) => p.id)).size, multi.body.programs.length);
-      assert.ok(multi.body.programs.every((p: { mode: string; focus: string; durationMinutes: number }) => p.mode === "gym" && ["chest", "back"].includes(p.focus) && p.durationMinutes <= 60));
+      assert.ok(multi.body.programs.every((p: { mode: string; focus: string }) => p.mode === "gym" && ["chest", "back"].includes(p.focus) && !("durationMinutes" in p)));
       assert.equal((await patch("3", { trainingFrequency: 1 })).status, 200);
       const limited = (await call("programs/recommendations", a.jwt)).body;
       assert.equal(limited.weeklyPlan.length, 1); assert.deepEqual(limited.focusCoverage.unscheduled, ["back"]);
@@ -247,9 +247,9 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
       assert.equal((await call("me", a.jwt, "PATCH", { baseVersions: { profile: "7", trainingPreferences: "2" },
         profile: { sessionMinutes: 10, trainingLevel: "advanced" }, trainingPreferences: { equipment: ["dumbbell"], noEquipment: false } })).status, 200);
       const tooLong = (await call("programs/recommendations", a.jwt)).body;
-      assert.deepEqual(tooLong.programs, []);
-      const durationRejected = tooLong.rejectedPrograms.filter((p: { reason: string }) => p.reason === "SESSION_DURATION_EXCEEDED").map((p: { programId: string }) => p.programId);
-      assert.ok(durationRejected.includes("app-gym-chest-v1")); assert.ok(durationRejected.includes("app-gym-back-v1"));
+      assert.ok(tooLong.programs.length > 0);
+      assert.ok(tooLong.programs.every((p: object) => !("durationMinutes" in p)));
+      assert.ok(tooLong.rejectedPrograms.every((p: { reason: string }) => p.reason !== "SESSION_DURATION_EXCEEDED"));
       assert.equal((await call("me", a.jwt, "PATCH", { baseVersions: { profile: "8", trainingPreferences: "3" },
         profile: { sessionMinutes: 60, trainingLevel: "beginner" }, trainingPreferences: { mode: "calisthenics", equipment: [], noEquipment: true } })).status, 200);
       const calisthenics = (await call("programs/recommendations", a.jwt)).body;
@@ -307,8 +307,28 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
       const retry = await call("me", a.jwt, "PATCH", input, key); assert.equal(retry.status, 200); assert.deepEqual(retry.body.profile.focusAreas, ["chest", "back"]);
     });
 
+    await t.test("Custom programs no longer require or expose estimated duration; historical values stay intact", async () => {
+      const a = await account();
+      const data = program("press", 1);
+      const { durationMinutes: _old, ...withoutDuration } = data; void _old;
+      const created = await call("programs/custom", a.jwt, "POST", { id: "duration-free", data: withoutDuration });
+      assert.equal(created.status, 201, JSON.stringify(created.body));
+      assert.ok(!("durationMinutes" in created.body.item));
+      const stored = await local.query<{ duration_minutes: number | null }>("SELECT duration_minutes FROM custom_programs WHERE user_id=$1 AND id=$2", [a.id, "duration-free"]);
+      assert.equal(stored.rows[0].duration_minutes, null);
+      assert.ok(!("durationMinutes" in (await call("programs/custom/duration-free", a.jwt)).body.item));
+      assert.ok(!("durationMinutes" in (await call("programs/custom", a.jwt)).body.items[0]));
+      await local.query("UPDATE custom_programs SET duration_minutes=40 WHERE user_id=$1 AND id=$2", [a.id, "duration-free"]);
+      const updated = await call("programs/custom/duration-free", a.jwt, "PATCH", { baseVersion: "1", changes: { name: "Updated" } });
+      assert.equal(updated.status, 200);
+      assert.ok(!("durationMinutes" in updated.body.item));
+      assert.equal((await local.query<{ duration_minutes: number }>("SELECT duration_minutes FROM custom_programs WHERE user_id=$1 AND id=$2", [a.id, "duration-free"])).rows[0].duration_minutes, 40);
+      assert.ok(!("durationMinutes" in (await call("schedule?from=2026-11-01&to=2026-11-07", a.jwt)).body.weeklyPrograms[0]));
+    });
+
     await t.test("Program plus new exercises is atomic; schedule conflicts roll back every write", async () => {
       const a = await account(), one = await setupProgram(a.jwt, 2);
+      assert.ok(!("durationMinutes" in one.item));
       assert.equal(one.item.exercisePrescriptions[0].idLabel, exercise.name);
       const newId = `exercise-${randomUUID()}`;
       const result = await call("programs/custom", a.jwt, "POST", { id: "collision", data: program(newId, 2), newExercises: [{ id: newId, data: exercise }] });
@@ -317,6 +337,7 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
       assert.equal(invalid.status, 400); assert.equal(await count("user_exercises", a.id), 1);
       const edited = await call(`programs/custom/${one.id}`, a.jwt, "PATCH", { baseVersion: "1", changes: { name: "Renamed", weekday: 3 } });
       assert.equal(edited.status, 200, JSON.stringify(edited.body)); assert.equal(edited.body.item.version, "2");
+      assert.ok(!("durationMinutes" in edited.body.item));
       assert.equal((await call(`programs/custom/${one.id}`, a.jwt, "PATCH", { baseVersion: "1", changes: { name: "stale" } })).status, 409);
       assert.equal((await call(`exercises/custom/${one.exerciseId}`, a.jwt, "PATCH", { baseVersion: "1", changes: { mode: "calisthenics" } })).status, 400);
       assert.equal((await call(`programs/custom/${one.id}`, a.jwt, "DELETE", { baseVersion: "2" })).status, 200);
@@ -426,7 +447,7 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
       const a = await account(), b = await account(), before = (await call("me", a.jwt)).body;
       const changeCursor = (await bootstrap(a.id)).cursor;
       const catalog = await call("catalog/exercises"); assert.equal(catalog.status, 200);
-      assert.equal(catalog.body.exercises.length, 128);
+      assert.equal(catalog.body.exercises.length, 141);
       assert.deepEqual([...new Set(catalog.body.exercises.map((e: { mode: string }) => e.mode))].sort(), ["calisthenics", "gym"]);
       const input = { id: "mixed-manual", source: "manual", startedAt, finishedAt, recordedOn: date,
         exerciseSnapshot: [{ ...prescription("bench_press"), mode: "gym" }, { ...prescription("pullup"), mode: "calisthenics" }],

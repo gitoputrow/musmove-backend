@@ -125,7 +125,8 @@ export const entityPayloadSchemas = {
     ),
   custom_program: z
     .object({
-      durationMinutes: z.number().int().min(10).max(180),
+      // Deprecated input accepted for older clients; new program writes ignore it.
+      durationMinutes: z.number().int().min(10).max(180).optional(),
       exercisePrescriptions: z.array(exerciseSchema).min(1).max(12),
       mode: modeSchema,
       name: z.string().trim().min(1).max(60),

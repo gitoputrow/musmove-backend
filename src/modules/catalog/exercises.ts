@@ -2,7 +2,7 @@ import { and, asc, eq } from "drizzle-orm";
 import { getDatabase } from "@/src/db/client";
 import { catalogState, equipmentCatalog, exerciseCatalog } from "@/src/db/schema";
 import { badRequest } from "@/src/lib/api-error";
-import { matchesEquipmentCategory, type ExerciseQuery } from "./exercise-query";
+import { matchesEquipmentCategory, matchesMuscleTargets, type ExerciseQuery } from "./exercise-query";
 
 export async function getExerciseCatalog(query: ExerciseQuery = {}) {
   return getDatabase().transaction(async (transaction) => {
@@ -28,7 +28,7 @@ export async function getExerciseCatalog(query: ExerciseQuery = {}) {
     }).from(exerciseCatalog).where(and(eq(exerciseCatalog.active, true), query.mode ? eq(exerciseCatalog.mode, query.mode) : undefined))
       .orderBy(asc(exerciseCatalog.mode), asc(exerciseCatalog.id));
     const ids = query.equipmentIds && new Set(query.equipmentIds);
-    const exercises = rows.filter(row => matchesEquipmentCategory(row.requirements, query.equipment) &&
+    const exercises = rows.filter(row => matchesEquipmentCategory(row.requirements, query.equipment) && matchesMuscleTargets(row.muscleTargets, query) &&
       (!ids || row.requirements.some(group => group.some(id => ids.has(id)))));
     return { catalogVersion: state.version.toString(), exercises };
   }, { accessMode: "read only", isolationLevel: "repeatable read" });

@@ -70,6 +70,8 @@ async function main() {
           WHERE table_schema='public' AND table_name='workout_sessions' AND column_name='result_metrics')
           AND EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='exercise_catalog' AND column_name='tracking_type') AS ready`)).rows[0];
         if (!resultMetrics.ready) issues.push("DATABASE_MIGRATIONS: source now requires migration 0024 result metrics; coordinate nullable/duration readers before catalog rollout");
+        const durationColumn = (await client.query(`SELECT EXISTS(SELECT 1 FROM pg_attribute WHERE attrelid=to_regclass('public.custom_programs') AND attname='duration_minutes' AND NOT attnotnull AND NOT attisdropped) AS ready`)).rows[0];
+        if (!durationColumn.ready) issues.push("DATABASE_MIGRATIONS: apply migration 0028 before deploying programs without estimated duration");
         await client.query("ROLLBACK");
       } finally { client.release(); }
     } catch {

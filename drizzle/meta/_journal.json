@@ -190,6 +190,20 @@
       "when": 1791657682447,
       "tag": "0026_lat_pulldown_plate_rows",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1791657682448,
+      "tag": "0027_triceps_lateral_tbar",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1791657682449,
+      "tag": "0028_program_duration_optional",
+      "breakpoints": true
     }
   ]
 }

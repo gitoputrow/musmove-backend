@@ -39,7 +39,7 @@ const schemas: Record<string, ObjectSchema> = {
   Deleted: object({ id: ref("Id"), deleted: { const: true }, version: ref("Version") }),
   Favorite: object({ placeId: ref("Id"), isFavorite: { type: "boolean" }, favoriteVersion: ref("Version") }),
   WorkoutDay: object({ date: { type: "string", format: "date" }, completed: { type: "integer" }, aborted: { type: "integer" }, active: { type: "integer" }, durationMinutes: { type: ["number", "null"] }, knownDurationMinutes: { type: "number" }, workoutsMissingDuration: { type: "integer" } }),
-  ScheduledProgram: object({ id: ref("Id"), mode: { enum: ["gym", "calisthenics"] }, name: { type: "string" }, weekday: { type: "integer", minimum: 1, maximum: 7 }, durationMinutes: { type: "integer" }, version: ref("Version") }),
+  ScheduledProgram: object({ id: ref("Id"), mode: { enum: ["gym", "calisthenics"] }, name: { type: "string" }, weekday: { type: "integer", minimum: 1, maximum: 7 }, version: ref("Version") }),
 };
 const patchProfile = (schemas.AccountPatchInput.properties as Record<string, ObjectSchema>).profile;
 (patchProfile.properties as Record<string, ObjectSchema>).focusAreas = original("FocusAreas");
@@ -121,7 +121,9 @@ for (const [type, name] of Object.entries(resourceNames) as [keyof typeof resour
   const data = resourceSchemas[type];
   schemas[`${name}Create`] = fromZod(z.object({ id: idSchema, data, ...(type === "custom_program" ? { newExercises: newExercisesSchema.optional() } : {}) }).strict());
   schemas[`${name}Patch`] = fromZod(z.object({ baseVersion: versionSchema, changes: z.object(data.shape as z.ZodRawShape).partial().strict(), ...(type === "custom_program" ? { newExercises: newExercisesSchema.optional() } : {}) }).strict());
-  schemas[name] = type === "meal_entry" ? original("MealLogItem") : fromZod(z.object(data.shape as z.ZodRawShape).extend(meta));
+  const outputShape = { ...data.shape } as Record<string, z.ZodType>;
+  if (type === "custom_program") delete outputShape.durationMinutes;
+  schemas[name] = type === "meal_entry" ? original("MealLogItem") : fromZod(z.object(outputShape).extend(meta));
   schemas[`${name}Response`] = object({ item: ref(name), ...(type === "custom_program" ? { exercises: array(ref("CustomExercise")) } : {}),
     ...(type === "meal_entry" ? { journals: array(ref("MealJournalSummary")) } : {}) }, ["item", ...(type === "meal_entry" ? ["journals"] : [])]);
   const path = { custom_program: "/programs/custom", user_exercise: "/exercises/custom", meal_entry: "/meals", social_draft: "/social/drafts" }[type];

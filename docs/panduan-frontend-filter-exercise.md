@@ -1,5 +1,7 @@
 # Panduan frontend: filter katalog exercise melalui API
 
+Filter berdasarkan otot dijelaskan dalam [panduan filter otot](frontend-filter-otot-exercise.md).
+
 Perubahan ini ada di source backend lokal dan **perlu di-deploy** sebelum bisa digunakan di production. Endpoint lama `/api/v1/equipment/exercises` dihapus dari source: frontend yang masih memanggilnya harus dimigrasikan sebelum rollout agar fitur pencarian alat tidak rusak.
 
 ## Memfilter exercise

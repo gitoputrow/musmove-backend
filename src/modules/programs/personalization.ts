@@ -7,7 +7,6 @@ export interface ProgramTemplate {
   name: string;
   mode: "gym" | "calisthenics";
   focus: string;
-  durationMinutes: number;
   exercises: ExercisePrescription[];
 }
 
@@ -200,16 +199,7 @@ export function personalizePrograms(
       adjustments.push({ originalExerciseId: original.id, exerciseId: selected.exercise.id, source: selected.source });
     }
 
-    // Explainable planning estimate: 5-minute warmup, 3 sec/rep or target hold
-    // seconds, 30 sec setup,
-    // plus rest between sets. No claim of exact physiological timing.
-    const estimatedMinutes = Math.ceil((300 + prescriptions.reduce((total, exercise) => total +
-      exercise.sets * (exercise.trackingType === "duration" ? exercise.targetDurationSeconds ?? 0 : (exercise.reps ?? 0) * 3) + (exercise.sets - 1) * restSeconds + 30, 0)) / 60);
-    if (estimatedMinutes > (profile.sessionMinutes ?? 20)) {
-      rejectedPrograms.push({ programId: template.id, reason: "SESSION_DURATION_EXCEEDED" });
-      return [];
-    }
-    return [{ ...template, durationMinutes: estimatedMinutes, exercises: prescriptions,
+    return [{ ...template, exercises: prescriptions,
       restSeconds, suggestedWeeklySessions: weeklySessions, adjustments,
       recommendationTier: prescriptions.length >= 3 ? "standard" : "compact" }];
   });

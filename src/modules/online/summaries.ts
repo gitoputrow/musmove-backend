@@ -9,7 +9,7 @@ import { summaryQuerySchema } from "./dto";
 
 async function weeklySchedule(tx: DatabaseTransaction, userId: string) {
   return tx.select({ id: customPrograms.id, mode: customPrograms.mode, name: customPrograms.name,
-    weekday: customPrograms.weekday, durationMinutes: customPrograms.durationMinutes,
+    weekday: customPrograms.weekday,
     version: sql<string>`${customPrograms.version}::text`,
   }).from(customPrograms).where(and(eq(customPrograms.userId, userId), isNull(customPrograms.deletedAt), sql`${customPrograms.weekday} IS NOT NULL`))
     .orderBy(asc(customPrograms.weekday), asc(customPrograms.mode), asc(customPrograms.id));

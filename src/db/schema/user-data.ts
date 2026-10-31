@@ -136,7 +136,7 @@ export const customPrograms = pgTable(
     id: varchar("id", { length: 255 }).notNull(),
     mode: trainingModeEnum("mode").notNull(),
     name: varchar("name", { length: 60 }).notNull(),
-    durationMinutes: smallint("duration_minutes").notNull(),
+    durationMinutes: smallint("duration_minutes"),
     weekday: smallint("weekday"),
     exercisePrescriptions: jsonb("exercise_prescriptions")
       .$type<ExercisePrescription[]>()
