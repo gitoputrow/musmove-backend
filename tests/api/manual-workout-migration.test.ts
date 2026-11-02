@@ -41,6 +41,7 @@ test("new manual format requires complete mode-qualified references, while progr
   assert.equal(completedWorkoutSchema.safeParse({ ...base, mode: "gym" }).success, true);
   assert.equal(completedWorkoutSchema.safeParse(base).success, false);
   assert.equal(completedWorkoutSchema.safeParse({ ...base, exerciseSnapshot: [{ ...p, mode: "gym" }] }).success, true);
+  assert.equal(completedWorkoutSchema.safeParse({ ...base, source: "record", exerciseSnapshot: [{ ...p, mode: "gym" }] }).success, true);
   assert.equal(completedWorkoutSchema.safeParse({ ...base, source: "custom", programId: "p", exerciseSnapshot: [{ ...p, mode: "gym" }] }).success, false);
   assert.equal(completedWorkoutSchema.safeParse({ ...base, mode: "gym", exerciseSnapshot: [{ ...p, mode: "gym" }] }).success, false);
 });

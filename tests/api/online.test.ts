@@ -578,7 +578,10 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
       const single = { id: "single-free", source: "manual", startedAt, finishedAt, recordedOn: date,
         exerciseSnapshot: [{ ...prescription("pullup"), mode: "calisthenics", sets: 1 }], setLog: [] };
       const saved = await call("workouts", a.jwt, "POST", single); assert.equal(saved.status, 201); assert.equal(saved.body.item.mode, "calisthenics");
-      assert.equal((await call("workouts?mode=calisthenics", a.jwt)).body.items.length, 1);
+      const recordSubmit = { id: "single-record-source", source: "record", startedAt, finishedAt, recordedOn: date,
+        exerciseSnapshot: [{ ...prescription("pullup"), mode: "calisthenics", sets: 1 }], setLog: [] };
+      const recordSaved = await call("workouts", a.jwt, "POST", recordSubmit); assert.equal(recordSaved.status, 201); assert.equal(recordSaved.body.item.mode, "calisthenics");
+      assert.equal((await call("workouts?mode=calisthenics", a.jwt)).body.items.length, 2);
       const all = (await call("workouts?limit=1", a.jwt)).body; assert.equal(all.items.length, 1); assert.ok(all.nextCursor);
       assert.equal((await call(`workouts?limit=1&cursor=${all.nextCursor}`, a.jwt)).body.items.length, 1);
       assert.equal((await call("workouts?mode=unknown", a.jwt)).status, 400);

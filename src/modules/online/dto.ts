@@ -47,7 +47,9 @@ export const accountPatchSchema = z.object({
   if (!v.profile && !v.trainingPreferences && !v.userPreferences) ctx.addIssue({ code: "custom", message: "Provide changed fields" });
 });
 export const completedWorkoutSchema = z.object({
-  id: idSchema, source: z.enum(["custom", "recommended", "manual"]), programId: idSchema.optional(),
+  id: idSchema,
+  source: z.preprocess(v => v === "record" ? "manual" : v, z.enum(["custom", "recommended", "manual"])),
+  programId: idSchema.optional(),
   mode: z.enum(["gym", "calisthenics"]).optional(),
   exerciseSnapshot: entityPayloadSchemas.workout_session.shape.exerciseSnapshot,
   setLog: entityPayloadSchemas.workout_session.shape.setLog,

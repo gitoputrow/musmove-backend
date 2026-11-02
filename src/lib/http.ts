@@ -74,7 +74,9 @@ function errorResponse(request: Request, error: unknown, id: string) {
       "The request does not match the API contract",
       error.issues.slice(0, 20).map((issue) => ({
         code: issue.code,
-        message: issue.code === "unrecognized_keys" ? "Unknown fields are not allowed" : issue.message,
+        message: issue.code === "unrecognized_keys" && "keys" in issue && Array.isArray((issue as { keys?: unknown }).keys)
+          ? `Unknown fields are not allowed: ${(issue as { keys: string[] }).keys.join(", ")}`
+          : issue.message,
         path: issue.path.join("."),
       })),
     );
