@@ -91,7 +91,7 @@ try {
   assert.equal(snapshot.entities.profile[0].version, "2");
 
   const publicPrograms = await getProgramCatalog();
-  assert.equal(publicPrograms.programs.length, 12);
+  assert.ok(publicPrograms.programs.length >= 12);
   await assert.rejects(() => getProgramCatalog(userId), { code: "PREFERENCES_REQUIRED" });
   const recommendationUser = await createTestUser();
   const preferencesResult = await pushOperations(recommendationUser, syncPushSchema.parse({

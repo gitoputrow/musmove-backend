@@ -54,10 +54,10 @@ schemas.CompletedWorkoutResponse = object({ item: ref("Workout"), exercises: {
   ...array(ref("CustomExercise")),
   description: "Canonical newly created exercises in request order, with string versions; empty for fresh submissions without newExercises. Optional only because pre-upgrade saved receipts replay the original item-only response unchanged.",
 } }, ["item"]);
-schemas.CompletedWorkoutInput.allOf = [{ if: { required: ["newExercises"] }, then: { properties: { source: { const: "manual" } } } }];
+schemas.CompletedWorkoutInput.allOf = [{ if: { required: ["newExercises"] }, then: { properties: { source: { enum: ["manual", "record"] } } } }];
 // Zod superRefine is runtime-only: express the structural branches explicitly.
 (schemas.CompletedWorkoutInput.allOf as unknown[]).push({
-  if: { properties: { source: { const: "manual" } }, required: ["source"] },
+  if: { properties: { source: { enum: ["manual", "record"] } }, required: ["source"] },
   then: { not: { required: ["programId"] } }, else: { required: ["programId", "mode"] },
 });
 schemas.CompletedWorkoutInput.oneOf = [
@@ -65,7 +65,7 @@ schemas.CompletedWorkoutInput.oneOf = [
     exerciseSnapshot: { items: { not: { required: ["mode"] } } },
     setLog: { items: { not: { required: ["exerciseMode"] } } },
   } },
-  { properties: { source: { const: "manual" },
+  { properties: { source: { enum: ["manual", "record"] },
     exerciseSnapshot: { items: { required: ["mode"] } }, setLog: { items: { required: ["exerciseMode"] } },
   }, not: { required: ["mode"] } },
 ];

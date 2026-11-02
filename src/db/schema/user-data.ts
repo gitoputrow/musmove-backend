@@ -250,7 +250,7 @@ export const workoutSessions = pgTable(
     ),
     check("workout_sessions_set_log_array", sql`jsonb_typeof(${table.setLog}) = 'array'`),
     check("workout_sessions_metrics_object", sql`${table.resultMetrics} is null or jsonb_typeof(${table.resultMetrics}) = 'object'`),
-    check("workout_sessions_mixed_manual", sql`${table.mode} <> 'mixed' or (${table.status} = 'completed' and coalesce(${table.legacyMetadata}->>'source' = 'manual', false))`),
+    check("workout_sessions_mixed_manual", sql`${table.mode} <> 'mixed' or (${table.status} = 'completed' and coalesce(${table.legacyMetadata}->>'source' in ('manual', 'record'), false))`),
     check("workout_sessions_version_positive", sql`${table.version} > 0`),
   ],
 );

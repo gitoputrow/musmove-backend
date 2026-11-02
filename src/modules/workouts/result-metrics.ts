@@ -23,7 +23,7 @@ type MetricsInput = {
 export function buildResultMetrics(input: MetricsInput, mode: string, exercises: WorkoutExercisePrescription[], logs: WorkoutSetLog[]) {
   let seconds: number | null = null;
   if (input.sessionTiming) {
-    if (input.source !== "manual" && input.sessionTiming.source !== "timer") throw badRequest("INVALID_SESSION_TIMING", "Program workout timing must use its reported timer timestamps");
+    if (input.source !== "manual" && input.source !== "record" && input.sessionTiming.source !== "timer") throw badRequest("INVALID_SESSION_TIMING", "Program workout timing must use its reported timer timestamps");
     seconds = input.sessionTiming.source === "timer" ? Math.floor((Date.parse(input.finishedAt) - Date.parse(input.startedAt)) / 1000) : input.sessionTiming.durationSeconds!;
     if (seconds < 1 || seconds > 43200) throw badRequest("INVALID_SESSION_TIMING", "Session duration must be 1–43200 seconds");
   }

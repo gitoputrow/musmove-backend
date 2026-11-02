@@ -48,7 +48,7 @@ export const accountPatchSchema = z.object({
 });
 export const completedWorkoutSchema = z.object({
   id: idSchema,
-  source: z.preprocess(v => v === "record" ? "manual" : v, z.enum(["custom", "recommended", "manual"])),
+  source: z.enum(["custom", "recommended", "manual", "record"]),
   programId: idSchema.optional(),
   mode: z.enum(["gym", "calisthenics"]).optional(),
   exerciseSnapshot: entityPayloadSchemas.workout_session.shape.exerciseSnapshot,
@@ -58,17 +58,18 @@ export const completedWorkoutSchema = z.object({
   newExercises: newExercisesSchema.optional(),
   sessionTiming: sessionTimingSchema.optional(),
 }).strict().superRefine((value, context) => {
+  const isManual = value.source === "manual" || value.source === "record";
   const explicit = value.exerciseSnapshot.some(e => e.mode !== undefined) || value.setLog.some(e => e.exerciseMode !== undefined);
-  if (value.source === "manual" && value.mode === undefined) {
+  if (isManual && value.mode === undefined) {
     if (value.exerciseSnapshot.some(e => e.mode === undefined) || value.setLog.some(e => e.exerciseMode === undefined)) context.addIssue({ code: "custom", message: "Manual workouts without top-level mode require mode on every exercise and exerciseMode on every set log" });
   } else {
     if (value.mode === undefined) context.addIssue({ code: "custom", path: ["mode"], message: "Program workouts require mode" });
     if (explicit) context.addIssue({ code: "custom", message: "Per-exercise modes require source manual and omission of top-level mode" });
   }
-  if ((value.source !== "manual") !== (value.programId !== undefined)) context.addIssue({
+  if ((!isManual) !== (value.programId !== undefined)) context.addIssue({
     code: "custom", path: ["programId"], message: "Provide programId for custom/recommended only; omit it for manual workouts",
   });
-  if (value.newExercises !== undefined && value.source !== "manual") context.addIssue({
+  if (value.newExercises !== undefined && !isManual) context.addIssue({
     code: "custom", path: ["newExercises"], message: "newExercises is supported only for manual workouts",
   });
   const referenced = new Set(value.exerciseSnapshot.map(exercise => JSON.stringify([exercise.mode ?? value.mode, exercise.id])));

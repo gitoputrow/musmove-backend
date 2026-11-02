@@ -27,7 +27,7 @@ test("Online OpenAPI artifact matches current DTO generator and all path items a
   assert.equal(spec.paths["/workouts"].post.responses["201"].content["application/json"].schema.$ref, "#/components/schemas/CompletedWorkoutResponse");
   assert.equal(spec.components.schemas.CompletedWorkoutInput.properties.newExercises.maxItems, 12);
   assert.ok(!spec.components.schemas.CompletedWorkoutInput.required.includes("newExercises"));
-  assert.equal(spec.components.schemas.CompletedWorkoutInput.allOf[0].then.properties.source.const, "manual");
+  assert.deepEqual(spec.components.schemas.CompletedWorkoutInput.allOf[0].then.properties.source.enum, ["manual", "record"]);
   assert.ok(!spec.components.schemas.CompletedWorkoutInput.required.includes("mode"));
   assert.equal(spec.components.schemas.CompletedWorkoutInput.oneOf.length, 2);
   assert.deepEqual(spec.components.schemas.CompletedWorkoutInput.oneOf[1].properties.exerciseSnapshot.items.required, ["mode"]);

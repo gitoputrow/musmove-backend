@@ -204,6 +204,13 @@
       "when": 1791657682449,
       "tag": "0028_program_duration_optional",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1791657682450,
+      "tag": "0029_workout_record_source",
+      "breakpoints": true
     }
   ]
 }

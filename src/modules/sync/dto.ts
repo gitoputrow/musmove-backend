@@ -201,7 +201,8 @@ export const entityPayloadSchemas = {
       }
       const explicit = value.mode === "mixed" || value.exerciseSnapshot.some(e => e.mode !== undefined) || value.setLog.some(e => e.exerciseMode !== undefined);
       if (!explicit) return;
-      if (value.legacyMetadata?.source !== "manual" || value.status !== "completed") ctx.addIssue({ code: "custom", message: "Explicit exercise modes are for completed manual workouts only" });
+      const isManual = value.legacyMetadata?.source === "manual" || value.legacyMetadata?.source === "record";
+      if (!isManual || value.status !== "completed") ctx.addIssue({ code: "custom", message: "Explicit exercise modes are for completed manual workouts only" });
       if (value.exerciseSnapshot.some(e => e.mode === undefined) || value.setLog.some(e => e.exerciseMode === undefined)) ctx.addIssue({ code: "custom", message: "Provide mode on every exercise and exerciseMode on every set log" });
       const modes = new Set(value.exerciseSnapshot.map(e => e.mode));
       const derived = modes.size === 1 ? value.exerciseSnapshot[0].mode : "mixed";

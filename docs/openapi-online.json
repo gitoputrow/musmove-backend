@@ -2825,7 +2825,8 @@
             "enum": [
               "custom",
               "recommended",
-              "manual"
+              "manual",
+              "record"
             ]
           },
           "programId": {
@@ -3318,7 +3319,10 @@
             "then": {
               "properties": {
                 "source": {
-                  "const": "manual"
+                  "enum": [
+                    "manual",
+                    "record"
+                  ]
                 }
               }
             }
@@ -3327,7 +3331,10 @@
             "if": {
               "properties": {
                 "source": {
-                  "const": "manual"
+                  "enum": [
+                    "manual",
+                    "record"
+                  ]
                 }
               },
               "required": [
@@ -3378,7 +3385,10 @@
           {
             "properties": {
               "source": {
-                "const": "manual"
+                "enum": [
+                  "manual",
+                  "record"
+                ]
               },
               "exerciseSnapshot": {
                 "items": {

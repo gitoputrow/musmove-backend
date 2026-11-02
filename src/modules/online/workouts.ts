@@ -31,13 +31,14 @@ export function recordCompletedWorkout(userId: string, key: string, input: z.inf
     const createdExercises = await addExercises(ctx, input.newExercises);
     // Record actual performed history even if an owned exercise was soft-deleted
     // or a public catalog exercise deactivated while the mobile was training.
-    const explicitManual = input.source === "manual" && input.mode === undefined;
+    const explicitManual = (input.source === "manual" || input.source === "record") && input.mode === undefined;
     const exercises = explicitManual ? await canonicalManualExercises(ctx.tx, userId, input.exerciseSnapshot) :
       await canonicalExercises(ctx.tx, userId, input.mode!, input.exerciseSnapshot, true);
     const modes = new Set(input.exerciseSnapshot.map(exercise => exercise.mode));
     const mode = explicitManual ? (modes.size === 1 ? input.exerciseSnapshot[0].mode! : "mixed") : input.mode!;
     const resultMetrics = buildResultMetrics(input, mode, exercises, input.setLog);
-    const data = entityPayloadSchemas.workout_session.parse({ planId: input.programId ?? "manual", mode, status: "completed",
+    const planId = input.programId ?? (input.source === "manual" ? "manual" : "record");
+    const data = entityPayloadSchemas.workout_session.parse({ planId, mode, status: "completed",
       startedAt: input.startedAt, finishedAt: input.finishedAt, recordedOn: input.recordedOn,
       exerciseSnapshot: exercises, setLog: input.setLog,
       resultMetrics,
