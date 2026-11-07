@@ -55,9 +55,9 @@ durasi total yang mencakup istirahat. `targetDurationSeconds` untuk gerakan
 berbasis waktu seperti plank dan `restSeconds` saran jeda antarset tetap ada;
 keduanya bukan estimasi durasi total program.
 
-`sessionMinutes` pada profil/onboarding juga masih ada untuk kompatibilitas
-data dan kontrak setup lama, tetapi tidak lagi dipakai untuk menyaring
-rekomendasi. Menghapus field onboarding tersebut merupakan perubahan terpisah.
+`sessionMinutes` pada profil masih dipertahankan untuk kompatibilitas data lama,
+tetapi tidak lagi wajib saat onboarding dan tidak dipakai untuk menyaring
+rekomendasi. Client lama tetap boleh mengirimkannya.
 
 ## Rollout
 

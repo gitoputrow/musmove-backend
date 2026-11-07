@@ -52,7 +52,9 @@ Onboarding baru dapat mengirim `activityRoutine` tanpa `dailyActivity`. Client
 lama masih dapat mengirim `dailyActivity`; profil tanpa rutinitas baru tetap
 memakai formula v2/faktor lama tanpa perubahan diam-diam. Jika keduanya ada,
 rutinitas baru menjadi acuan estimasi; `dailyActivity` lama tidak diubah.
-`sessionMinutes` masih diwajibkan onboarding lama sesuai kontrak yang ada.
+`sessionMinutes` tidak lagi diwajibkan onboarding pada source backend terbaru;
+client lama masih dapat mengirimnya. Backend lama yang belum di-deploy tetap
+mewajibkan field tersebut.
 
 ## Pemilihan faktor
 

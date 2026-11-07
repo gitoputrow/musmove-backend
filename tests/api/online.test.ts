@@ -97,11 +97,12 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
     await t.test("Activity routine onboarding and edits estimate nutrition independently of program frequency", async () => {
       const a = await account();
       const setup = onboarding();
-      const { dailyActivity: _legacy, ...profile } = setup.profile; void _legacy;
+      const { dailyActivity: _legacy, sessionMinutes: _session, ...profile } = setup.profile; void _legacy; void _session;
       const routine = { dailyMovement: "mostly_sitting", sports: [{ name: "Gym", sessionsPerWeek: 4 }, { name: "Boxing", sessionsPerWeek: 1 }] };
       const completed = await call("onboarding/complete", a.jwt, "POST", { ...setup, profile: { ...profile, activityRoutine: routine } });
       assert.equal(completed.status, 200, JSON.stringify(completed.body));
       assert.deepEqual(completed.body.profile.activityRoutine, routine);
+      assert.equal(completed.body.profile.sessionMinutes, null);
       assert.equal(completed.body.profile.trainingFrequency, 3);
       assert.equal(completed.body.nutritionTargets.formulaVersion, "mifflin-routine-goals-v3");
       assert.equal(completed.body.nutritionTargets.estimate.inputSnapshot.activitySelection.factor, 1.55);

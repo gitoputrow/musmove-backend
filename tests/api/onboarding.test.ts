@@ -31,6 +31,10 @@ test("Final-only onboarding DTO rejects invalid versions without throwing non-va
   }
   const parsed = completeOnboardingSchema.parse({ ...payload(), profile: { ...payload().profile, goal: "maintain", trainingFrequency: 7 } });
   assert.equal(parsed.profile.goal, "maintenance"); assert.equal(parsed.profile.trainingFrequency, 7);
+  const { sessionMinutes: _oldDuration, ...withoutDuration } = payload().profile; void _oldDuration;
+  assert.equal(completeOnboardingSchema.safeParse({ ...payload(), profile: withoutDuration }).success, true);
+  assert.equal(completeOnboardingSchema.safeParse({ ...payload(), profile: { ...payload().profile, sessionMinutes: null } }).success, true);
+  assert.equal(completeOnboardingSchema.safeParse({ ...payload(), profile: { ...payload().profile, sessionMinutes: 5 } }).success, false);
   assert.equal(completeOnboardingSchema.safeParse({ ...payload(), profile: { ...payload().profile, setupCompleted: true } }).success, false);
   assert.equal(completeOnboardingSchema.safeParse({ ...payload(), profile: { ...payload().profile, focus: null } }).success, false);
   assert.equal(completeOnboardingSchema.safeParse({ ...payload(), profile: { ...payload().profile, programSource: "custom", focus: null } }).success, true);

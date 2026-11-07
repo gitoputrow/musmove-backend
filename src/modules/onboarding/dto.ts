@@ -15,7 +15,8 @@ export const completeOnboardingSchema = z.object({
     goal,
     dailyActivity: z.enum(["light", "moderate", "vigorous"]).optional(),
     trainingFrequency: z.number().int().min(1).max(7),
-    sessionMinutes: z.number().int().min(10).max(180),
+    // Legacy input only; no longer required for setup or recommendations.
+    sessionMinutes: z.number().int().min(10).max(180).nullable().optional(),
     programSource: z.enum(["app", "custom"]),
     motivationEnabled: z.boolean(),
     motivationReason: z.string().trim().min(1).max(80),

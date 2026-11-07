@@ -1462,10 +1462,9 @@ components:
         unfilledSessions: { type: integer, minimum: 0, maximum: 7 }
     OnboardingProfile:
       type: object
-      description: Provide activityRoutine or legacy dailyActivity; a routine takes precedence for nutrition.
       additionalProperties: false
-      required: [ageYears, goal, trainingFrequency, sessionMinutes, programSource, motivationEnabled, motivationReason]
-      description: Final setup values. App source requires nonempty focusAreas or a valid legacy focus. Custom source permits an empty array or omission. Both fields must agree if sent together. Omitted optional fields preserve existing values; explicit null clears nullable fields except focusAreas which never accepts null. trainingContext objects merge provided keys; null clears the whole context. setupCompleted is server-owned and rejected in requests. Gender never implies formulaSex or ability.
+      required: [ageYears, goal, trainingFrequency, programSource, motivationEnabled, motivationReason]
+      description: Final setup values. Provide activityRoutine or legacy dailyActivity; a routine takes precedence for nutrition. sessionMinutes is optional legacy input and unused by recommendations. App source requires nonempty focusAreas or a valid legacy focus. Custom source permits an empty array or omission. Both fields must agree if sent together. Omitted optional fields preserve existing values; explicit null clears nullable fields except focusAreas which never accepts null. trainingContext objects merge provided keys; null clears the whole context. setupCompleted is server-owned and rejected in requests. Gender never implies formulaSex or ability.
       allOf:
         - $ref: "#/components/schemas/FocusInputCompatibility"
       properties:
@@ -1474,7 +1473,7 @@ components:
         dailyActivity: { type: string, enum: [light, moderate, vigorous] }
         activityRoutine: { $ref: "#/components/schemas/ActivityRoutine" }
         trainingFrequency: { type: integer, minimum: 1, maximum: 7 }
-        sessionMinutes: { type: integer, minimum: 10, maximum: 180 }
+        sessionMinutes: { type: [integer, "null"], minimum: 10, maximum: 180, deprecated: true, description: Optional legacy input; not used to filter programs. }
         programSource: { type: string, enum: [app, custom] }
         motivationEnabled: { type: boolean }
         motivationReason: { type: string, minLength: 1, maxLength: 80 }
