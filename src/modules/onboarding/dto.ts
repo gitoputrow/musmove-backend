@@ -13,7 +13,7 @@ export const completeOnboardingSchema = z.object({
   profile: entityPayloadSchemas.profile.omit({ setupCompleted: true }).extend({
     ageYears: z.number().int().min(1).max(150),
     goal,
-    dailyActivity: z.enum(["light", "moderate", "vigorous"]),
+    dailyActivity: z.enum(["light", "moderate", "vigorous"]).optional(),
     trainingFrequency: z.number().int().min(1).max(7),
     sessionMinutes: z.number().int().min(10).max(180),
     programSource: z.enum(["app", "custom"]),
@@ -21,6 +21,9 @@ export const completeOnboardingSchema = z.object({
     motivationReason: z.string().trim().min(1).max(80),
     focus: focusSchema.nullable().optional(),
   }).strict().superRefine((profile, context) => {
+    if (!profile.activityRoutine && !profile.dailyActivity) {
+      context.addIssue({ code: "custom", path: ["activityRoutine"], message: "Provide activity routine or legacy daily activity" });
+    }
     validateFocusPair(profile, context);
     if (profile.programSource === "app" && !readFocusAreas(profile).length) {
       context.addIssue({ code: "custom", path: ["focusAreas"], message: "Choose focus areas for an app-generated program" });

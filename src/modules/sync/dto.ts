@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { activityRoutineSchema } from "@/src/modules/nutrition/activity";
 import { focusAreasSchema, validateFocusPair } from "@/src/modules/programs/focus";
 import { assertSafeJson } from "@/src/lib/body";
 import { holdSecondsSchema, muscleTargetsSchema, resultMetricsSchema, trackingTypeSchema, validPrescription } from "@/src/modules/workouts/measurement";
@@ -82,6 +83,7 @@ export const entityPayloadSchemas = {
     .object({
       ageYears: z.number().int().min(1).max(150).nullable().optional(),
       dailyActivity: z.enum(["light", "moderate", "vigorous"]).nullable().optional(),
+      activityRoutine: activityRoutineSchema.nullable().optional(),
       displayName: nullableString(80).optional(),
       focus: nullableString(50).optional(),
       focusAreas: focusAreasSchema.optional(),

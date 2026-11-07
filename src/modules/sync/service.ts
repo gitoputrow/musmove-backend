@@ -385,6 +385,7 @@ export async function bootstrap(userId: string) {
             motivationReason: row.motivationReason,
             motivationEnabled: row.motivationEnabled,
             dailyActivity: row.dailyActivity,
+            activityRoutine: row.activityRoutine,
             trainingFrequency: row.trainingFrequency,
             ...resolveFocusFields(row),
             programSource: row.programSource,

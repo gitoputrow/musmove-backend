@@ -72,6 +72,8 @@ async function main() {
         if (!resultMetrics.ready) issues.push("DATABASE_MIGRATIONS: source now requires migration 0024 result metrics; coordinate nullable/duration readers before catalog rollout");
         const durationColumn = (await client.query(`SELECT EXISTS(SELECT 1 FROM pg_attribute WHERE attrelid=to_regclass('public.custom_programs') AND attname='duration_minutes' AND NOT attnotnull AND NOT attisdropped) AS ready`)).rows[0];
         if (!durationColumn.ready) issues.push("DATABASE_MIGRATIONS: apply migration 0028 before deploying programs without estimated duration");
+        const activityRoutine = (await client.query(`SELECT EXISTS(SELECT 1 FROM pg_attribute WHERE attrelid=to_regclass('public.profiles') AND attname='activity_routine' AND NOT attisdropped) AND EXISTS(SELECT 1 FROM pg_constraint WHERE conrelid=to_regclass('public.nutrition_estimates') AND conname='nutrition_estimates_v3_goal_values' AND convalidated) AS ready`)).rows[0];
+        if (!activityRoutine.ready) issues.push("DATABASE_MIGRATIONS: apply migration 0030 before deploying nutrition activity routine");
         await client.query("ROLLBACK");
       } finally { client.release(); }
     } catch {

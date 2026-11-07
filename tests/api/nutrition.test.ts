@@ -2,10 +2,38 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import fixtures from "../fixtures/nutrition-v1.json";
 import { estimateGoalNutrition, estimateNutrition, MAINTENANCE_FORMULA_VERSION, normalizeNutritionGoal, type NutritionInput } from "../../src/modules/nutrition/estimate";
+import { activityFromRoutine, activityRoutineSchema } from "../../src/modules/nutrition/activity";
 import { mealTotals } from "../../src/modules/meals/resolve";
 import { entityPayloadSchemas } from "../../src/modules/sync/dto";
 
 const input: NutritionInput = { ageYears: 25, weightKg: 70, heightCm: 175, formulaSex: "male", dailyActivity: "light" };
+
+test("weekly sport routines calculate bounded activity factor without using training program frequency", () => {
+  const routine = { dailyMovement: "mostly_sitting" as const, sports: [{ name: "Gym", sessionsPerWeek: 4 }, { name: "Boxing", sessionsPerWeek: 1 }] };
+  assert.deepEqual(activityFromRoutine(routine), { factor: 1.55, reportedSessions: 5, cappedSessions: 5, method: "weekly_sessions_heuristic_v1" });
+  const result = estimateGoalNutrition({ ageYears: 26, weightKg: 66, heightCm: 166, formulaSex: "male", dailyActivity: null, goal: "bulk", activityRoutine: routine });
+  assert.equal(result.maintenanceCalories, 2440); assert.equal(result.calories, 2680);
+  for (const [n, factor] of [[0, 1.2], [1, 1.2], [2, 1.375], [3, 1.375], [4, 1.55], [5, 1.55], [6, 1.725], [7, 1.725]]) {
+    assert.equal(activityFromRoutine({ dailyMovement: "mostly_sitting", sports: n ? [{ name: "Gym", sessionsPerWeek: n }] : [] }).factor, factor);
+  }
+  assert.equal(activityFromRoutine({ dailyMovement: "walking_standing", sports: [] }).factor, 1.375);
+  assert.equal(activityFromRoutine({ dailyMovement: "physical_work", sports: [{ name: "Gym", sessionsPerWeek: 6 }] }).factor, null);
+  assert.equal(estimateGoalNutrition({ ...input, goal: "bulk", activityRoutine: { dailyMovement: "physical_work", sports: [{ name: "Gym", sessionsPerWeek: 6 }] } }).status, "needsReview");
+  const overlap = activityFromRoutine({ dailyMovement: "mostly_sitting", sports: [{ name: "Gym", sessionsPerWeek: 7 }, { name: "Boxing", sessionsPerWeek: 7 }] });
+  assert.equal(overlap.reportedSessions, 14); assert.equal(overlap.cappedSessions, 7);
+});
+
+test("activity routine validates categories, weekly frequency, duplicate names and controls", () => {
+  assert.ok(activityRoutineSchema.safeParse({ dailyMovement: "mostly_sitting", sports: [] }).success);
+  for (const value of [
+    { dailyMovement: "unknown", sports: [] },
+    { dailyMovement: "mostly_sitting", sports: [{ name: "Gym", sessionsPerWeek: 0 }] },
+    { dailyMovement: "mostly_sitting", sports: [{ name: "Gym", sessionsPerWeek: 8 }] },
+    { dailyMovement: "mostly_sitting", sports: [{ name: "Gym", sessionsPerWeek: 1 }, { name: "gym", sessionsPerWeek: 2 }] },
+    { dailyMovement: "mostly_sitting", sports: [{ name: "gym\nother", sessionsPerWeek: 2 }] },
+    { dailyMovement: "mostly_sitting", sports: [{ name: "Gym", sessionsPerWeek: 2, duration: 30 }] },
+  ]) assert.equal(activityRoutineSchema.safeParse(value).success, false);
+});
 
 for (const fixture of fixtures.cases) {
   test(`Dart-compatible fixture: ${fixture.name}`, () => {

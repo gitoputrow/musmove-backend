@@ -1,7 +1,9 @@
 import type { TrainingContext } from "@/src/db/schema/types";
+import { activityFromRoutine, activityRoutineSchema, type ActivityRoutine } from "./activity";
 
 export const MAINTENANCE_FORMULA_VERSION = "mifflin-pal-protein-v1";
 export const FORMULA_VERSION = "mifflin-pal-goals-v2";
+export const ROUTINE_FORMULA_VERSION = "mifflin-routine-goals-v3";
 export const ACTIVITY_FACTORS = { light: 1.55, moderate: 1.85, vigorous: 2.2 } as const;
 export interface NutritionInput {
   ageYears: number | null;
@@ -9,6 +11,7 @@ export interface NutritionInput {
   heightCm: number | null;
   formulaSex: "male" | "female" | null;
   dailyActivity: keyof typeof ACTIVITY_FACTORS | null;
+  activityRoutine?: ActivityRoutine | null;
   goal?: string | null;
   trainingContext?: TrainingContext | null;
 }
@@ -55,13 +58,17 @@ export interface GoalNutritionResult extends NutritionResult {
 export function estimateGoalNutrition(input: NutritionInput): GoalNutritionResult {
   const normalizedGoal = normalizeNutritionGoal(input.goal);
   const noGoalValues = { normalizedGoal, maintenanceCalories: null, calorieAdjustmentKcal: null, proteinFactor: null };
-  const baseline = estimateNutrition(input);
+  const parsedRoutine = input.activityRoutine == null ? null : activityRoutineSchema.safeParse(input.activityRoutine);
+  if (parsedRoutine && !parsedRoutine.success) return { ...withheld("needsReview", "ACTIVITY_ROUTINE_REVIEW"), ...noGoalValues };
+  const activity = parsedRoutine?.success ? activityFromRoutine(parsedRoutine.data) : null;
+  const baseline = estimateNutrition({ ...input, dailyActivity: activity ? "light" : input.dailyActivity });
   if (baseline.status !== "ready") return { ...baseline, ...noGoalValues };
+  if (activity && activity.factor === null) return { ...withheld("needsReview", "ACTIVITY_LEVEL_REVIEW"), ...noGoalValues };
   if (!normalizedGoal) return {
     ...withheld("incomplete", input.goal?.trim() ? "NUTRITION_GOAL_UNSUPPORTED" : "NUTRITION_GOAL_REQUIRED"), ...noGoalValues,
   };
   const policy = GOAL_POLICIES[normalizedGoal];
-  const maintenanceCalories = baseline.calories!;
+  const maintenanceCalories = activity ? Math.round(baseline.restingKcal! * activity.factor! / 10) * 10 : baseline.calories!;
   const adjustmentMagnitude = Math.round(Math.min(maintenanceCalories * Math.abs(policy.calorieRatio), policy.maxAdjustmentKcal) / 10) * 10;
   const calorieAdjustmentKcal = policy.calorieRatio < 0 ? -adjustmentMagnitude : adjustmentMagnitude;
   const calories = maintenanceCalories + calorieAdjustmentKcal;

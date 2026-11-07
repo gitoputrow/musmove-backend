@@ -1,7 +1,8 @@
 import { and, eq, isNull } from "drizzle-orm";
 import { getDatabase, type Database } from "@/src/db/client";
 import { nutritionEstimates, profiles, type JsonObject } from "@/src/db/schema";
-import { ACTIVITY_FACTORS, CUT_GUARDS, estimateGoalNutrition, FORMULA_VERSION, GOAL_POLICIES, nutritionSources } from "./estimate";
+import { ACTIVITY_FACTORS, CUT_GUARDS, estimateGoalNutrition, FORMULA_VERSION, ROUTINE_FORMULA_VERSION, GOAL_POLICIES, nutritionSources } from "./estimate";
+import { activityFromRoutine, activityRoutineSchema } from "./activity";
 
 type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
 
@@ -11,28 +12,32 @@ export async function storeNutritionEstimate(transaction: Transaction, userId: s
   if (!profile) return;
   const input = {
     ageYears: profile.ageYears, weightKg: profile.weightKg, heightCm: profile.heightCm,
-    formulaSex: profile.formulaSex, dailyActivity: profile.dailyActivity,
+    formulaSex: profile.formulaSex, dailyActivity: profile.dailyActivity, activityRoutine: profile.activityRoutine,
     goal: profile.goal, trainingContext: profile.trainingContext,
   };
+  const routine = profile.activityRoutine ? activityRoutineSchema.safeParse(profile.activityRoutine) : null;
+  const activitySelection = routine?.success ? activityFromRoutine(routine.data) : null;
   await transaction.insert(nutritionEstimates).values({
-    userId, profileVersion: profile.version, formulaVersion: FORMULA_VERSION,
-    inputSnapshot: input as unknown as JsonObject, ...estimateGoalNutrition(input),
+    userId, profileVersion: profile.version, formulaVersion: profile.activityRoutine ? ROUTINE_FORMULA_VERSION : FORMULA_VERSION,
+    inputSnapshot: { ...input, activitySelection } as unknown as JsonObject, ...estimateGoalNutrition(input),
   }).onConflictDoNothing();
 }
 
 export async function readNutritionTargets(transaction: Transaction, userId: string) {
   const [profile] = await transaction.select().from(profiles)
     .where(and(eq(profiles.userId, userId), isNull(profiles.deletedAt)));
+  const routineEnabled = Boolean(profile?.activityRoutine);
+  const formulaVersion = routineEnabled ? ROUTINE_FORMULA_VERSION : FORMULA_VERSION;
   const base = {
-    formulaVersion: FORMULA_VERSION, caloriePolicy: "goal_adjusted_v2", goalAdjustmentApplied: false,
+    formulaVersion, caloriePolicy: routineEnabled ? "goal_adjusted_v3" : "goal_adjusted_v2", goalAdjustmentApplied: false,
     goalPolicies: GOAL_POLICIES, cutGuards: CUT_GUARDS,
     activityFactors: ACTIVITY_FACTORS, sources: nutritionSources,
-    warnings: ["ESTIMATE_NOT_MEDICAL_ADVICE", "ACTIVITY_FACTOR_IS_APPROXIMATE", "PROTEIN_RANGE_FOR_EXERCISING_ADULTS", "GOAL_POLICY_IS_STARTING_HEURISTIC", "REVIEW_TARGETS_WITH_WEIGHT_TREND_AND_HEALTH_CONTEXT"],
+    warnings: ["ESTIMATE_NOT_MEDICAL_ADVICE", "ACTIVITY_FACTOR_IS_APPROXIMATE", "PROTEIN_RANGE_FOR_EXERCISING_ADULTS", "GOAL_POLICY_IS_STARTING_HEURISTIC", "REVIEW_TARGETS_WITH_WEIGHT_TREND_AND_HEALTH_CONTEXT", ...(routineEnabled ? ["SPORT_DURATION_AND_INTENSITY_UNKNOWN", "SESSIONS_MAY_OVERLAP_SAME_DAY", "SPORT_TYPE_NOT_USED_FOR_FACTOR"] : [])],
   };
   if (!profile) return { ...base, profileVersion: null, estimate: null, reason: "PROFILE_REQUIRED" };
   const [estimate] = await transaction.select().from(nutritionEstimates).where(and(
     eq(nutritionEstimates.userId, userId), eq(nutritionEstimates.profileVersion, profile.version),
-    eq(nutritionEstimates.formulaVersion, FORMULA_VERSION),
+    eq(nutritionEstimates.formulaVersion, formulaVersion),
   ));
   return {
     ...base, profileVersion: profile.version.toString(),

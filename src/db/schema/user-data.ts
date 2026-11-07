@@ -62,6 +62,7 @@ export const profiles = pgTable(
     motivationReason: varchar("motivation_reason", { length: 80 }),
     motivationEnabled: boolean("motivation_enabled").notNull().default(true),
     dailyActivity: dailyActivityEnum("daily_activity"),
+    activityRoutine: jsonb("activity_routine").$type<import("@/src/modules/nutrition/activity").ActivityRoutine>(),
     trainingFrequency: smallint("training_frequency"),
     focus: varchar("focus", { length: 50 }),
     focusAreas: text("focus_areas").array().notNull().default(sql`'{}'::text[]`),
@@ -74,6 +75,7 @@ export const profiles = pgTable(
     ...mutableColumns(),
   },
   (table) => [
+    check("profiles_activity_routine_object", sql`${table.activityRoutine} is null or jsonb_typeof(${table.activityRoutine}) = 'object'`),
     check(
       "profiles_age_range",
       sql`${table.ageYears} is null or ${table.ageYears} between 1 and 150`,

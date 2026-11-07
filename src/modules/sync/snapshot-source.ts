@@ -3,7 +3,7 @@ import type { EntityType } from "./dto";
 
 // Explicit projection: never copy internal ownership/derived/private columns.
 const sources: { type: EntityType; table: string; id: string; fields: string[] }[] = [
-  { type: "profile", table: "profiles", id: "'profile'", fields: ["display_name", "age_years", "weight_kg", "height_cm", "formula_sex", "gender", "training_context", "goal", "motivation_reason", "motivation_enabled", "daily_activity", "training_frequency", "focus", "focus_areas", "program_source", "session_minutes", "setup_completed", "training_level", "exercise_capabilities", "excluded_exercise_ids"] },
+  { type: "profile", table: "profiles", id: "'profile'", fields: ["display_name", "age_years", "weight_kg", "height_cm", "formula_sex", "gender", "training_context", "goal", "motivation_reason", "motivation_enabled", "daily_activity", "activity_routine", "training_frequency", "focus", "focus_areas", "program_source", "session_minutes", "setup_completed", "training_level", "exercise_capabilities", "excluded_exercise_ids"] },
   { type: "training_preferences", table: "training_preferences", id: "'training_preferences'", fields: ["mode", "equipment", "no_equipment"] },
   { type: "custom_program", table: "custom_programs", id: "id", fields: ["mode", "name", "weekday", "exercise_prescriptions"] },
   { type: "user_exercise", table: "user_exercises", id: "id", fields: ["mode", "name", "default_sets", "default_reps", "tracking_type", "default_duration_seconds"] },

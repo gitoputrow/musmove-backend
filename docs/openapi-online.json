@@ -2312,6 +2312,55 @@
                   }
                 ]
               },
+              "activityRoutine": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "dailyMovement": {
+                        "type": "string",
+                        "enum": [
+                          "mostly_sitting",
+                          "walking_standing",
+                          "physical_work"
+                        ]
+                      },
+                      "sports": {
+                        "maxItems": 7,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 50
+                            },
+                            "sessionsPerWeek": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 7
+                            }
+                          },
+                          "required": [
+                            "name",
+                            "sessionsPerWeek"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": [
+                      "dailyMovement",
+                      "sports"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
               "displayName": {
                 "anyOf": [
                   {

@@ -94,6 +94,33 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
       if (setup) assert.equal((await call("onboarding/complete", jwt, "POST", onboarding())).status, 200);
       return { jwt, id: first.body.user.id as string };
     }
+    await t.test("Activity routine onboarding and edits estimate nutrition independently of program frequency", async () => {
+      const a = await account();
+      const setup = onboarding();
+      const { dailyActivity: _legacy, ...profile } = setup.profile; void _legacy;
+      const routine = { dailyMovement: "mostly_sitting", sports: [{ name: "Gym", sessionsPerWeek: 4 }, { name: "Boxing", sessionsPerWeek: 1 }] };
+      const completed = await call("onboarding/complete", a.jwt, "POST", { ...setup, profile: { ...profile, activityRoutine: routine } });
+      assert.equal(completed.status, 200, JSON.stringify(completed.body));
+      assert.deepEqual(completed.body.profile.activityRoutine, routine);
+      assert.equal(completed.body.profile.trainingFrequency, 3);
+      assert.equal(completed.body.nutritionTargets.formulaVersion, "mifflin-routine-goals-v3");
+      assert.equal(completed.body.nutritionTargets.estimate.inputSnapshot.activitySelection.factor, 1.55);
+      assert.equal(completed.body.nutritionTargets.estimate.inputSnapshot.activitySelection.reportedSessions, 5);
+      const target = completed.body.nutritionTargets.estimate.calories;
+      const edit = await call("me", a.jwt, "PATCH", { baseVersions: { profile: "1" }, profile: { trainingFrequency: 1 } });
+      assert.equal(edit.status, 200, JSON.stringify(edit.body));
+      assert.deepEqual(edit.body.profile.activityRoutine, routine);
+      assert.equal(edit.body.nutritionTargets.estimate.calories, target);
+      const before = edit.body.versions.profile;
+      const invalid = await call("me", a.jwt, "PATCH", { baseVersions: { profile: before }, profile: { activityRoutine: { ...routine, sports: [{ name: "Gym", sessionsPerWeek: 0 }] } } });
+      assert.equal(invalid.status, 400);
+      assert.equal((await call("me", a.jwt)).body.versions.profile, before);
+      const changed = await call("me", a.jwt, "PATCH", { baseVersions: { profile: before }, profile: { activityRoutine: { dailyMovement: "physical_work", sports: [{ name: "Gym", sessionsPerWeek: 6 }] } } });
+      assert.equal(changed.status, 200);
+      assert.equal(changed.body.nutritionTargets.estimate.status, "needsReview");
+      assert.equal(changed.body.nutritionTargets.estimate.calories, null);
+      assert.deepEqual(changed.body.nutritionTargets.estimate.reasonCodes, ["ACTIVITY_LEVEL_REVIEW"]);
+    });
     async function setupProgram(jwt: string, weekday: number | null = null) {
       const exerciseId = `exercise-${randomUUID()}`, id = `program-${randomUUID()}`;
       const result = await call("programs/custom", jwt, "POST", { id, data: program(exerciseId, weekday), newExercises: [{ id: exerciseId, data: exercise }] });

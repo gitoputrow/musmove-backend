@@ -1255,13 +1255,30 @@ components:
         proteinGrams: { type: [number, "null"] }
         version: { $ref: "#/components/schemas/DecimalVersion" }
         updatedAt: { type: string, format: date-time }
+    ActivityRoutine:
+      type: object
+      additionalProperties: false
+      required: [dailyMovement, sports]
+      properties:
+        dailyMovement: { type: string, enum: [mostly_sitting, walking_standing, physical_work] }
+        sports:
+          type: array
+          maxItems: 7
+          description: Empty means no weekly sport. Distinct names, case-insensitive. Session counts can overlap on the same day; names do not determine intensity.
+          items:
+            type: object
+            additionalProperties: false
+            required: [name, sessionsPerWeek]
+            properties:
+              name: { type: string, minLength: 1, maxLength: 50 }
+              sessionsPerWeek: { type: integer, minimum: 1, maximum: 7 }
     NutritionTargets:
       type: object
       required: [formulaVersion, profileVersion, estimate, reason, caloriePolicy, goalAdjustmentApplied, activityFactors, goalPolicies, cutGuards, sources, warnings]
       properties:
-        formulaVersion: { const: mifflin-pal-goals-v2 }
+        formulaVersion: { type: string, enum: [mifflin-pal-goals-v2, mifflin-routine-goals-v3] }
         profileVersion: { type: [string, "null"] }
-        caloriePolicy: { const: goal_adjusted_v2 }
+        caloriePolicy: { type: string, enum: [goal_adjusted_v2, goal_adjusted_v3] }
         goalAdjustmentApplied: { type: boolean, description: True only for ready nonzero calorie adjustment. }
         goalPolicies:
           type: object
@@ -1445,8 +1462,9 @@ components:
         unfilledSessions: { type: integer, minimum: 0, maximum: 7 }
     OnboardingProfile:
       type: object
+      description: Provide activityRoutine or legacy dailyActivity; a routine takes precedence for nutrition.
       additionalProperties: false
-      required: [ageYears, goal, dailyActivity, trainingFrequency, sessionMinutes, programSource, motivationEnabled, motivationReason]
+      required: [ageYears, goal, trainingFrequency, sessionMinutes, programSource, motivationEnabled, motivationReason]
       description: Final setup values. App source requires nonempty focusAreas or a valid legacy focus. Custom source permits an empty array or omission. Both fields must agree if sent together. Omitted optional fields preserve existing values; explicit null clears nullable fields except focusAreas which never accepts null. trainingContext objects merge provided keys; null clears the whole context. setupCompleted is server-owned and rejected in requests. Gender never implies formulaSex or ability.
       allOf:
         - $ref: "#/components/schemas/FocusInputCompatibility"
@@ -1454,6 +1472,7 @@ components:
         ageYears: { type: integer, minimum: 1, maximum: 150 }
         goal: { type: string, enum: [bulk, cut, maintenance, maintain], description: maintain is accepted and normalized to maintenance. }
         dailyActivity: { type: string, enum: [light, moderate, vigorous] }
+        activityRoutine: { $ref: "#/components/schemas/ActivityRoutine" }
         trainingFrequency: { type: integer, minimum: 1, maximum: 7 }
         sessionMinutes: { type: integer, minimum: 10, maximum: 180 }
         programSource: { type: string, enum: [app, custom] }
@@ -1519,7 +1538,7 @@ components:
         trainingPreferences: { $ref: "#/components/schemas/OnboardingTrainingPreferences" }
     SetupProfile:
       type: object
-      required: [displayName, ageYears, weightKg, heightCm, formulaSex, gender, trainingContext, goal, motivationReason, motivationEnabled, dailyActivity, trainingFrequency, focus, focusAreas, programSource, sessionMinutes, setupCompleted, trainingLevel, exerciseCapabilities, excludedExerciseIds, version, updatedAt]
+      required: [displayName, ageYears, weightKg, heightCm, formulaSex, gender, trainingContext, goal, motivationReason, motivationEnabled, dailyActivity, activityRoutine, trainingFrequency, focus, focusAreas, programSource, sessionMinutes, setupCompleted, trainingLevel, exerciseCapabilities, excludedExerciseIds, version, updatedAt]
       description: Canonical current profile; focusAreas is authoritative, including empty for unknown legacy focus. Legacy focus is a singleton projection or null for multiple/empty. No profile remains null; reads do not create it. Pre-upgrade idempotency receipts replay the original JSON and may lack focusAreas; derive only a known singleton in such an ACK until the next ordinary read. Owner ID and tombstone metadata are not exposed. Optional absent measurements are null, never invented.
       properties:
         displayName: { type: [string, "null"] }
@@ -1534,6 +1553,7 @@ components:
         motivationReason: { type: [string, "null"] }
         motivationEnabled: { type: boolean }
         dailyActivity: { type: [string, "null"] }
+        activityRoutine: { anyOf: [{ $ref: "#/components/schemas/ActivityRoutine" }, { type: "null" }] }
         trainingFrequency: { type: [integer, "null"] }
         focus: { type: [string, "null"] }
         focusAreas: { $ref: "#/components/schemas/FocusAreas" }

@@ -212,6 +212,7 @@ export async function upsertEntity(
           motivationReason: payload.motivationReason ?? null,
           motivationEnabled: payload.motivationEnabled,
           dailyActivity: payload.dailyActivity ?? null,
+          activityRoutine: payload.activityRoutine ?? null,
           trainingFrequency: payload.trainingFrequency ?? null,
           ...focus,
           programSource: payload.programSource ?? null,
@@ -236,6 +237,7 @@ export async function upsertEntity(
             motivationReason: payload.motivationReason ?? null,
             motivationEnabled: payload.motivationEnabled,
             dailyActivity: payload.dailyActivity ?? null,
+            ...(payload.activityRoutine === undefined ? {} : { activityRoutine: payload.activityRoutine }),
             trainingFrequency: payload.trainingFrequency ?? null,
             ...focus,
             programSource: payload.programSource ?? null,
@@ -454,6 +456,7 @@ export async function resolveEntityPayload(
     exerciseCapabilities: profiles.exerciseCapabilities,
     excludedExerciseIds: profiles.excludedExerciseIds,
     gender: profiles.gender,
+    activityRoutine: profiles.activityRoutine,
     trainingContext: profiles.trainingContext,
   }).from(profiles).where(eq(profiles.userId, userId)).limit(1);
   // Older clients omit new fields. Publish the resolved values in the same
@@ -465,6 +468,7 @@ export async function resolveEntityPayload(
     exerciseCapabilities: parsed.exerciseCapabilities === undefined ? current?.exerciseCapabilities ?? null : parsed.exerciseCapabilities,
     excludedExerciseIds: parsed.excludedExerciseIds === undefined ? current?.excludedExerciseIds ?? null : parsed.excludedExerciseIds,
     gender: parsed.gender === undefined ? current?.gender ?? null : parsed.gender,
+    activityRoutine: parsed.activityRoutine === undefined ? current?.activityRoutine ?? null : parsed.activityRoutine,
     trainingContext: parsed.trainingContext === undefined ? current?.trainingContext ?? null :
       parsed.trainingContext === null ? null : { ...current?.trainingContext, ...parsed.trainingContext },
   };
