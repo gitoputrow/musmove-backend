@@ -56,9 +56,8 @@ export function patchAccount(userId: string, key: string, input: z.infer<typeof 
       if (input.trainingPreferences) await ctx.put("training_preferences", "training_preferences", input.baseVersions.trainingPreferences!, chosenTraining);
     }
     if (input.userPreferences) {
-      const current = preferences && !preferences.deletedAt ? payloadOf(preferences) : { budgetRupiah: null, budgetIsManual: false, placesArea: null };
+      const current = preferences && !preferences.deletedAt ? payloadOf(preferences) : { placesArea: null };
       const next = entityPayloadSchemas.user_preferences.parse({ ...current, ...input.userPreferences });
-      if (next.budgetIsManual && next.budgetRupiah === null) throw badRequest("BUDGET_REQUIRED", "Manual budget requires a positive budgetRupiah");
       await ctx.put("user_preferences", "user_preferences", input.baseVersions.userPreferences!, next);
     }
     return { ...await readAccountSetup(ctx.tx, userId), nutritionTargets: await readNutritionTargets(ctx.tx, userId) };

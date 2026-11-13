@@ -113,7 +113,7 @@ export async function importDemo(
           "Demo import found existing account data",
         );
       }
-      const payload = await resolveEntityPayload(transaction, userId, entity.entityType, entity.payload, entity.entityId);
+      const payload = await resolveEntityPayload(transaction, userId, entity.entityType, entity.payload);
       await upsertEntity(
         transaction,
         userId,

@@ -8,6 +8,15 @@ test("Online OpenAPI artifact matches current DTO generator and all path items a
   const artifact = readFileSync("docs/openapi-online.json", "utf8");
   assert.equal(artifact.trim(), generated.trim(), "Regenerate the OpenAPI artifact after DTO changes");
   const spec = JSON.parse(artifact), yaml = readFileSync("docs/openapi.yaml", "utf8");
+  function checkReferences(value: unknown) {
+    if (!value || typeof value !== "object") return;
+    for (const [key, child] of Object.entries(value)) {
+      if (key === "$ref" && typeof child === "string" && child.startsWith("#/components/schemas/")) {
+        assert.ok(spec.components.schemas[child.split("/").at(-1)!], `Missing local schema ${child}`);
+      } else checkReferences(child);
+    }
+  }
+  checkReferences(spec);
   const ids = new Set<string>();
   for (const [path, methods] of Object.entries(spec.paths) as [string, Record<string, { operationId?: string }> ][]) {
     assert.ok(yaml.includes(`./openapi-online.json#/paths/${path.replaceAll("/", "~1")}`), `Main spec missing ${path}`);
@@ -18,7 +27,7 @@ test("Online OpenAPI artifact matches current DTO generator and all path items a
       assert.ok(!ids.has(operation.operationId)); ids.add(operation.operationId);
     }
   }
-  assert.ok(ids.size >= 30);
+  assert.equal(ids.size, 26);
   for (const path of ["/workouts/active", "/workouts/manual", "/workouts/{id}/sets", "/workouts/{id}/complete", "/workouts/{id}/abort"]) {
     assert.equal(spec.paths[path], undefined);
     assert.equal(existsSync(`app/api/v1${path.replaceAll("{id}", "[id]")}/route.ts`), false);
@@ -53,6 +62,15 @@ test("Online OpenAPI artifact matches current DTO generator and all path items a
   assert.deepEqual(spec.components.schemas.Statistics.properties.totals.properties.reportedExternalVolumeKg.type, ["number", "null"]);
   assert.equal(spec.components.schemas.CompletedWorkoutResponse.properties.exercises.items.$ref, "#/components/schemas/CustomExercise");
   assert.equal(spec.components.schemas.Dashboard.properties.activeWorkout, undefined);
+  assert.equal(spec.components.schemas.Dashboard.properties.meals, undefined);
+  assert.equal(spec.components.schemas.Statistics.properties.mealDays, undefined);
+  assert.equal(spec.components.schemas.UserPreferences.properties.budgetRupiah, undefined);
+  assert.equal(spec.components.schemas.UserPreferences.properties.budgetIsManual, undefined);
+  for (const path of ["/meals", "/meals/{id}", "/catalog/meals"]) {
+    assert.equal(spec.paths[path], undefined);
+    assert.equal(existsSync(`app/api/v1${path.replaceAll("{id}", "[id]")}/route.ts`), false);
+    assert.ok(!yaml.includes(`  ${path}:`));
+  }
   const profile = spec.components.schemas.AccountPatchInput.properties.profile;
   assert.equal(profile.properties.focusAreas.$ref, "./openapi.yaml#/components/schemas/FocusAreas");
   assert.equal(profile.allOf[0].$ref, "./openapi.yaml#/components/schemas/FocusInputCompatibility");

@@ -1,7 +1,6 @@
-# Meals dan estimasi kebutuhan nutrisi
+# Estimasi kebutuhan nutrisi
 
-Backend menyediakan katalog, jurnal makan terstruktur, rekap harian, dan
-estimasi kalori/protein milik akun. Flutter belum dihubungkan ke endpoint ini.
+Backend menyediakan estimasi kalori/protein milik akun.
 Semua endpoint privat menggunakan bearer token Neon Auth; tidak menerima
 `userId` dari client.
 
@@ -53,8 +52,7 @@ API mengembalikan `caloriePolicy: goal_adjusted_v2`, `goalPolicies`, `cutGuards`
 serta `goalAdjustmentApplied` (true hanya bila estimasi ready dan penyesuaian
 kalori bukan nol). Di `estimate`, `calories` sekarang adalah **target akhir**;
 `maintenanceCalories` baseline, `calorieAdjustmentKcal` perubahan bertanda,
-`normalizedGoal` goal API, dan `proteinFactor` g/kg yang dipakai. Summary meals
-mengurangi total makan dari target akhir, bukan baseline maintenance.
+`normalizedGoal` goal API, dan `proteinFactor` g/kg yang dipakai.
 
 Goal aliases (case-insensitive, whitespace di-trim):
 
@@ -133,108 +131,7 @@ tidak mengubah profil, version, atau change log. Snapshot baru juga dibuat
 saat import demo. Import yang gagal membatalkan snapshot dan seluruh entitas.
 Mobile mengambil ulang `/nutrition/targets` setelah ACK perubahan profil,
 bootstrap, atau pull profil; estimasi bukan entitas mutable pada stream sync.
-Mengubah goal lewat sync juga membuat snapshot baru tanpa mengubah log makan
-atau snapshot target versi lama. Backfill v2 menambah snapshot baru bagi versi
+Mengubah goal lewat sync juga membuat snapshot baru tanpa mengubah snapshot target versi lama. Backfill v2 menambah snapshot baru bagi versi
 profil aktif, tanpa menulis ulang hasil v1. Selama belum dibackfill, GET memberi
 `ESTIMATE_REBUILD_REQUIRED`, bukan target lama.
 
-## Katalog dan log makan
-
-`GET /api/v1/catalog/meals` publik dan berversi membaca `meal_catalog`.
-Migrasi `0014` menambahkan **1.145 pangan rujukan TKPI 2017 Kemenkes** dalam
-13 kelompok, per 100 g bagian dapat dimakan, dengan kode/halaman sumber,
-kalori, protein, karbohidrat, lemak, serat, natrium dan mikronutrien yang tersedia.
-Snapshot memuat seluruh 1.146 baris sumber; melase MP013 tidak diaktifkan
-sebagai pilihan karena protein tidak tersedia. Nilai ini dicocokkan ke sumber,
-bukan hasil uji laboratorium independen makanan pengguna. Detail cakupan,
-penanda imputasi, outlier dan reproduksi ada di [katalog pangan](food-catalog.md).
-
-Endpoint sekarang berhalaman (default 50, maksimum 100) dan mengembalikan
-`total`, `hasMore`, `nextOffset`. Filter `q` dan `foodGroup` tersedia.
-Default hanya reference; `includeDemo=true` menyertakan tiga menu mobile lama:
-oat/pisang/susu, nasi/ayam/sayuran, serta tempe/telur/nasi. Demo tetap disimpan,
-tidak diubah menjadi data terverifikasi dan tidak ikut progress.
-
-Model mendukung `sourceType: reference` dengan `sourceUrl` wajib, untuk
-data dari sumber komposisi/label yang jelas, ditambah metadata porsi/kode/sumber.
-Mutasi katalog hanya melalui proses server/admin database, bukan API publik.
-Trigger menaikkan versi row dan versi katalog. Harga tetap bernama
-`samplePriceRupiah`, bukan harga pasar atau pengeluaran nyata.
-
-Log melalui `POST /api/v1/sync/push`, `entityType: meal_entry`:
-
-```json
-{
-  "schemaVersion": 1,
-  "deviceId": "mobile-installation",
-  "operations": [{
-    "operationId": "a64b0c54-3d14-46a5-9d0f-3a90c9d713cb",
-    "action": "upsert",
-    "entityType": "meal_entry",
-    "entityId": "meal-local-id",
-    "baseVersion": "0",
-    "payload": {
-      "menuName": null,
-      "note": null,
-      "samplePriceRupiah": null,
-      "snapshot": {},
-      "catalogId": "tkpi-ap001",
-      "servings": 1.5,
-      "consumedAt": "2026-10-11T07:00:00+07:00",
-      "recordedOn": "2026-10-11",
-      "mealType": "breakfast"
-    }
-  }]
-}
-```
-
-Untuk menu sendiri, `catalogId: null` dan berikan
-`nutrition: {caloriesKcal: 300, proteinGrams: 20}` **per satu porsi**,
-bukan total. Backend menandainya `user_reported`, bukan terverifikasi.
-Untuk `tkpi-ap001` (Nasi), satu porsi katalog = **100 g BDD**; 1.5 porsi
-= 150 g nasi yang ditimbang = 270 kcal dan 4.5 g protein, bukan 1.5 piring.
-Nutrisi custom juga boleh menyertakan `carbohydrateGrams`, `fatGrams`,
-`fiberGrams`, `sodiumMg`; `null` berarti tidak diketahui. Backend menyimpan
-dan menskalakan nilai ini di `nutritionPerServing` serta snapshot total.
-Untuk referensi, server selalu mengambilnya dari katalog, bukan input client.
-Ringkasan harian/target tetap hanya kalori dan protein; belum ada target makro
-karbohidrat/lemak atau rekap mikronutrien harian.
-`servings` 0.01–20 dengan maksimum dua desimal; nutrisi per porsi dibatasi
-0–10000 kcal dan 0–1000 g protein. Batas ini validasi input produk,
-bukan anjuran porsi atau asupan. `mealType`: breakfast/lunch/dinner/snack.
-
-Log terstruktur wajib punya porsi, waktu bertimezone, tanggal lokal,
-tipe makan, serta sumber nutrisi. `recordedOn` dipilih pada kalender lokal
-user; boleh berbeda satu hari dari UTC untuk batas zona waktu, bukan
-diturunkan dari timezone server. Tanggal tidak sah/mismatch ditolak.
-Tidak ada asumsi tanggal/kalori dari string demo legacy.
-
-Backend mengisi nama/harga/nutrisi dari katalog; client tidak bisa menimpa
-nilai atau provenance katalog lewat `nutrition`/`snapshot` palsu.
-`snapshot.nutritionDetails` adalah key milik server untuk sumber, versi
-katalog, porsi, nutrisi per porsi, dan total saat dicatat. Kolom terstruktur
-`meal_entries` menyimpan sumber ID, porsi, consumed_at, recorded_on, tipe,
-nutrisi per porsi dan total kalori/protein (dibulatkan dua desimal).
-
-Edit catatan/porsi atas log lama mempertahankan nutrisi dan versi katalog
-asli, termasuk ketika katalog berubah/tidak aktif. Ganti `catalogId` untuk
-mengambil sumber baru; switching ke custom harus memberi nutrisi sendiri.
-Omission field baru dari client lama mempertahankan field terstruktur saat
-edit. Clear ke legacy membutuhkan semua field terstruktur dikirim null.
-Bootstrap/pull membawa payload terselesaikan yang sama dengan persistence.
-Retry, conflict, tombstone, ownership tetap mengikuti kontrak sync.
-
-## Rekap harian
-
-`GET /api/v1/meals?date=2026-10-11&limit=50&offset=0` privat. `date` wajib;
-limit 1–100, offset 0–100000. Entries berhalaman, sedangkan summary selalu
-menghitung **seluruh hari**, bukan hanya halaman saat ini.
-
-`summary.reportedTotals` menjumlahkan nutrisi katalog reference dan menu
-user-reported; `summary.demoTotals` terpisah. Demo **tidak masuk progress**
-atau pengurangan target. `remaining` hanya tersedia bila target ready;
-angka tidak negatif dan tidak menunjukkan diagnosis kekurangan.
-Jumlah log demo ditampilkan. `undatedLegacyEntryCount` melaporkan seluruh
-log legacy akun tanpa tanggal, yang tidak masuk total harian. Tombstone dan
-log akun lain tidak masuk perhitungan. Tidak ada meal-plan recommendation
-atau pengecekan alergi: katalog hanyalah pilihan/log, bukan saran diet.

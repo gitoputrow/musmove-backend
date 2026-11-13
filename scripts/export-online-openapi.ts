@@ -33,9 +33,6 @@ const schemas: Record<string, ObjectSchema> = {
     setupCompleted: { type: "boolean" }, profile: nullable(original("SetupProfile")), trainingPreferences: nullable(original("SetupTrainingPreferences")),
     userPreferences: nullable(ref("UserPreferences")), versions: original("SetupVersions") }),
   AccountPatchResponse: { allOf: [ref("Setup"), object({ nutritionTargets: original("NutritionTargets") })] },
-  DailyMealSummary: object({ entryCount: { type: "integer" }, reportedTotals: original("MealNutrients"), demoTotals: original("MealNutrients"),
-    demoEntryCount: { type: "integer" }, undatedLegacyEntryCount: { type: "integer" }, remaining: nullable(original("MealNutrients")) }),
-  MealJournalSummary: object({ date: { type: "string", format: "date" }, summary: ref("DailyMealSummary"), targets: original("NutritionTargets"), warnings: array({ type: "string" }) }),
   Deleted: object({ id: ref("Id"), deleted: { const: true }, version: ref("Version") }),
   Favorite: object({ placeId: ref("Id"), isFavorite: { type: "boolean" }, favoriteVersion: ref("Version") }),
   WorkoutDay: object({ date: { type: "string", format: "date" }, completed: { type: "integer" }, aborted: { type: "integer" }, active: { type: "integer" }, durationMinutes: { type: ["number", "null"] }, knownDurationMinutes: { type: "number" }, workoutsMissingDuration: { type: "integer" } }),
@@ -45,7 +42,7 @@ const patchProfile = (schemas.AccountPatchInput.properties as Record<string, Obj
 (patchProfile.properties as Record<string, ObjectSchema>).focusAreas = original("FocusAreas");
 patchProfile.allOf = [original("FocusInputCompatibility")];
 const meta = { id: idSchema, version: versionSchema, updatedAt: z.iso.datetime({ offset: true }) };
-const resourceNames = { custom_program: "CustomProgram", user_exercise: "CustomExercise", meal_entry: "Meal", social_draft: "SocialDraft" } as const;
+const resourceNames = { custom_program: "CustomProgram", user_exercise: "CustomExercise", social_draft: "SocialDraft" } as const;
 schemas.Workout = fromZod(z.object(entityPayloadSchemas.workout_session.shape).extend(meta));
 (schemas.Workout.properties as Record<string, unknown>).resultMetrics = { ...nullable(ref("WorkoutResultMetrics")), readOnly: true, description: "Persisted at final submit only; null for old history. Never regenerated from today's profile/catalog." };
 schemas.CompletedWorkoutInput.description = "Measurement defaults to legacy repetitions when trackingType is absent. duration requires null target reps and targetDurationSeconds1–3600; actual setLog durationSeconds1–3600 or null/omitted unknown, null actual reps. Zero hold seconds is invalid, zero repetition count/extra load is valid. Completed may have unknown actuals; not proof all target sets were done. Session timing is retained: manual sessionTiming user_reported requires1–43200 seconds including rest; timer derives positive elapsed seconds from timestamps and forbids supplied seconds. Program timing may only use timer. No timing means unknown duration, never sum holds. Workout calorie estimation has been removed. energyActivityCode and workoutBodyweightKg are no longer accepted (400, even if null). New resultMetrics version2 contains duration and muscles only, without energy; historical version1 reads/receipts are preserved. No profile weight/age is needed to calculate workout metrics. Snapshot muscleTargets supplied by client are not authoritative and are replaced by canonical data or null. resultMetrics is server-only and rejected as input. See frontend-follow-up-workout-without-calories.md and frontend-follow-up-workout-result-metrics.md; migration0024 remains required for result_metrics storage and nullable readers.";
@@ -71,18 +68,15 @@ schemas.CompletedWorkoutInput.oneOf = [
 ];
 schemas.Workout.description = "Legacy/program snapshots retain their original shape. New free manual snapshots carry exercise.mode and setLog.exerciseMode throughout; their session mode is derived, mixed only when both modes occur. mixed is completed manual only. Identity is the (mode,id) pair, including each log reference and duplicate-set check. Read-only compatibility streams preserve this shape; legacy sync/demo writes cannot create it. Older two-value enum readers must be upgraded before mixed data is enabled.";
 schemas.WorkoutList = object({ items: array(ref("Workout")), nextCursor: { type: ["string", "null"] } });
-schemas.MealList = object({ date: { type: "string", format: "date" }, entries: array(original("MealLogItem")), hasMore: { type: "boolean" },
-  nextOffset: { type: ["integer", "null"] }, summary: ref("DailyMealSummary"), targets: original("NutritionTargets"), warnings: array({ type: "string" }) });
 schemas.Schedule = object({ from: { type: "string", format: "date" }, to: { type: "string", format: "date" }, weekdayConvention: { const: "ISO_MONDAY_1_SUNDAY_7" },
   weeklyPrograms: array(ref("ScheduledProgram")), workoutDays: array(ref("WorkoutDay")) });
 schemas.Statistics = object({ from: { type: "string", format: "date" }, to: { type: "string", format: "date" }, workoutDays: array(ref("WorkoutDay")),
-  mealDays: array(object({ date: { type: "string", format: "date" }, entryCount: { type: "integer" }, caloriesKcal: { type: "number" }, proteinGrams: { type: "number" } })),
   totals: object({ completedWorkouts: { type: "integer" }, abortedWorkouts: { type: "integer" }, durationMinutes: { type: ["number", "null"] }, knownDurationMinutes: { type: "number" }, workoutsMissingDuration: { type: "integer" },
     completedSets: { type: "integer" }, reportedReps: { type: ["number", "null"] }, reportedExternalVolumeKg: { type: ["number", "null"] }, totalHoldSeconds: { type: ["number", "null"] }, setsMissingLoad: { type: "integer" },
     setsMissingReps: { type: "integer" }, setsMissingDuration: { type: "integer" }, unmatchedCompletedSets: { type: "integer" }, repetitionSets: { type: "integer" }, durationSets: { type: "integer" } }), warnings: array({ type: "string" }) });
 schemas.Dashboard = object({ date: { type: "string", format: "date" }, setupCompleted: { type: "boolean" },
   scheduledPrograms: array(ref("ScheduledProgram")), workoutDays: array(ref("WorkoutDay")),
-  meals: object({ summary: ref("DailyMealSummary"), warnings: array({ type: "string" }) }), nutritionTargets: nullable(original("NutritionTargets")) });
+  nutritionTargets: nullable(original("NutritionTargets")) });
 
 const error = { $ref: "./openapi.yaml#/components/responses/Error" };
 const errors = Object.fromEntries([400, 401, 403, 404, 409, 413, 415, 429, 500, 503].map(code => [String(code), error]));
@@ -100,7 +94,7 @@ const paths: Record<string, Record<string, unknown>> = {
   "/me": {
     get: operation("getMe", ref("Account"), [], undefined, false, "Read identity, binary setup state, profile, training preferences, user preferences and all three versions without saving a draft."),
     patch: operation("patchMe", ref("AccountPatchResponse"), [], "AccountPatchInput", false,
-      "One atomic PATCH for changed resources only. Include exactly their baseVersions. Omission preserves, nullable null clears, nested trainingContext merges; arrays replace. setupCompleted cannot be patched. Profile/training editor requires completed onboarding; budget/area preferences may be saved independently. Optional nutrition can remain unavailable. No query parameters."),
+      "One atomic PATCH for changed resources only. Include exactly their baseVersions. Omission preserves, nullable null clears, nested trainingContext merges; arrays replace. setupCompleted cannot be patched. Profile/training editor requires completed onboarding; area preferences may be saved independently. Optional nutrition can remain unavailable. No query parameters."),
   },
   "/workouts": {
     get: operation("listWorkouts", ref("WorkoutList"), [{ in: "query", name: "from", schema: { type: "string", format: "date" } }, { in: "query", name: "to", schema: { type: "string", format: "date" } }, { in: "query", name: "mode", schema: { type: "string", enum: ["gym", "calisthenics", "mixed"] } }, limit, { ...cursor, schema: { type: "string", maxLength: 256 } }], undefined, false, "Owned history; from <= to. Optional mode is exact session classification: gym/calisthenics exclude mixed; omit for all modes. Preserve the same filters while paginating; reset cursor when filters change. Legacy bounded offset cursor, not a snapshot or signed collection cursor. All modes count once in unfiltered calendar/dashboard/statistics."),
@@ -109,12 +103,12 @@ const paths: Record<string, Record<string, unknown>> = {
   "/workouts/{id}": { parameters: [id], get: operation("getWorkout", ref("WorkoutResponse")), delete: operation("deleteWorkout", ref("Deleted"), [], "DeleteInput", false, "Soft-delete only, retaining immutable history payload; owner/version required.") },
   "/places/{id}/favorite": { parameters: [id], put: operation("addPlaceFavorite", ref("Favorite"), [], "DeleteInput", false, "Set favorite using favoriteVersion from GET /places as baseVersion. Active public place required when adding. Same-state requests do not bump versions."),
     delete: operation("removePlaceFavorite", ref("Favorite"), [], "DeleteInput", false, "Remove only this place. Tombstone favoriteVersion remains readable via GET /places for re-add; absence is version0.") },
-  "/dashboard": { get: operation("getDashboard", ref("Dashboard"), [{ in: "query", name: "date", required: true, schema: fromZod(dashboardQuerySchema.shape.date) }], undefined, false, "Bounded current-page data only. No recommendation call. nutritionTargets and remaining are null when setup is incomplete; no SETUP_REQUIRED guard.") },
+  "/dashboard": { get: operation("getDashboard", ref("Dashboard"), [{ in: "query", name: "date", required: true, schema: fromZod(dashboardQuerySchema.shape.date) }], undefined, false, "Bounded current-page data only. No recommendation call. nutritionTargets is null when setup is incomplete; no SETUP_REQUIRED guard.") },
 };
 for (const path of ["/schedule", "/statistics"] as const) {
   paths[path] = { get: operation(path === "/schedule" ? "getSchedule" : "getStatistics", ref(path === "/schedule" ? "Schedule" : "Statistics"),
     ["from", "to"].map(name => ({ in: "query", name, required: true, schema: { type: "string", format: "date" } })), undefined, false,
-    "Inclusive user-local date range with 0..366 days between endpoints. SQL summaries, not full history. Weekly custom schedule uses ISO Monday1..Sunday7. Statistics exclude demo meals/undated records and do not infer bodyweight load or calories burned. Figures are user-reported.") };
+    "Inclusive user-local date range with 0..366 days between endpoints. SQL summaries, not full history. Weekly custom schedule uses ISO Monday1..Sunday7. Statistics exclude undated records and do not infer bodyweight load or calories burned. Figures are user-reported.") };
 }
 void summaryQuerySchema;
 for (const [type, name] of Object.entries(resourceNames) as [keyof typeof resourceNames, string][]) {
@@ -123,22 +117,20 @@ for (const [type, name] of Object.entries(resourceNames) as [keyof typeof resour
   schemas[`${name}Patch`] = fromZod(z.object({ baseVersion: versionSchema, changes: z.object(data.shape as z.ZodRawShape).partial().strict(), ...(type === "custom_program" ? { newExercises: newExercisesSchema.optional() } : {}) }).strict());
   const outputShape = { ...data.shape } as Record<string, z.ZodType>;
   if (type === "custom_program") delete outputShape.durationMinutes;
-  schemas[name] = type === "meal_entry" ? original("MealLogItem") : fromZod(z.object(outputShape).extend(meta));
-  schemas[`${name}Response`] = object({ item: ref(name), ...(type === "custom_program" ? { exercises: array(ref("CustomExercise")) } : {}),
-    ...(type === "meal_entry" ? { journals: array(ref("MealJournalSummary")) } : {}) }, ["item", ...(type === "meal_entry" ? ["journals"] : [])]);
-  const path = { custom_program: "/programs/custom", user_exercise: "/exercises/custom", meal_entry: "/meals", social_draft: "/social/drafts" }[type];
+  schemas[name] = fromZod(z.object(outputShape).extend(meta));
+  schemas[`${name}Response`] = object({ item: ref(name), ...(type === "custom_program" ? { exercises: array(ref("CustomExercise")) } : {}) }, ["item"]);
+  const path = { custom_program: "/programs/custom", user_exercise: "/exercises/custom", social_draft: "/social/drafts" }[type];
   paths[path] = {
-    get: type === "meal_entry" ? operation("listMeals", ref("MealList"), [{ in: "query", name: "date", required: true, schema: { type: "string", format: "date" } }, { ...limit, schema: { ...limit.schema, default: 50 } }, { in: "query", name: "offset", schema: { type: "integer", minimum: 0, maximum: 100000, default: 0 } }]) :
-      operation(`list${name}`, object({ items: array(ref(name)), nextCursor: { type: ["string", "null"] } }), [limit, cursor, ...(["custom_program", "user_exercise"].includes(type) ? [mode] : [])], undefined, false,
+    get: operation(`list${name}`, object({ items: array(ref(name)), nextCursor: { type: ["string", "null"] } }), [limit, cursor, ...(["custom_program", "user_exercise"].includes(type) ? [mode] : [])], undefined, false,
         "Signed ID-keyset cursor bound to account, resource and mode filter. Omit mode to list both modes (including owned exercises for free manual selection); follow nextCursor until null. Changing the filter requires a fresh cursor. No disk cache or full-account bootstrap. Private draft list never publishes content."),
     post: operation(`create${name}`, ref(`${name}Response`), [], `${name}Create`, true,
-      "Strict final create with client-generated stable ID; IDs (including deleted IDs) cannot be reused. Program may atomically create newExercises; exercise references must be owned or active catalog and support its mode. Exercise labels/requirements are server-canonical, not client-authoritative. Exercise mode is immutable. Meals resolve catalog nutrition/estimated price server-side; journal summaries returned. Drafts remain private."),
+      "Strict final create with client-generated stable ID; IDs (including deleted IDs) cannot be reused. Program may atomically create newExercises; exercise references must be owned or active catalog and support its mode. Exercise labels/requirements are server-canonical, not client-authoritative. Exercise mode is immutable. Drafts remain private."),
   };
   paths[`${path}/{id}`] = { parameters: [id],
     get: operation(`get${name}`, object({ item: ref(name) })),
     patch: operation(`patch${name}`, ref(`${name}Response`), [], `${name}Patch`, false,
-      "Non-empty changed fields only; merge with persisted data before validation. Only declared nullable fields accept null. Preserve untouched metadata, nutrition/price snapshots and versions. Meal journals include both dates if moved. Program schedule slot conflicts return409; newExercises and program write are one transaction. History snapshots never change when program/exercise changes."),
-    delete: operation(`delete${name}`, type === "meal_entry" ? { allOf: [ref("Deleted"), object({ journals: array(ref("MealJournalSummary")) })] } : ref("Deleted"), [], "DeleteInput", false, "Account-owned versioned soft-delete. Same successful key/body replays without another delete; new keys for absent/deleted rows return404."),
+      "Non-empty changed fields only; merge with persisted data before validation. Only declared nullable fields accept null. Preserve untouched metadata and versions. Program schedule slot conflicts return409; newExercises and program write are one transaction. History snapshots never change when program/exercise changes."),
+    delete: operation(`delete${name}`, ref("Deleted"), [], "DeleteInput", false, "Account-owned versioned soft-delete. Same successful key/body replays without another delete; new keys for absent/deleted rows return404."),
   };
 }
 // Conditional measurement rules are runtime refinements; expose them to codegen.

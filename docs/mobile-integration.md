@@ -7,7 +7,7 @@ Kontrak field lengkap tersedia di [OpenAPI](openapi.yaml).
 **Alur mobile terbaru (20 Oktober 2026):** gunakan
 [handoff API langsung per fitur](frontend-follow-up-online-api.md) untuk mode
 online, PATCH profil/preferensi gabungan, CRUD resource, hasil workout selesai,
-favorit, jurnal dan ringkasan. Bagian sync/offline di panduan ini tetap merupakan
+favorit dan ringkasan. Bagian sync/offline di panduan ini tetap merupakan
 kontrak legacy; bukan kewajiban startup client online baru. Tidak ada penghapusan
 storage/outbox lama atau deploy otomatis.
 
@@ -68,7 +68,7 @@ JWT milik pengguna diperoleh setelah login, bukan ditanam dalam aplikasi.
 - Domain production telah diperiksa tanpa token: lima katalog mengembalikan
   HTTP 200; `/me` dan `/nutrition/targets` mengembalikan HTTP 401.
 - Katalog yang terlihat saat pemeriksaan: 117 exercise, 12 program, 28 alat,
-  18 places, dan 1.145 makanan referensi. Jumlah dapat berubah; jangan hardcode.
+  dan 18 places. Jumlah dapat berubah; jangan hardcode.
 - Login pengguna asli, refresh session Flutter, dan operasi tulis production
   belum diuji end-to-end. Contoh di sini bukan klaim integrasi mobile sudah jadi.
 - Repository menyediakan endpoint proxy `/api/v1/auth/*` dan kontrak native,
@@ -91,7 +91,6 @@ migration di schema `drizzle` dan tabel Auth yang dikelola provider di
 | `equipment_catalog` | ID alat kanonis, nama, dan alias pencarian |
 | `workout_program_catalog` | Template program, mode, fokus, durasi, status aktif |
 | `workout_program_exercises` | Urutan exercise dan sets/reps pada setiap template; referensi ke katalog exercise |
-| `meal_catalog` | Makanan, porsi, nutrisi, sumber, dan metadata provenance; bukan jurnal pengguna |
 | `place_catalog` | Tempat olahraga, kategori gym, model akses, alamat, koordinat, tautan Maps, sumber/tanggal pemeriksaan |
 | `catalog_state` | Versi katalog untuk cache/refresh client |
 
@@ -112,9 +111,8 @@ gerak, bukan daftar otot target atau jaminan keamanan medis.
 | `custom_programs` | Program buatan pengguna dan jadwal; `custom_program` |
 | `user_exercises` | Exercise buatan pengguna; `user_exercise` |
 | `workout_sessions` | Sesi latihan, snapshot exercise, log set, status; `workout_session`. Migrasi0023 memberi enum workout_mode tersendiri, termasuk mixed untuk completed manual; mode profil/program tetap gym/calisthenics. |
-| `user_preferences` | Preferensi budget dan area tempat; `user_preferences` |
+| `user_preferences` | Preferensi area tempat; `user_preferences` |
 | `place_favorites` | Tempat favorit per akun; `place_favorite` |
-| `meal_entries` | Jurnal makan, porsi/waktu, snapshot nutrisi; `meal_entry` |
 | `social_drafts` | Draft privat, bukan posting publik; `social_draft` |
 | `legacy_user_metadata` | Metadata kompatibilitas/import lama; `legacy_user_metadata` |
 
@@ -170,12 +168,6 @@ npm run db:migrate
 # Bila snapshot nutrisi lama belum tersedia untuk versi formula aktif:
 npm run db:backfill-nutrition
 ```
-
-Khusus `0019_simplify_meal_catalog`, deploy kode baru dan pastikan API katalog
-tidak lagi mengirim `mealType`, `portionLabel`, dan `foodKind` **sebelum** menjalankan
-migration penghapusan kolom. Mobile tidak boleh lagi mengirim filter `foodKind`
-(400); gunakan `foodGroup` dan `portionGrams`. Jurnal pengguna tetap memakai
-`mealType` untuk waktu makan. Detail: [penyederhanaan katalog](food-catalog.md#penyederhanaan-katalog-migrasi-0019).
 
 Migration tidak otomatis berjalan saat API menerima request atau Vercel build.
 Jangan mengunggah file migration credential ke Vercel. Backup/restore,
@@ -331,7 +323,6 @@ Key payload memakai camelCase; nama kolom SQL snake_case bukan kontrak request.
 | GET | `/catalog/exercises` | Publik | Exercise aktif; filter `equipment`, `equipmentIds`, dan `mode` opsional |
 | GET | `/catalog/programs` | Publik | Template program, bukan hasil personalisasi |
 | GET | `/catalog/equipment` | Publik | Semua alat atau pencarian `q` |
-| GET | `/catalog/meals` | Publik | Katalog pangan, search/filter/pagination |
 | GET | `/catalog/places` | Publik | Tempat, filter/pagination/jarak opsional |
 | GET | `/me` | Privat | Identitas akun backend saat ini |
 | GET | `/sync/bootstrap` | Privat | Snapshot awal akun dan cursor |
@@ -344,7 +335,6 @@ Key payload memakai camelCase; nama kolom SQL snake_case bukan kontrak request.
 | GET | `/workouts` | Privat | Histori workout akun, filter tanggal/pagination |
 | GET | `/programs/recommendations` | Privat | Rekomendasi berdasarkan profil, alat, kemampuan, histori |
 | GET | `/nutrition/targets` | Privat | Estimasi kalori/protein tersimpan untuk profil aktif |
-| GET | `/meals` | Privat | Jurnal dan rekap harian akun |
 | GET | `/places` | Privat | Katalog tempat plus flag `isFavorite` akun |
 | POST | `/equipment/recognize` | Privat | Kandidat alat dari satu foto; perlu konfirmasi |
 | POST | `/account/deletion-requests` | Privat | Menandai permintaan penghapusan dan menonaktifkan akses lokal |
@@ -358,8 +348,8 @@ Halaman reset ada di `https://musmove-backend.vercel.app/auth/reset-password`,
 **di luar** `/api/v1`. Publikasi/feed social memerlukan
 `SOCIAL_PUBLISHING_ENABLED=true` setelah moderator operasional tersedia.
 
-Tidak ada `POST /meals`, `PATCH /profile`, atau `POST /workouts`. Mutasi entitas
-tersebut selalu melalui `/sync/push`.
+Gunakan API online utama untuk mutasi entitas. Kontrak legacy `/sync/push`
+tetap tersedia untuk sinkronisasi entitas yang masih didukung.
 
 ### 4.2 Contoh pembacaan
 
@@ -377,12 +367,10 @@ curl --fail-with-body \
 Contoh query yang valid:
 
 ```text
-/catalog/meals?q=tempe&foodGroup=legumes&limit=50&offset=0
 /catalog/equipment?q=dambel
 /catalog/exercises?equipmentIds=dumbbell,bench&mode=gym
 /catalog/places?mode=gym&gymCategory=conventional&dayPassAvailable=true
 /places?latitude=-6.2&longitude=106.8&radiusKm=5&limit=50&offset=0
-/meals?date=2026-10-17&limit=50&offset=0
 /workouts?from=2026-10-01&to=2026-10-31&limit=25
 ```
 
@@ -390,10 +378,9 @@ Untuk places, latitude/longitude harus berpasangan; `radiusKm` memerlukan
 keduanya. Jarak adalah garis lurus, bukan rute/waktu perjalanan. `dayPassAvailable:
 null` berarti belum diketahui. Verifikasi akses/jam/harga dengan operator.
 
-Pagination tidak seragam: katalog meals/places dan jurnal meals memakai offset
-dan `nextOffset`/`hasMore`; workouts memakai `nextCursor`; sync memakai cursor
-bertanda tangan. Jangan menukar cursor antar-endpoint. Meal catalog default 50,
-places 50, meals 50, workouts 25; maksimum masing-masing 100. Simpan versi katalog
+Pagination places memakai offset dan `nextOffset`/`hasMore`; workouts memakai
+`nextCursor`; sync memakai cursor bertanda tangan. Jangan menukar cursor antar-endpoint.
+Places default 50, workouts 25; maksimum masing-masing 100. Simpan versi katalog
 dan mulai ulang pagination katalog bila versinya berubah di tengah pengambilan.
 
 ## 5. Penyimpanan offline dan sinkronisasi
@@ -411,7 +398,7 @@ jangan mengganti state pending dengan data server sebelum ACK/resolusi konflik.
 | `user_preferences` | Selalu `user_preferences` |
 | `legacy_user_metadata` | Selalu `legacy_user_metadata` |
 | `place_favorite` | ID tempat dari katalog |
-| `custom_program`, `user_exercise`, `workout_session`, `meal_entry`, `social_draft` | ID stabil buatan client; UUID disarankan |
+| `custom_program`, `user_exercise`, `workout_session`, `social_draft` | ID stabil buatan client; UUID disarankan |
 
 Jangan membuat ulang entity ID setiap retry. Key exercise katalog adalah
 `(mode, id)`, sehingga ID exercise tidak boleh dianggap unik lintas mode.
@@ -582,7 +569,7 @@ snapshot, jangan membuang edit lokal yang belum tersinkron.
 Bootstrap **legacy** `/sync/bootstrap` belum paginated: lebih dari 500 live records per entityType atau
 budget JSON sumber di atas 1,5 MB menghasilkan 413 `BOOTSTRAP_LIMIT`. Jangan
 menghapus histori pengguna atau retry tanpa batas untuk melewatinya. Akun besar
-harus beralih ke `/sync/snapshots` v2; daftar meals/workouts bukan pengganti
+harus beralih ke `/sync/snapshots` v2; daftar workouts bukan pengganti
 penuh snapshot sepuluh entitas. Kontrak endpoint legacy tetap kompatibel.
 
 ### 5.6 Snapshot v2: ringkasan integrasi baru
@@ -660,7 +647,7 @@ weightKg nullable, nomor set mulai 1, harus ada pada snapshot, tidak duplikat.
 Sesi final wajib `finishedAt` non-null. Snapshot histori tidak mengikuti edit
 katalog di kemudian hari. Jangan membuat beban angkat dari gender/BMI.
 
-### 6.2 Target nutrisi dan jurnal makanan
+### 6.2 Target nutrisi
 
 Upsert profil membuat snapshot estimasi dalam transaksi yang sama. Ambil ulang
 `/nutrition/targets` setelah ACK/pull perubahan profil atau goal. GET tidak
@@ -670,58 +657,11 @@ Gunakan `estimate.calories` sebagai target akhir goal, bukan menambahkan surplus
 defisit lagi. Kebijakan produk saat ini: bulk sekitar +10% dengan cap 300 kcal,
 cut sekitar −15% dengan cap 500 kcal, maintenance tanpa penyesuaian; protein default
 bulk/maintenance 1,6 g/kg dan cut 2 g/kg. Ini perkiraan produk, bukan resep klinis.
-Detail rumus dan guard ada di [meals/nutrition](meals-nutrition.md).
+Detail rumus dan guard ada di [target nutrisi](nutrition-targets.md).
 
 `estimate` bisa null (`PROFILE_REQUIRED`, `ESTIMATE_REBUILD_REQUIRED`) atau
 berstatus `incomplete`, `unsupportedAge`, `needsReview`; jangan menampilkan
 target 0 atau memakai angka stale sebagai pengganti `ready`.
-
-Pilih makanan dari `/catalog/meals`, lalu simpan entitas `meal_entry` melalui
-push. Contoh payload yang lengkap untuk makanan katalog:
-
-```json
-{
-  "menuName": null,
-  "note": null,
-  "samplePriceRupiah": null,
-  "snapshot": {},
-  "catalogId": "tkpi-ap001",
-  "servings": 1.5,
-  "consumedAt": "2026-10-17T07:00:00+07:00",
-  "recordedOn": "2026-10-17",
-  "mealType": "breakfast"
-}
-```
-
-TKPI memakai porsi 100 g bagian dapat dimakan: 1,5 serving berarti 150 g, bukan
-1,5 piring. Backend mengambil nama/nutrisi dari katalog dan menyimpan snapshot;
-client tidak boleh memaksakan nilai katalog. Untuk makanan custom gunakan
-`catalogId: null` dan `nutrition` per serving yang dilaporkan pengguna, bukan
-total setelah dikali serving. `servings` 0,01–20 dengan maksimal 2 angka desimal.
-`mealType`: breakfast/lunch/dinner/snack. Gunakan tanggal lokal pengguna dan
-timestamp bertimezone; jangan memakai tanggal UTC secara membabi buta.
-
-Setelah ACK/pull, panggil `/meals?date=YYYY-MM-DD`. Summary mencakup seluruh
-hari, bukan hanya halaman entries saat ini; jangan menjumlahkan ulang summary
-setiap halaman. Demo tidak dihitung sebagai konsumsi nyata. Nutrien null berarti
-tidak tersedia, bukan nol; data TKPI terlacak ke sumber, bukan uji lab setiap
-porsi pengguna. Lihat [katalog pangan](food-catalog.md).
-
-Harga katalog tersedia pada `samplePriceRupiah` dan `priceDetails` setelah migrasi
-`0018` dan deployment kode terbaru. **Selalu tampilkan label estimasi**, bukan
-harga terverifikasi/live. Harga numerik adalah per **100 g bagian dapat dimakan**;
-contoh nasi `1400` adalah model biaya bahan, bukan harga sepiring nasi restoran.
-`priceDetails.method` membedakan konversi rujukan, proksi dan model biaya;
-`reference` menyimpan nama produk pembanding, URL, lokasi, tanggal dan satuan.
-`checkedAt` bukan jaminan tanggal berlakunya harga. Detail ada di
-[kontrak harga makanan](food-prices.md).
-
-Untuk log katalog, harga dan `snapshot.nutritionDetails.priceDetails` ditentukan
-server. Harga log tetap **per serving**, tidak otomatis dikalikan servings;
-estimasi biaya log dapat dihitung `samplePriceRupiah * servings` dan harus tetap
-berlabel estimasi. Edit log mempertahankan rujukan harga historis, termasuk null
-pada log lama. `status: not_priced`/harga null harus tampil “tidak diberi harga”,
-bukan Rp0. Demo tidak memiliki priceDetails dan tetap ilustrasi.
 
 ### 6.3 Places dan scan alat
 
@@ -888,7 +828,7 @@ seluruh state aplikasi tanpa memetakan field kontrak yang didukung.
    Uji dengan akun uji yang disetujui setelah deployment/provider siap.
 3. Integrasikan `/me`; pisahkan database lokal/outbox per akun.
 4. Implementasikan bootstrap/pull/push, receipt, conflict, tombstone, dan retry.
-5. Integrasikan onboarding, katalog, recommendations, workout, meals/nutrition,
+5. Integrasikan onboarding, katalog, recommendations, workout, target nutrisi,
    places/favorit; foto opsional sesudah service AI siap.
 6. Uji token valid/expired, session habis, 403 akun tidak aktif, mode offline,
    timeout setelah server commit, duplicate retry, edit dari dua perangkat,
@@ -908,7 +848,7 @@ operasi tulis production dan tidak menambahkan kredensial ke repository.
 - [Validator payload sync](../src/modules/sync/dto.ts) dan
   [service sync](../src/modules/sync/service.ts).
 - [Personalisasi program](program-personalization.md).
-- [Meals dan rumus nutrisi](meals-nutrition.md), [katalog pangan](food-catalog.md).
+- [Rumus target nutrisi](nutrition-targets.md).
 - [Places](places.md), [scan alat](equipment-scan.md).
 - [Keamanan dan operasional Vercel](security-vercel.md).
 

@@ -5,7 +5,7 @@ dipakai pada URL production. Tidak ada migrasi database baru untuk fitur ini.
 
 Tambahan terbaru: [API langsung per fitur](frontend-follow-up-online-api.md)
 menyediakan PATCH `/me` dan CRUD online. `/me` serta respons complete kini juga
-memuat `userPreferences` dan `versions.userPreferences` untuk budget/area. Key
+memuat `userPreferences` dan `versions.userPreferences` untuk area. Key
 versi tambahan tersebut boleh diteruskan ke complete, tetapi tidak ditulis/dicek
 oleh onboarding. Kontrak lama dengan dua baseVersions tetap diterima.
 

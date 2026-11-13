@@ -19,7 +19,6 @@ const metadata = z.record(z.string(), z.unknown()).nullable();
 export const resourceSchemas = {
   custom_program: entityPayloadSchemas.custom_program,
   user_exercise: entityPayloadSchemas.user_exercise,
-  meal_entry: entityPayloadSchemas.meal_entry,
   social_draft: entityPayloadSchemas.social_draft.extend({ metadata }),
 };
 export const newExerciseSchema = z.object({ id: idSchema, data: resourceSchemas.user_exercise }).strict();

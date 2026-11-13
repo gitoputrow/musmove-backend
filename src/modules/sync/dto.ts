@@ -212,33 +212,10 @@ export const entityPayloadSchemas = {
     }),
   user_preferences: z
     .object({
-      budgetIsManual: z.boolean(),
-      budgetRupiah: z.number().int().positive().nullable(),
       placesArea: nullableString(120),
     })
     .strict(),
   place_favorite: z.object({}).strict(),
-  meal_entry: z
-    .object({
-      menuName: nullableString(120),
-      note: z.string().max(2000).nullable(),
-      samplePriceRupiah: z.number().int().nonnegative().nullable(),
-      snapshot: z.record(z.string(), z.unknown()),
-      catalogId: nullableString(255).optional(),
-      servings: z.number().finite().min(0.01).max(20).refine((value) => Math.abs(value * 100 - Math.round(value * 100)) < 1e-8, { message: "Use at most two decimal places" }).nullable().optional(),
-      consumedAt: z.iso.datetime({ offset: true }).nullable().optional(),
-      recordedOn: z.iso.date().nullable().optional(),
-      mealType: z.enum(["breakfast", "lunch", "dinner", "snack"]).nullable().optional(),
-      nutrition: z.object({
-        caloriesKcal: z.number().finite().min(0).max(10000),
-        proteinGrams: z.number().finite().min(0).max(1000),
-        carbohydrateGrams: z.number().finite().min(0).max(1000).nullable().optional(),
-        fatGrams: z.number().finite().min(0).max(1000).nullable().optional(),
-        fiberGrams: z.number().finite().min(0).max(1000).nullable().optional(),
-        sodiumMg: z.number().finite().min(0).max(100000).nullable().optional(),
-      }).strict().nullable().optional(),
-    })
-    .strict(),
   social_draft: z
     .object({
       body: z.string().trim().min(1).max(2000),
@@ -261,7 +238,6 @@ export const entityTypeSchema = z.enum([
   "workout_session",
   "user_preferences",
   "place_favorite",
-  "meal_entry",
   "social_draft",
   "legacy_user_metadata",
 ]);

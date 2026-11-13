@@ -66,7 +66,6 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
       "exercises/custom/:id": await import("../../app/api/v1/exercises/custom/[id]/route"),
       "social/drafts": await import("../../app/api/v1/social/drafts/route"),
       "social/drafts/:id": await import("../../app/api/v1/social/drafts/[id]/route"),
-      meals: await import("../../app/api/v1/meals/route"), "meals/:id": await import("../../app/api/v1/meals/[id]/route"),
       workouts: await import("../../app/api/v1/workouts/route"), "workouts/:id": await import("../../app/api/v1/workouts/[id]/route"),
       places: await import("../../app/api/v1/places/route"), "places/:id/favorite": await import("../../app/api/v1/places/[id]/favorite/route"),
       dashboard: await import("../../app/api/v1/dashboard/route"), schedule: await import("../../app/api/v1/schedule/route"), statistics: await import("../../app/api/v1/statistics/route"),
@@ -304,7 +303,7 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
       const a = await account(true); const before = (await call("me", a.jwt)).body;
       const input = { baseVersions: { profile: before.versions.profile, trainingPreferences: before.versions.trainingPreferences, userPreferences: "0" },
         profile: { weightKg: 72, trainingContext: { recoveryStatus: "tired" } }, trainingPreferences: { equipment: ["dumbbell"], noEquipment: false },
-        userPreferences: { budgetIsManual: true, budgetRupiah: 50000, placesArea: "Jakarta Selatan" } };
+        userPreferences: { placesArea: "Jakarta Selatan" } };
       const key = randomUUID(); const saved = await call("me", a.jwt, "PATCH", input, key); assert.equal(saved.status, 200, JSON.stringify(saved.body));
       assert.equal(saved.body.setupCompleted, true); assert.equal(saved.body.profile.motivationEnabled, false); assert.equal(saved.body.profile.gender, "non_binary");
       assert.equal(saved.body.profile.heightCm, 175); assert.deepEqual(saved.body.profile.trainingContext, { painAreas: ["knee"], recoveryStatus: "tired" });
@@ -315,7 +314,15 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
       const cleared = await call("me", a.jwt, "PATCH", { baseVersions: { profile: "2" }, profile: { weightKg: null } }); assert.equal(cleared.status, 200);
       assert.equal(cleared.body.profile.weightKg, null); assert.notEqual(cleared.body.nutritionTargets.estimate.status, "ready");
       const optional = await account();
+      for (const fields of [{ budgetRupiah: 50000 }, { budgetIsManual: false }]) {
+        assert.equal((await call("me", optional.jwt, "PATCH", { baseVersions: { userPreferences: "0" }, userPreferences: fields })).status, 400);
+      }
       assert.equal((await call("me", optional.jwt, "PATCH", { baseVersions: { userPreferences: "0" }, userPreferences: { placesArea: "Jakarta" } })).status, 200);
+      const preferences = (await call("me", optional.jwt)).body.userPreferences;
+      assert.deepEqual(Object.keys(preferences).sort(), ["placesArea", "updatedAt", "version"]);
+      const synced = await bootstrap(optional.id);
+      assert.equal("meal_entry" in synced.entities, false);
+      assert.deepEqual(synced.entities.user_preferences[0].payload, { placesArea: "Jakarta" });
       assert.equal((await call("me", optional.jwt)).body.setupCompleted, false);
       assert.equal((await call("me", optional.jwt, "PATCH", { baseVersions: { profile: "0" }, profile: { weightKg: 70 } })).status, 400);
     });
@@ -397,24 +404,6 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
       assert.equal((await call("social/drafts", a.jwt, "POST", { id: "a", data: { body: "resurrect", metadata: null } })).status, 409);
     });
 
-    await t.test("Meal writes preserve historical nutrition/price and return canonical daily summaries", async () => {
-      const a = await account(true), b = await account();
-      const input = { id: "food", data: { menuName: "forged", note: null, samplePriceRupiah: 1, snapshot: {}, catalogId: "tkpi-ap001", servings: 1.5, consumedAt: startedAt, recordedOn: date, mealType: "breakfast" } };
-      const key = randomUUID(), created = await call("meals", a.jwt, "POST", input, key); assert.equal(created.status, 201, JSON.stringify(created.body));
-      assert.equal(created.body.item.caloriesKcal, 270); assert.equal(created.body.journals[0].summary.reportedTotals.caloriesKcal, 270);
-      const price = created.body.item.samplePriceRupiah, perServing = created.body.item.nutritionPerServing;
-      assert.deepEqual((await call("meals", a.jwt, "POST", input, key)).body, created.body);
-      await db.update(schema.mealCatalog).set({ caloriesKcal: 1, samplePriceRupiah: 999999 }).where(eq(schema.mealCatalog.id, "tkpi-ap001"));
-      const edited = await call("meals/food", a.jwt, "PATCH", { baseVersion: "1", changes: { servings: 2 } }); assert.equal(edited.status, 200, JSON.stringify(edited.body));
-      assert.equal(edited.body.item.caloriesKcal, 360); assert.equal(edited.body.item.samplePriceRupiah, price); assert.deepEqual(edited.body.item.nutritionPerServing, perServing);
-      assert.equal((await call("meals/food", b.jwt)).status, 404);
-      const moved = await call("meals/food", a.jwt, "PATCH", { baseVersion: "2", changes: { consumedAt: "2026-10-21T00:00:00Z", recordedOn: "2026-10-21" } });
-      assert.equal(moved.body.journals.length, 2); assert.equal(moved.body.journals.find((j: { date: string }) => j.date === date).summary.reportedTotals.caloriesKcal, 0);
-      const removed = await call("meals/food", a.jwt, "DELETE", { baseVersion: "3" }); assert.equal(removed.body.journals[0].summary.entryCount, 0);
-      const custom = await call("meals", a.jwt, "POST", { id: "custom", data: { menuName: "Reported", note: null, samplePriceRupiah: null, snapshot: {}, catalogId: null, servings: 1, consumedAt: startedAt, recordedOn: date, mealType: "lunch", nutrition: { caloriesKcal: 300, proteinGrams: 10 } } });
-      assert.equal(custom.body.item.snapshot.nutritionDetails.sourceType, "user_reported");
-    });
-
     await t.test("Favorite mutations use per-place versions, retain tombstones and isolate accounts", async () => {
       const a = await account(), b = await account();
       const places = await call("places?limit=1", a.jwt), placeId = places.body.places[0].id;
@@ -461,9 +450,12 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
       assert.equal((await call("workouts", a.jwt, "POST", { ...manual, finishedAt: "2026-10-19T00:00:00Z" })).status, 400);
       assert.equal((await call("workouts", a.jwt, "POST", manual)).status, 201);
       const dashboard = await call(`dashboard?date=${date}`, a.jwt); assert.equal(dashboard.status, 200, JSON.stringify(dashboard.body));
+      assert.equal(dashboard.body.meals, undefined);
       assert.equal(dashboard.body.setupCompleted, false); assert.equal(dashboard.body.nutritionTargets, null); assert.equal(dashboard.body.scheduledPrograms.length, 1);
       const scheduled = await call(`schedule?from=${date}&to=${date}`, a.jwt); assert.equal(scheduled.body.weeklyPrograms.length, 1);
       const stats = await call(`statistics?from=${date}&to=${date}`, a.jwt); assert.equal(stats.status, 200, JSON.stringify(stats.body));
+      assert.equal(stats.body.mealDays, undefined);
+      assert.ok(!stats.body.warnings.includes("DEMO_MEALS_EXCLUDED"));
       assert.equal(stats.body.totals.completedWorkouts, 1); assert.equal(stats.body.totals.completedSets, 1); assert.equal(stats.body.totals.reportedExternalVolumeKg, 40);
       assert.equal(stats.body.totals.durationMinutes, null); assert.equal(stats.body.totals.workoutsMissingDuration, 1);
       assert.equal((await call(`statistics?from=${date}&to=${date}`, b.jwt)).body.totals.completedWorkouts, 0);

@@ -37,7 +37,7 @@ function projectSetup({ profile, training, preferences }: Awaited<ReturnType<typ
       version: training.version.toString(), updatedAt: training.updatedAt.toISOString(),
     } : null,
     userPreferences: preferences && !preferences.deletedAt ? {
-      budgetRupiah: preferences.budgetRupiah, budgetIsManual: preferences.budgetIsManual, placesArea: preferences.placesArea,
+      placesArea: preferences.placesArea,
       version: preferences.version.toString(), updatedAt: preferences.updatedAt.toISOString(),
     } : null,
     // Keep tombstone versions for explicit optimistic concurrency, even when DTO is null.

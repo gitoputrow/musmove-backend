@@ -10,8 +10,8 @@ begin
    where table_schema = 'public'
      and table_type = 'BASE TABLE';
 
-  if application_table_count <> 30 then
-    raise exception 'expected 30 application tables, found %', application_table_count;
+  if application_table_count <> 28 then
+    raise exception 'expected 28 application tables, found %', application_table_count;
   end if;
 end
 $$;
@@ -157,12 +157,6 @@ begin
     insert into nutrition_estimates (user_id, profile_version, formula_version, status, input_snapshot, reason_codes)
     values ('11111111-1111-4111-8111-111111111111', 1, 'test', 'ready', '{}', '{}');
     raise exception 'expected ready nutrition without values to fail';
-  exception when check_violation then null;
-  end;
-  begin
-    insert into meal_entries (user_id, id, snapshot, servings)
-    values ('11111111-1111-4111-8111-111111111111', 'incomplete-meal', '{}', 1);
-    raise exception 'expected partially structured meal to fail';
   exception when check_violation then null;
   end;
   begin

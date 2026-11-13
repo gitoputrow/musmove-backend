@@ -71,16 +71,11 @@ nilai asing, null, atau duplikat, dan menaikkan `catalogVersion`. Item baru waji
 diklasifikasikan secara eksplisit. Mobile perlu menambah field array dan
 menyegarkan cache katalog; tidak perlu mengganti ID alat atau data latihan lama.
 Terapkan migrasi database **sebelum deploy API baru** yang membaca kolom ini;
-API lama tetap kompatibel dengan penambahan kolom. Review migrasi lama yang
-masih pending sebelum menjalankan `npm run db:migrate`, khususnya `0019` yang
-menghapus kolom makanan. Jangan menerapkan penghapusan tersebut tanpa memastikan
-rollout API makanan yang sesuai sudah selesai.
+API lama tetap kompatibel dengan penambahan kolom. Review migrasi yang masih
+pending sebelum menjalankan `npm run db:migrate`.
 
-Status 19 Oktober 2026: migrasi `0019` dan `0020` telah diterapkan pada database
-yang terhubung setelah persetujuan pengguna dan pemeriksaan API production.
-Semua 28 alat memiliki kategori; ID/nama/alias tetap sama. `meal_catalog` kini
-22 kolom, dengan nilai tiga kolom yang dihapus dicadangkan dalam file lokal
-gitignored `.local-backups/migration-0019-meal-columns-2026-10-19.json`.
+Status 19 Oktober 2026: migrasi equipment modes telah diterapkan pada database
+yang terhubung. ID/nama/alias alat tetap sama.
 Security preflight lokal lolos. API Vercel perlu redeploy source terbaru agar
 respons equipment mengirim `modes` dan menerima filter `mode`.
 

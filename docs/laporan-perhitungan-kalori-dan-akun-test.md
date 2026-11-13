@@ -109,19 +109,7 @@ ini berdasarkan source mobile lokal yang diperiksa; versi aplikasi yang terpasan
 atau deployment API tidak diverifikasi melalui laporan ini. Tidak ada perubahan
 kode frontend yang dilakukan dalam penyusunan laporan.
 
-## 4. Kalori makanan dan workout
-
-Ketika user mencatat makanan, backend menggunakan nutrisi per porsi dari
-katalog, atau nutrisi yang dilaporkan user untuk makanan custom:
-
-```text
-kalori makanan = kalori per porsi × jumlah porsi
-```
-
-Contoh ilustrasi, **bukan riwayat makanan akun test**: jika makanan 200 kkal
-per porsi dicatat sebanyak 1,5 porsi, totalnya 300 kkal. Backend menjumlahkan
-makanan yang tercatat pada hari tersebut; sisa target adalah target dikurangi
-total konsumsi, dengan nilai minimum 0. Data demo dipisahkan dari progres utama.
+## 4. Kalori workout
 
 Backend tidak menghitung estimasi kalori terbakar dari workout. Durasi, set,
 repetisi, dan beban workout tidak otomatis menambah target kalori harian.
@@ -131,8 +119,6 @@ Durasi dan volume workout tetap tersedia.
 
 - `GET /api/v1/nutrition/targets`: target dan rincian estimasi nutrisi untuk
   profil aktif. Nilai estimasi disimpan berdasarkan versi profil dan formula.
-- `GET /api/v1/meals?date=YYYY-MM-DD`: jurnal makanan, total harian, dan sisa
-  target jika estimasi tersedia dan berstatus `ready`.
 
 Backend dapat mengembalikan `incomplete`, `unsupportedAge`, atau `needsReview`
 ketika data belum lengkap, berada di luar cakupan model, atau ada kondisi yang

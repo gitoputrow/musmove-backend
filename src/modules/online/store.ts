@@ -17,12 +17,11 @@ const descriptors = {
   custom_program: { table: "custom_programs", key: "id" },
   user_exercise: { table: "user_exercises", key: "id" },
   workout_session: { table: "workout_sessions", key: "id" },
-  meal_entry: { table: "meal_entries", key: "id" },
   social_draft: { table: "social_drafts", key: "id" },
   place_favorite: { table: "place_favorites", key: "place_id" },
 } as const;
 export type OnlineEntity = keyof typeof descriptors;
-export type Resource = "custom_program" | "user_exercise" | "meal_entry" | "social_draft";
+export type Resource = "custom_program" | "user_exercise" | "social_draft";
 export type Item = Record<string, unknown> & { id: string; version: string; updatedAt: string; deletedAt: string | null };
 const MAX = BigInt("9223372036854775807");
 const camel = (v: string) => v.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase());
@@ -30,10 +29,10 @@ const camel = (v: string) => v.replace(/_([a-z])/g, (_, c: string) => c.toUpperC
 export function columnsFor(type: OnlineEntity) {
   // Explicit DTO projection: future internal columns must not become API fields.
   const fields = Object.keys(entityPayloadSchemas[type].shape).filter(key => type !== "custom_program" || key !== "durationMinutes")
-    .map(key => key === "nutrition" ? "nutrition_per_serving" : key.replace(/[A-Z]/g, c => `_${c.toLowerCase()}`));
+    .map(key => key.replace(/[A-Z]/g, c => `_${c.toLowerCase()}`));
   return sql.join([
     ...(descriptors[type].key === "user_id" ? [] : [descriptors[type].key]), ...fields,
-    ...(type === "meal_entry" ? ["calories_kcal", "protein_grams"] : []), "version", "updated_at", "deleted_at",
+    "version", "updated_at", "deleted_at",
   ].map(field => sql`${sql.identifier(field)}`), sql`, `);
 }
 
@@ -52,10 +51,10 @@ export function mapRow(raw: Record<string, unknown>, id: string): Item {
     const field = camel(key);
     row[field] = value instanceof Date ? value.toISOString() : value;
   }
-  for (const key of ["weightKg", "heightCm", "servings", "caloriesKcal", "proteinGrams"]) {
+  for (const key of ["weightKg", "heightCm"]) {
     if (row[key] !== undefined && row[key] !== null) row[key] = Number(row[key]);
   }
-  for (const key of ["updatedAt", "deletedAt", "startedAt", "finishedAt", "consumedAt"]) {
+  for (const key of ["updatedAt", "deletedAt", "startedAt", "finishedAt"]) {
     if (typeof row[key] === "string") row[key] = new Date(row[key]).toISOString();
   }
   // pg/PGlite raw date results may be Date or YYYY-MM-DD strings.
@@ -69,10 +68,6 @@ export function publicItem(item: Item) {
 export function payloadOf(item: Item) {
   const { id: _id, version: _version, updatedAt: _updated, deletedAt: _deleted, ...payload } = item;
   void _id; void _version; void _updated; void _deleted;
-  if ("nutritionPerServing" in payload) {
-    payload.nutrition = payload.nutritionPerServing;
-    delete payload.nutritionPerServing; delete payload.caloriesKcal; delete payload.proteinGrams;
-  }
   delete payload.placeId;
   return payload;
 }
@@ -112,7 +107,7 @@ export async function mutateOnline(userId: string, operationId: string, scope: s
         else {
           await validateEntityTransition(tx, userId, type, id, payload);
           const parsed = entityPayloadSchemas[type].parse(payload);
-          const resolved = await resolveEntityPayload(tx, userId, type, parsed, id);
+          const resolved = await resolveEntityPayload(tx, userId, type, parsed);
           await upsertEntity(tx, userId, type, id, resolved, next);
         }
         const stored = await readItem(tx, userId, type, id);

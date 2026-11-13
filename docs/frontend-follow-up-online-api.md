@@ -32,7 +32,7 @@ sebelum deploy; detailnya ada di dokumen follow-up tersebut.
 
 **Kirim dokumen ini sebagai follow-up utama ke frontend.** Isinya seluruh
 perubahan yang dikerjakan: startup/setup/skip, profil dan preferensi gabungan,
-program custom/jadwal, exercise buatan, workout, jurnal/nutrisi, favorit tempat,
+program custom/jadwal, exercise buatan, workout, target nutrisi, favorit tempat,
 draft/publikasi sosial, dashboard/statistik, penghapusan akun, serta aturan
 versi/retry dan rollout. Revisi workout terbaru sudah termasuk: **hanya simpan
 setelah selesai**, bukan start/resume atau simpan progres ke backend.
@@ -72,7 +72,6 @@ Path `{id}` adalah ID resource, bukan ID akun. Ownership selalu dari JWT.
 | Exercise buatan akun | `GET/POST /exercises/custom`; `GET/PATCH/DELETE /exercises/custom/{id}` |
 | Workout selesai / catatan manual | `POST /workouts` satu kali setelah selesai; seluruh hasil set dikirim sekaligus |
 | Histori workout | `GET /workouts`; `GET/DELETE /workouts/{id}`; tidak ada start/resume atau simpan progres |
-| Jurnal makan | `GET/POST /meals`; `GET/PATCH/DELETE /meals/{id}` |
 | Favorit tempat | `GET /places`; `PUT/DELETE /places/{id}/favorite` |
 | Draft sosial privat | `GET/POST /social/drafts`; `GET/PATCH/DELETE /social/drafts/{id}` |
 | Dashboard/jadwal/statistik | `GET /dashboard?date=YYYY-MM-DD`; `GET /schedule?from=...&to=...`; `GET /statistics?from=...&to=...` |
@@ -99,7 +98,7 @@ Idempotency-Key: <UUID baru untuk satu aksi final>
 
 - Semua mutasi resource baru, termasuk DELETE, membutuhkan key tersebut. DELETE memakai
   JSON `{ "baseVersion": "..." }`, bukan versi di query parameter.
-- Create program/exercise/jurnal/draft: `{ "id": "<ID stabil buatan client>", "data": { ... } }` → HTTP 201.
+- Create program/exercise/draft: `{ "id": "<ID stabil buatan client>", "data": { ... } }` → HTTP 201.
   Gunakan UUID untuk ID baru; karakter yang diterima adalah huruf/angka, `_`,
   `.`, `:`, `-`, panjang 1–255, diawali huruf/angka. ID tidak bisa diganti/dipakai
   ulang setelah dihapus. POST workout, onboarding complete, dan PATCH /me memakai
@@ -141,7 +140,7 @@ Source perubahan ini belum dipush/dideploy oleh pekerjaan ini; capability baru
 request startup tambahan. Detail di [panduan auth proxy](frontend-follow-up-auth-proxy.md).
 
 Restore sesi/token mengikuti proxy auth yang sudah ada, lalu **GET `/me` satu
-kali**. Respons sekarang juga mencakup `userPreferences` (budget/area, nullable)
+kali**. Respons sekarang juga mencakup `userPreferences` (area, nullable)
 dan `versions.userPreferences`, selain profil dan preferensi latihan yang lama:
 
 ```json
@@ -180,7 +179,7 @@ Wizard hanya di memori sampai `POST /onboarding/complete` berhasil. Tidak ada
 draft/resumeStep atau penyimpanan setiap langkah. Onboarding tetap menerima
 baseVersions profil/latihan; key `userPreferences` dari `/me` boleh ikut terkirim
 namun **tidak dicek/ditulis** oleh complete. Respons complete juga mengembalikan
-preferensi budget/area dan versinya yang sedang tersimpan. Tidak mengubah status
+preferensi area dan versinya yang sedang tersimpan. Tidak mengubah status
 akun lama yang sudah complete berdasarkan kelengkapan nutrisi opsional.
 
 Sesi secure storage, bahasa dan tema tetap boleh disimpan lokal. Tidak ada cache
@@ -260,16 +259,15 @@ PATCH /api/v1/me
   "baseVersions": { "profile": "1", "trainingPreferences": "1", "userPreferences": "0" },
   "profile": { "weightKg": 72, "trainingContext": { "recoveryStatus": "tired" } },
   "trainingPreferences": { "equipment": ["dumbbell", "bench"], "noEquipment": false },
-  "userPreferences": { "budgetIsManual": true, "budgetRupiah": 50000, "placesArea": "Jakarta Selatan" }
+  "userPreferences": { "placesArea": "Jakarta Selatan" }
 }
 ```
 
 Hanya sertakan base version **persis untuk resource yang berubah**. Jika hanya
 berat berubah, kirim profile dan baseVersions.profile saja. Data profil,
-preferensi latihan dan budget/area yang dikirim disimpan satu transaksi. Alat
+preferensi latihan dan area yang dikirim disimpan satu transaksi. Alat
 divalidasi setelah merge, harus aktif dan mendukung mode; duplikasi ditolak.
-`noEquipment` harus konsisten dengan array alat. Manual budget memerlukan angka
-positif; budget rupiah adalah preferensi pengguna, bukan jaminan biaya aktual.
+`noEquipment` harus konsisten dengan array alat.
 
 Respons HTTP 200:
 
@@ -278,7 +276,7 @@ Respons HTTP 200:
   "setupCompleted": true,
   "profile": { "weightKg": 72, "version": "2", "updatedAt": "2026-10-20T00:00:00.000Z" },
   "trainingPreferences": { "mode": "gym", "equipment": ["dumbbell", "bench"], "noEquipment": false, "version": "2", "updatedAt": "2026-10-20T00:00:00.000Z" },
-  "userPreferences": { "budgetIsManual": true, "budgetRupiah": 50000, "placesArea": "Jakarta Selatan", "version": "1", "updatedAt": "2026-10-20T00:00:00.000Z" },
+  "userPreferences": { "placesArea": "Jakarta Selatan", "version": "1", "updatedAt": "2026-10-20T00:00:00.000Z" },
   "versions": { "profile": "2", "trainingPreferences": "2", "userPreferences": "1" },
   "nutritionTargets": { "profileVersion": "2", "estimate": null }
 }
@@ -295,7 +293,7 @@ formulaSex, kemampuan, exclusions, metadata dan boolean tidak diedit tetap
 dipertahankan. Gender tidak mengarang formulaSex/kemampuan. `setupCompleted`
 server-owned, **ditolak** dalam body patch; tidak diturunkan menjadi false.
 Editor profil/latihan berlaku setelah finalisasi pertama (`ONBOARDING_NOT_COMPLETED`
-jika belum); budget/area boleh disimpan independen tanpa menyimpan draft wizard.
+jika belum); area boleh disimpan independen tanpa menyimpan draft wizard.
 
 ### Multi-pilih target otot (22 Oktober 2026)
 
@@ -724,37 +722,7 @@ GET histori tetap `/workouts?from=...&to=...&limit=25&cursor=...` dan detail
 memuat status active/aborted dari klien lama, tetapi API baru tidak menciptakannya
 atau memutasi progresnya. Penyesuaian protokol legacy tidak dilakukan di sini.
 
-## 7. Jurnal makan dan favorit
-
-POST `/meals` memakai `{id,data}`; schema data lengkap di OpenAPI `MealEntryPayload`.
-Contoh pangan katalog:
-
-```json
-{
-  "id": "meal-uuid",
-  "data": {
-    "menuName": null, "note": null, "samplePriceRupiah": null, "snapshot": {},
-    "catalogId": "tkpi-ap001", "servings": 1.5,
-    "consumedAt": "2026-10-20T07:00:00+07:00", "recordedOn": "2026-10-20", "mealType": "breakfast"
-  }
-}
-```
-
-Pangan custom memakai catalogId null dan `nutrition` per serving; total dihitung
-server. Metadata nutritionDetails server-owned; input client tidak bisa memalsukan
-provenance katalog. Servings 0.01–20 (dua desimal); 1 serving TKPI =100g edible,
-bukan satu piring. Harga katalog adalah **estimasi**; null tidak berarti gratis.
-
-Create/patch mengembalikan `{item,journals:[{date,summary,targets,warnings}]}`;
-delete mengembalikan `{id,deleted,version,journals}`. `reportedTotals` mencakup
-seluruh hari, bukan hanya halaman. Bila tanggal diubah, ringkasan **kedua tanggal**
-disertakan. Snapshot nutrisi/harga makanan yang sama dipertahankan saat edit
-servings/note meskipun katalog sudah berubah/tidak aktif. Mengganti catalogId
-memilih sumber baru; pindah menjadi custom perlu nutrisi eksplisit.
-
-Read jurnal tetap `GET /meals?date=...&limit=50&offset=0` (maksimum 100) dengan
-entries/summary/targets/hasMore/nextOffset; detail `{item}`. Demo tidak dihitung
-sebagai progress dan entri legacy tanpa tanggal tidak masuk total hari.
+## 7. Favorit tempat
 
 GET `/places` sekarang menambah `favoriteVersion` (termasuk versi tombstone),
 terpisah dari `version` katalog tempat. PUT/DELETE `/places/{id}/favorite` memakai
@@ -809,9 +777,9 @@ publik atau izin memperpanjang akses setelah token/provider sudah tidak valid.
 Tidak ada worker deletion production yang dijalankan oleh perubahan ini.
 
 Dashboard mengambil jadwal custom hari tersebut, workoutDays dan
-rekap jurnal, tanpa mengambil seluruh histori atau memanggil rekomendasi.
+target nutrisi, tanpa mengambil seluruh histori atau memanggil rekomendasi.
 Schedule mengembalikan `weeklyPrograms`, `workoutDays` serta konvensi weekday.
-Statistics mengembalikan agregat SQL `workoutDays`, `mealDays`, `totals`, warnings:
+Statistics mengembalikan agregat SQL `workoutDays`, `totals`, warnings:
 completed/aborted workouts, durasi, completedSets, reportedReps,
 reportedExternalVolumeKg dan setsMissingLoad. Volume hanya reps × beban eksternal
 yang dilaporkan, bukan estimasi bodyweight/kekuatan atau kalori terbakar.
@@ -934,9 +902,6 @@ menghapus progres, data pending, atau hasil write yang belum diketahui.
   tanpa request pendaftaran terpisah. Gunakan item/exercises kanonis respons;
   payload lama tanpa gerakan baru tetap berjalan. Aktifkan setelah deployment
   fitur atomik ini dikonfirmasi, bukan hanya karena file dokumentasinya tersedia.
-- Jurnal memakai respons item dan journals untuk rekap hari terkait; pertahankan
-  snapshot historis dan label estimasi harga, jangan menghitung ulang dari
-  katalog terkini setelah makan disimpan.
 - Favorit memakai favoriteVersion, bukan version katalog, dan hanya mengubah
   tempat yang dipilih; jangan mengirim seluruh daftar.
 - Draft tetap privat; publikasi/laporan eksplisit mengikuti kontrak sosial lama.

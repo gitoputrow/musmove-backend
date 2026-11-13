@@ -31,13 +31,13 @@ async function main() {
         to_regclass('public.api_rate_limits') IS NOT NULL AS rate_table`)).rows[0];
         if (ownership.owns_tables || ownership.can_create) issues.push("DATABASE_ROLE: use a non-owner role without CREATE on public; see runtime-role-grants.sql");
         if (!ownership.rate_table) issues.push("DATABASE_MIGRATIONS: apply migration 0015 before deploying");
-        for (const table of ["meal_catalog", "exercise_catalog", "equipment_catalog", "place_catalog", "workout_program_catalog", "workout_program_exercises", "catalog_state"]) {
+        for (const table of ["exercise_catalog", "equipment_catalog", "place_catalog", "workout_program_catalog", "workout_program_exercises", "catalog_state"]) {
           const permission = (await client.query("SELECT has_table_privilege(current_user, $1, 'SELECT') AS can_read, has_table_privilege(current_user, $1, 'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') AS can_write", [table])).rows[0];
           if (!permission.can_read || permission.can_write) issues.push(`DATABASE_ROLE: ${table} must be read-only for the API`);
         }
         const required = (await client.query(`SELECT bool_and(has_table_privilege(current_user, tables.name, permissions.name)) AS ready
           FROM unnest(ARRAY['users','profiles','training_preferences','custom_programs','user_exercises','workout_sessions','user_preferences',
-          'place_favorites','meal_entries','social_drafts','legacy_user_metadata','sync_state','sync_changes','operation_receipts','demo_imports',
+          'place_favorites','social_drafts','legacy_user_metadata','sync_state','sync_changes','operation_receipts','demo_imports',
           'nutrition_estimates','api_rate_limits']) tables(name)
           CROSS JOIN unnest(ARRAY['SELECT','INSERT','UPDATE','DELETE']) permissions(name)`)).rows[0];
         if (!required.ready) issues.push("DATABASE_ROLE: required application table grants are incomplete");
@@ -57,8 +57,6 @@ async function main() {
         }
         const identityGuard = (await client.query(`SELECT EXISTS(SELECT 1 FROM pg_trigger WHERE tgrelid='public.users'::regclass AND tgname='users_revoked_identity_guard' AND tgenabled IN ('O','A')) AS ready`)).rows[0];
         if (!identityGuard.ready) issues.push("DATABASE_MIGRATIONS: apply migration 0017 identity guard before deploying");
-        const priceMetadata = (await client.query("SELECT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='meal_catalog' AND column_name='price_details') AS ready")).rows[0];
-        if (!priceMetadata.ready) issues.push("DATABASE_MIGRATIONS: apply migration 0018 food price metadata before deploying");
         const equipmentModes = (await client.query("SELECT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='equipment_catalog' AND column_name='modes' AND is_nullable='NO') AS ready")).rows[0];
         if (!equipmentModes.ready) issues.push("DATABASE_MIGRATIONS: apply migration 0020 equipment modes before deploying; review any older pending migrations first");
         const workoutModes = (await client.query(`SELECT EXISTS(SELECT 1 FROM information_schema.columns
@@ -74,6 +72,11 @@ async function main() {
         if (!durationColumn.ready) issues.push("DATABASE_MIGRATIONS: apply migration 0028 before deploying programs without estimated duration");
         const activityRoutine = (await client.query(`SELECT EXISTS(SELECT 1 FROM pg_attribute WHERE attrelid=to_regclass('public.profiles') AND attname='activity_routine' AND NOT attisdropped) AND EXISTS(SELECT 1 FROM pg_constraint WHERE conrelid=to_regclass('public.nutrition_estimates') AND conname='nutrition_estimates_v3_goal_values' AND convalidated) AS ready`)).rows[0];
         if (!activityRoutine.ready) issues.push("DATABASE_MIGRATIONS: apply migration 0030 before deploying nutrition activity routine");
+        const retiredFeatures = (await client.query(`SELECT to_regclass('public.meal_catalog') IS NULL
+          AND to_regclass('public.meal_entries') IS NULL
+          AND NOT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public'
+            AND table_name='user_preferences' AND column_name IN ('budget_rupiah','budget_is_manual')) AS ready`)).rows[0];
+        if (!retiredFeatures.ready) issues.push("DATABASE_MIGRATIONS: apply migration 0031 with the meals/daily budget API removal");
         await client.query("ROLLBACK");
       } finally { client.release(); }
     } catch {

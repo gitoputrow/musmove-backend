@@ -87,7 +87,7 @@ test("Cursors are account-bound, canonical and reject oversized signed sequences
     for (const value of [cursor + ".", cursor + ".extra", cursor.slice(0, -1), "x".repeat(3000)]) assert.throws(() => decodeCursor(value, payload.userId));
     assert.throws(() => decodeCursor(cursor, randomUUID()));
     assert.throws(() => decodeCursor(encodeCursor({ ...payload, sequence: "9".repeat(100) }), payload.userId));
-    assert.throws(() => syncPushSchema.parse({ schemaVersion: 1, deviceId: "test", operations: [{ action: "delete", baseVersion: "9".repeat(100), entityId: "id", entityType: "meal_entry", operationId: randomUUID() }] }));
+    assert.throws(() => syncPushSchema.parse({ schemaVersion: 1, deviceId: "test", operations: [{ action: "delete", baseVersion: "9".repeat(100), entityId: "id", entityType: "social_draft", operationId: randomUUID() }] }));
   } finally { if (prior === undefined) delete process.env.SYNC_CURSOR_SECRET; else process.env.SYNC_CURSOR_SECRET = prior; }
 });
 
@@ -139,10 +139,10 @@ test("Reviewed runtime grants allow app CRUD but deny catalog writes and DDL", a
     await client.exec("CREATE ROLE musmove_runtime NOLOGIN;");
     await client.exec(await readFile("scripts/runtime-role-grants.sql", "utf8"));
     await client.exec("SET ROLE musmove_runtime;");
-    assert.equal((await client.query("SELECT id FROM meal_catalog WHERE id='tkpi-ap001'")).rows.length, 1);
+    assert.equal((await client.query("SELECT id FROM exercise_catalog LIMIT 1")).rows.length, 1);
     await client.query("INSERT INTO users (id,issuer,subject) VALUES ($1,$2,$3)", [randomUUID(), "https://security.test", randomUUID()]);
     await client.query(RATE_LIMIT_SQL, [randomBytes(32).toString("hex"), 60000, 5]);
-    await assert.rejects(client.exec("UPDATE meal_catalog SET calories_kcal=0 WHERE id='tkpi-ap001'"));
+    await assert.rejects(client.exec("UPDATE exercise_catalog SET active=false"));
     await assert.rejects(client.exec("CREATE TABLE public.unauthorized_ddl (id integer)"));
   } finally { await client.close(); }
 });

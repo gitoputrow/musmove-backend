@@ -6,12 +6,11 @@ import { signToken, verifyToken } from "@/src/lib/signed-token";
 import { canonicalRequestHash } from "@/src/modules/sync/encoding";
 import { exerciseSchema } from "@/src/modules/sync/dto";
 import type { DatabaseTransaction } from "@/src/modules/sync/entities";
-import { readMeals } from "@/src/modules/meals/service";
 import { idSchema, listSchema, newExercisesSchema, resourceSchemas, versionSchema } from "./dto";
 import { columnsFor, expectVersion, mapRow, mutateOnline, payloadOf, publicItem, readItem, readOnline, requireLive, type Mutation, type Resource } from "./store";
 import { canonicalMeasurement } from "@/src/modules/workouts/canonical-measurement";
 
-const tables = { custom_program: "custom_programs", user_exercise: "user_exercises", meal_entry: "meal_entries", social_draft: "social_drafts" } as const;
+const tables = { custom_program: "custom_programs", user_exercise: "user_exercises", social_draft: "social_drafts" } as const;
 export function createSchema(type: Resource) {
   return z.object({ id: idSchema, data: resourceSchemas[type], ...(type === "custom_program" ? { newExercises: newExercisesSchema.optional() } : {}) }).strict();
 }
@@ -48,17 +47,9 @@ export async function addExercises(ctx: Mutation, input: unknown) {
   }
   return created;
 }
-async function journals(ctx: Mutation, dates: unknown[]) {
-  const result = [];
-  for (const date of new Set(dates.filter((v): v is string => typeof v === "string"))) {
-    const { summary, targets, warnings } = await readMeals(ctx.tx, ctx.userId, { date, limit: 1, offset: 0 });
-    result.push({ date, summary, targets, warnings });
-  }
-  return result;
-}
 export function listResource(userId: string, type: Resource, query: z.infer<typeof listSchema>) {
   return readOnline(userId, async tx => {
-    if (query.mode && (type === "meal_entry" || type === "social_draft")) throw badRequest("VALIDATION_ERROR", "This collection does not accept mode");
+    if (query.mode && type === "social_draft") throw badRequest("VALIDATION_ERROR", "This collection does not accept mode");
     const scope = `online-list:${userId}:${type}`;
     const binding = canonicalRequestHash({ mode: query.mode ?? null });
     const cursor = query.cursor ? z.object({ after: idSchema, binding: z.literal(binding) }).strict().parse(verifyToken(scope, query.cursor)) : null;
@@ -87,7 +78,7 @@ export function createResource(userId: string, key: string, type: Resource, body
       if (existing) throw conflict("RESOURCE_ID_REUSE", "Catalog exercise ID cannot be used for a custom exercise");
     }
     const item = await ctx.put(type, body.id, "0", data);
-    return { item: publicItem(item), ...(type === "meal_entry" ? { journals: await journals(ctx, [item.recordedOn]) } : {}),
+    return { item: publicItem(item),
       ...(type === "custom_program" ? { exercises: await Promise.all(newExercisesSchema.parse(body.newExercises ?? []).map(async e => publicItem(requireLive(await readItem(ctx.tx, userId, "user_exercise", e.id))))) } : {}) };
   });
 }
@@ -102,15 +93,15 @@ export function patchResource(userId: string, key: string, type: Resource, id: s
       else if (newExercisesSchema.parse(body.newExercises ?? []).length) throw badRequest("EXERCISES_NOT_USED", "New exercises require updated exercisePrescriptions");
     }
     const item = await ctx.put(type, id, body.baseVersion, data);
-    return { item: publicItem(item), ...(type === "meal_entry" ? { journals: await journals(ctx, [old.recordedOn, item.recordedOn]) } : {}),
+    return { item: publicItem(item),
       ...(type === "custom_program" ? { exercises: await Promise.all(newExercisesSchema.parse(body.newExercises ?? []).map(async e => publicItem(requireLive(await readItem(ctx.tx, userId, "user_exercise", e.id))))) } : {}) };
   });
 }
 export function removeResource(userId: string, key: string, type: Resource | "workout_session", id: string, baseVersion: string) {
   return mutateOnline(userId, key, `${type}.delete:${id}`, { baseVersion }, async ctx => {
-    const old = requireLive(await readItem(ctx.tx, userId, type, id));
+    requireLive(await readItem(ctx.tx, userId, type, id));
     const item = await ctx.remove(type, id, baseVersion);
-    return { id, deleted: true, version: item.version, ...(type === "meal_entry" ? { journals: await journals(ctx, [old.recordedOn]) } : {}) };
+    return { id, deleted: true, version: item.version };
   });
 }
 

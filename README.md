@@ -26,7 +26,7 @@ Content-Type: application/json
 The server derives account ownership only from the verified token. A client
 must never send a `userId` to select ownership. Current endpoints are:
 
-- `GET/PATCH /me` (account/setup snapshot; one atomic patch for profile, training and budget/area preferences)
+- `GET/PATCH /me` (account/setup snapshot; one atomic patch for profile, training and area preferences)
 - `POST /onboarding/complete` (final-only atomic setup; Bearer JWT, UUID `Idempotency-Key` and `baseVersions`)
 - `GET /meta` (public implementation capabilities; not provider readiness)
 - `POST /auth/sign-up/email` and `POST /auth/sign-in/email` (strict JSON; no Authorization)
@@ -50,12 +50,9 @@ must never send a `userId` to select ownership. Current endpoints are:
 - `POST /equipment/recognize` (private multipart photo; self-hosted SigLIP 2, candidates require confirmation)
 - `GET /catalog/programs` (public template catalog)
 - `GET /programs/recommendations` (private selection using saved preferences)
-- `GET /catalog/meals?q=tempe&foodGroup=legumes&limit=50&offset=0` (public, paginated TKPI reference foods; demos hidden by default)
 - `GET /catalog/places` (public Jakarta catalog, category/access filters and optional distance)
 - `GET /places` (private `isFavorite` and `favoriteVersion`); `PUT/DELETE /places/{id}/favorite`
 - `GET /nutrition/targets` (private, stored profile-versioned estimates)
-- `GET /meals?date=YYYY-MM-DD&limit=50&offset=0` (private daily journal/summary)
-- `POST /meals`; `GET/PATCH/DELETE /meals/{id}` (canonical journal/summary returned on writes)
 - `GET/POST /social/drafts`; `GET/PATCH/DELETE /social/drafts/{id}` (private, never auto-published)
 - `GET /dashboard?date=YYYY-MM-DD`; `GET /schedule?from=...&to=...`; `GET /statistics?from=...&to=...`
 - `POST /account/deletion-requests`
@@ -115,9 +112,11 @@ For one-per-user records, use stable IDs `profile`, `training_preferences`,
 entities must go through `/sync/push`; there are no parallel CRUD routes that
 bypass versions, receipts, or the change log.
 
+Meals and daily spending budgets have been removed. See [API/database removal and mobile rollout](docs/frontend-follow-up-remove-meals-budget.md).
+
 ## Database
 
-The reviewed migrations create 30 application tables after migration0016 for identities, profiles,
+The reviewed migrations create 28 application tables after migration0031 for identities, profiles,
 training preferences, programs, exercises, workouts, private user data,
 synchronization state/change logs, idempotency receipts, and demo imports.
 
@@ -197,29 +196,13 @@ Existing workout snapshots stay
 independent of later catalog/profile edits.
 This backend change does not yet switch the Flutter application to these routes.
 
-`meal_catalog` stores 1,145 TKPI 2017 reference foods across 13 food groups,
-with source codes/pages, 100 g edible portions, energy, protein, carbohydrates,
-fat, fiber, sodium and available micronutrients. Source-derived/imputed values
-stay labeled, missing values remain null, and flagged source outliers are
-withheld for review. These are traceable reference values, not independently
-lab-tested individual meals. The three existing mobile demo meals remain stored
-but are hidden unless `includeDemo=true`; no history is deleted. See the
-[food catalog coverage, verification and API](docs/food-catalog.md).
-
-Migration `0018` adds internet-reference food price **estimates** with independent
-pricing provenance: 1,125 priced reference foods and 20 deliberate non-retail/
-sensitive exclusions. Numeric prices are per100g edible portion, not live offers;
-see [food pricing and mobile display rules](docs/food-prices.md).
-`meal_entries` supports portions, consumption timestamps, local
-dates and immutable nutrition snapshots. `nutrition_estimates` stores input and
-output snapshots per profile/formula version atomically on profile writes.
+`nutrition_estimates` stores input and output snapshots per profile/formula version atomically on profile writes.
 The v2 formula retains the mobile maintenance baseline and adds explicit goal
 targets: bulk approximately +10% (cap 300 kcal), cut -15% (cap 500 kcal), and
 maintenance unchanged. Protein is 2 g/kg for cut and 1.6 for bulk/maintenance.
 These are starting product heuristics with review guards, not clinical targets.
 Both baseline and final targets are stored; old v1 snapshots are preserved.
-Demo nutrients are excluded from real daily
-progress. See [meals/nutrition contract](docs/meals-nutrition.md) for payloads,
+See [nutrition targets contract](docs/nutrition-targets.md) for payloads,
 guards, sources, shared Dart/TypeScript fixtures and remaining scope.
 
 Important database guarantees include account ownership foreign keys,

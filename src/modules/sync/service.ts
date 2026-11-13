@@ -5,7 +5,6 @@ import { getDatabase } from "@/src/db/client";
 import {
   customPrograms,
   legacyUserMetadata,
-  mealEntries,
   operationReceipts,
   placeFavorites,
   profiles,
@@ -200,7 +199,7 @@ async function applyOperation(userId: string, operation: SyncOperation) {
 
       const newVersion = expectedVersion + BigInt(1);
       if (operation.action === "upsert") {
-        payload = await resolveEntityPayload(transaction, userId, operation.entityType, payload, operation.entityId);
+        payload = await resolveEntityPayload(transaction, userId, operation.entityType, payload);
         await validateEntityTransition(
           transaction,
           userId,
@@ -307,7 +306,7 @@ export async function bootstrap(userId: string) {
       // size inside the same repeatable-read snapshot before fetching JSON rows.
       // No data is deleted/truncated; large accounts must use paginated history.
       const tables = ["profiles", "training_preferences", "custom_programs", "user_exercises", "workout_sessions",
-        "user_preferences", "place_favorites", "meal_entries", "social_drafts", "legacy_user_metadata"];
+        "user_preferences", "place_favorites", "social_drafts", "legacy_user_metadata"];
       const budget = await transaction.execute<{ records: number; bytes: string }>(sql.join(tables.map((table) => sql`
         SELECT count(*)::integer AS records, coalesce(sum(octet_length(row_to_json(s)::text)), 0)::text AS bytes
         FROM (SELECT * FROM ${sql.identifier(table)} WHERE user_id = ${userId} AND deleted_at IS NULL LIMIT 501) s
@@ -356,10 +355,6 @@ export async function bootstrap(userId: string) {
         .select()
         .from(placeFavorites)
         .where(and(eq(placeFavorites.userId, userId), isNull(placeFavorites.deletedAt)));
-      const mealRows = await transaction
-        .select()
-        .from(mealEntries)
-        .where(and(eq(mealEntries.userId, userId), isNull(mealEntries.deletedAt)));
       const draftRows = await transaction
         .select()
         .from(socialDrafts)
@@ -437,27 +432,11 @@ export async function bootstrap(userId: string) {
         ),
         user_preferences: preferenceRows.map((row) =>
           snapshotItem("user_preferences", row.version, row.updatedAt, json({
-            budgetRupiah: row.budgetRupiah,
-            budgetIsManual: row.budgetIsManual,
             placesArea: row.placesArea,
           })),
         ),
         place_favorite: favoriteRows.map((row) =>
           snapshotItem(row.placeId, row.version, row.updatedAt, {}),
-        ),
-        meal_entry: mealRows.map((row) =>
-          snapshotItem(row.id, row.version, row.updatedAt, json({
-            note: row.note,
-            menuName: row.menuName,
-            samplePriceRupiah: row.samplePriceRupiah,
-            snapshot: row.snapshot,
-            catalogId: row.catalogId,
-            servings: row.servings,
-            consumedAt: row.consumedAt?.toISOString() ?? null,
-            recordedOn: row.recordedOn,
-            mealType: row.mealType,
-            nutrition: row.nutritionPerServing,
-          })),
         ),
         social_draft: draftRows.map((row) =>
           snapshotItem(row.id, row.version, row.updatedAt, json({

@@ -44,7 +44,7 @@ diubah oleh proxy ini. Tidak diperlukan migrasi database khusus untuk auth proxy
 | Token | Diperoleh dari | Pemakaian |
 | --- | --- | --- |
 | `sessionToken` | Register/login, restore session, dan respons token baru | `Authorization: Session <sessionToken>` hanya untuk `/auth/get-session`, `/auth/token`, dan `/auth/sign-out`. |
-| `accessToken` | `GET /auth/token` | `Authorization: Bearer <accessToken>` untuk `/me`, sync, meals, social, deletion, dan endpoint data privat lainnya. |
+| `accessToken` | `GET /auth/token` | `Authorization: Bearer <accessToken>` untuk `/me`, sync, social, deletion, dan endpoint data privat lainnya. |
 
 `sessionToken` adalah envelope session terenkripsi, **bukan JWT akses API data**
 dan bukan `refresh_token` OAuth. Client memperlakukannya sebagai string opaque,
@@ -259,4 +259,4 @@ tetap dikonfigurasi. Alur browser/OAuth memerlukan desain tersendiri.
 
 Rujukan: [panduan mobile](mobile-integration.md), [OpenAPI](openapi.yaml),
 [follow-up social/deletion/sync](backend-follow-up-result.md), dan
-[follow-up katalog makanan](frontend-follow-up-meal-catalog.md).
+[kontrak target nutrisi](nutrition-targets.md).

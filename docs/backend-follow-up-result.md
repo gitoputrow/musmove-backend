@@ -31,7 +31,7 @@ direct-provider pada versi dokumen sebelumnya.
 | Reset password | Halaman callback HTTPS, proxy permintaan email dan penyelesaian reset terikat Auth; validasi, rate limit, CSP/no-store/no-referrer | Pengelola provider: pengirim email dan allowlist; mobile: email saja melalui proxy, uji email nyata dan password lama ditolak |
 | Bootstrap besar | Snapshot v2 immutable, pagination/resume, expiry, budget, handoff stream | Mobile mengintegrasikan kontrak baru; legacy tetap kompatibel |
 | Penghapusan akun | Request/status idempotent, antrean 7 hari, provider-first purge, retry/checkpoint, revoked-identity guard | Pengelola menjadwalkan worker privat dan menyediakan session admin provider yang valid; retensi backup perlu dikonfirmasi |
-| Kualitas katalog | Audit read-only struktur/provenance/unknown; harga makanan ditambahkan terpisah pada migrasi0018 sebagai estimasi berlabel | Harga per produk/lokasi pengguna tidak dijamin; detail dan batas ada pada [harga makanan](food-prices.md). Audit operator places tetap terpisah |
+| Kualitas katalog | Audit read-only struktur/provenance/unknown pada tempat dan exercise | Audit struktur tidak membuktikan kondisi operator places terkini |
 | Social | Publikasi teks eksplisit, keyset feed, owner-delete, private reports, CLI moderasi | Operator moderasi dan aturan komunitas harus tersedia sebelum flag publishing diaktifkan; mobile membangun UI berdasarkan kontrak |
 | Scan foto/email verification | Dikecualikan | Tidak diklaim siap dari pekerjaan ini |
 
@@ -321,15 +321,9 @@ Audit awal pada 18 Oktober 2026, sebelum migrasi harga0018 (`npm run catalogs:au
 - 18 places aktif: 0 lokasi/provenance struktural tidak valid, 0 model akses
   tidak konsisten; 16 day-pass unknown tetap null. Tanggal pemeriksaan sumber
   tersimpan 11 Oktober 2026; ini bukan verifikasi ulang ke operator hari ini.
-- 1.145 makanan referensi/13 kelompok: 0 metadata provenance wajib hilang;
-  0 harga referensi yang diklaim sebagai harga pasar. TKPI bukan sumber harga.
 - 117 exercise aktif: 0 movement tags kosong.
 
 Jam buka/fasilitas/harga gym belum dimodelkan; tidak ditambahkan dengan tebakan.
-Budget makanan tetap input manual opsional; rekomendasi berbasis budget belum
-ditambahkan. Tindak lanjut harga0018 menambahkan1.125 estimasi dengan sumber
-harga terpisah dan20 pengecualian, bukan1.125 harga individual terverifikasi.
-Lihat [kontrak harga makanan](food-prices.md) untuk satuan, metode dan batasnya.
 Audit struktur tidak membuktikan sebuah link operator masih benar/terbaru.
 
 ## 6. Rollout dan verifikasi
@@ -356,11 +350,10 @@ no-referrer, query token tidak dipantulkan ke HTML, tanpa script eksternal.
 Tes lokal otomatis yang disediakan (`npm run test:follow-up`) mencakup:
 
 - JWT Ed25519 asli/JWKS loopback, dua akun, receipt/duplicate/conflict/tombstone.
-- Snapshot650 meal entries dengan payload di atas1,5MB, replay halaman,
+- Snapshot650 social drafts dengan payload di atas1,5MB, replay halaman,
   update/delete/create setelah start, handoff stream tanpa hilang/duplikat.
 - Budget halaman, dua snapshot aktif, expiry/epoch, cursor akun lain.
-- Onboarding ACK, target bulk kanonis, rekomendasi program dan nutrisi makanan
-  server-authoritative.
+- Onboarding ACK, target bulk kanonis dan rekomendasi program.
 - Draft tidak masuk feed, owner-delete, report privat, hide, signed feed cursor
   presisi timestamp, feature flag dan429/Retry-After.
 - Runtime grants tidak bisa menulis revoked guard atau menyelesaikan moderasi.

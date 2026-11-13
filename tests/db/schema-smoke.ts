@@ -26,8 +26,8 @@ async function main() {
          and table_type = 'BASE TABLE'
     `);
 
-    if (result.rows[0]?.table_count !== 30) {
-      throw new Error("Schema smoke test did not find all 30 application tables");
+    if (result.rows[0]?.table_count !== 28) {
+      throw new Error("Schema smoke test did not find all 28 application tables");
     }
 
     const equipment = await client.query<{ count: number }>("select count(*)::integer as count from equipment_catalog");
@@ -95,15 +95,6 @@ async function main() {
     await client.exec("DELETE FROM place_catalog WHERE id = 'jakarta-ftl-tebet';");
     const afterDelete = await client.query<{ version: string }>("select version::text from catalog_state where name = 'places'");
     if (BigInt(afterDelete.rows[0].version) !== BigInt(beforePlaceState.rows[0].version) + BigInt(2)) throw new Error("Place delete version trigger failed");
-    await client.exec("ROLLBACK;");
-
-    const meals = await client.query<{ count: number }>("select count(*)::integer as count from meal_catalog where source_type = 'demo'");
-    if (meals.rows[0].count !== 3) throw new Error("Meal demo seed is incomplete");
-    const mealStateBefore = await client.query<{ version: string }>("select version::text from catalog_state where name = 'meals'");
-    await client.exec("BEGIN; UPDATE meal_catalog SET calories_kcal = 390 WHERE id = 'demo-oats-banana-milk';");
-    const mealVersion = await client.query<{ version: string }>("select version::text from meal_catalog where id = 'demo-oats-banana-milk'");
-    const mealState = await client.query<{ version: string }>("select version::text from catalog_state where name = 'meals'");
-    if (mealVersion.rows[0].version !== "2" || BigInt(mealState.rows[0].version) !== BigInt(mealStateBefore.rows[0].version) + BigInt(1)) throw new Error("Meal catalog version triggers failed");
     await client.exec("ROLLBACK;");
 
     console.info("Database schema smoke test passed");

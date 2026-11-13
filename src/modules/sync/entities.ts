@@ -4,7 +4,6 @@ import type { Database } from "@/src/db/client";
 import {
   customPrograms,
   legacyUserMetadata,
-  mealEntries,
   placeFavorites,
   profiles,
   socialDrafts,
@@ -22,7 +21,6 @@ import type {
   WorkoutSetLog,
 } from "@/src/db/schema";
 import { badRequest } from "@/src/lib/api-error";
-import { mealTotals, resolveMealPayload } from "@/src/modules/meals/resolve";
 import { storeNutritionEstimate } from "@/src/modules/nutrition/storage";
 import { resolveFocusFields } from "@/src/modules/programs/focus";
 
@@ -59,7 +57,6 @@ const storage: Record<EntityType, StorageDescriptor> = {
     table: "user_preferences",
   },
   place_favorite: { idColumn: "place_id", table: "place_favorites" },
-  meal_entry: { idColumn: "id", table: "meal_entries" },
   social_draft: { idColumn: "id", table: "social_drafts" },
   legacy_user_metadata: {
     idColumn: "user_id",
@@ -352,36 +349,6 @@ export async function upsertEntity(
         });
       break;
     }
-    case "meal_entry": {
-      const payload = entityPayloadSchemas.meal_entry.parse(rawPayload);
-      const { nutrition, consumedAt, ...rest } = payload;
-      const data = {
-        ...rest, catalogId: payload.catalogId ?? null, servings: payload.servings ?? null,
-        consumedAt: consumedAt ? new Date(consumedAt) : null, recordedOn: payload.recordedOn ?? null,
-        mealType: payload.mealType ?? null, nutritionPerServing: nutrition ?? null,
-        caloriesKcal: nutrition && payload.servings ? mealTotals(nutrition, payload.servings).caloriesKcal : null,
-        proteinGrams: nutrition && payload.servings ? mealTotals(nutrition, payload.servings).proteinGrams : null,
-        snapshot: payload.snapshot as JsonObject,
-      };
-      await transaction
-        .insert(mealEntries)
-        .values({
-          userId,
-          id: entityId,
-          ...data,
-          version,
-        })
-        .onConflictDoUpdate({
-          target: [mealEntries.userId, mealEntries.id],
-          set: {
-            ...data,
-            version,
-            updatedAt: now,
-            deletedAt: null,
-          },
-        });
-      break;
-    }
     case "social_draft": {
       const payload = entityPayloadSchemas.social_draft.parse(rawPayload);
       await transaction
@@ -435,16 +402,11 @@ export async function resolveEntityPayload(
   userId: string,
   entityType: EntityType,
   payload: unknown,
-  entityId?: string,
 ) {
   if (entityType === "custom_program") {
     const { durationMinutes: _legacyDuration, ...program } = entityPayloadSchemas.custom_program.parse(payload);
     void _legacyDuration;
     return program;
-  }
-  if (entityType === "meal_entry") {
-    if (!entityId) throw new Error("Meal resolution requires an entity ID");
-    return resolveMealPayload(transaction, userId, entityId, entityPayloadSchemas.meal_entry.parse(payload));
   }
   if (entityType !== "profile") return payload;
   const parsed = entityPayloadSchemas.profile.parse(payload);

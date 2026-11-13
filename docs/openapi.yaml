@@ -20,8 +20,6 @@ paths:
     $ref: "./openapi-online.json#/paths/~1social~1drafts"
   /social/drafts/{id}:
     $ref: "./openapi-online.json#/paths/~1social~1drafts~1{id}"
-  /meals/{id}:
-    $ref: "./openapi-online.json#/paths/~1meals~1{id}"
   /places/{id}/favorite:
     $ref: "./openapi-online.json#/paths/~1places~1{id}~1favorite"
   /workouts/{id}:
@@ -457,52 +455,10 @@ paths:
               schema: { $ref: "#/components/schemas/PlaceCatalogResponse" }
         "400": { $ref: "#/components/responses/Error" }
         "401": { $ref: "#/components/responses/Error" }
-  /catalog/meals:
-    get:
-      operationId: getMealCatalog
-      security: []
-      description: Paginated, source-traceable TKPI reference foods, default excluding demos. 1145 usable source foods across 13 groups, each per100g edible portion. All1125 numeric prices are labeled estimates from separate internet references/proxies/cost models, NOT1125 observed individual prices or live offers;20 non-retail/sensitive exclusions remain null with reasons. Always display the estimate label and basis; null is not free. Missing nutrients are null; imputed/borrowed fields remain labeled; flagged micronutrient outliers are withheld. Not independently lab-tested individual foods or dietary recommendations. See docs/food-catalog.md and docs/food-prices.md.
-      parameters:
-        - name: q
-          in: query
-          schema: { type: string, minLength: 1, maxLength: 120 }
-          description: Literal case-insensitive substring in Indonesian/English name or source code.
-        - name: foodGroup
-          in: query
-          schema: { $ref: "#/components/schemas/FoodGroup" }
-        - name: includeDemo
-          in: query
-          schema: { type: boolean, default: false }
-          description: true includes the three legacy demo examples; they remain excluded from nutrition progress.
-        - name: limit
-          in: query
-          schema: { type: integer, minimum: 1, maximum: 100, default: 50 }
-        - name: offset
-          in: query
-          schema: { type: integer, minimum: 0, maximum: 100000, default: 0 }
-      responses:
-        "200":
-          description: Active meal catalog.
-          content:
-            application/json:
-              schema:
-                type: object
-                required: [catalogVersion, meals, warning, warnings, total, hasMore, nextOffset]
-                properties:
-                  catalogVersion: { $ref: "#/components/schemas/DecimalVersion" }
-                  warning: { type: string }
-                  warnings: { type: array, items: { type: string } }
-                  total: { type: integer, minimum: 0 }
-                  hasMore: { type: boolean }
-                  nextOffset: { type: [integer, "null"], minimum: 0 }
-                  meals:
-                    type: array
-                    items: { $ref: "#/components/schemas/MealCatalogItem" }
-        "400": { $ref: "#/components/responses/Error" }
   /nutrition/targets:
     get:
       operationId: getNutritionTargets
-      description: Server-stored goal-adjusted estimate for the current live profile/formula version. Bulk approximately +10% capped at +300 kcal; cut approximately -15% capped at -500 kcal; maintenance unchanged. Cut protein 2 g/kg, others 1.6 g/kg. Starting product heuristics, not clinical prescriptions. GET does not write. See docs/meals-nutrition.md for rounding, aliases and safety gates.
+      description: Server-stored goal-adjusted estimate for the current live profile/formula version. Bulk approximately +10% capped at +300 kcal; cut approximately -15% capped at -500 kcal; maintenance unchanged. Cut protein 2 g/kg, others 1.6 g/kg. Starting product heuristics, not clinical prescriptions. GET does not write. See docs/nutrition-targets.md for rounding, aliases and safety gates.
       responses:
         "200":
           description: Estimate or explicit profile/rebuild reason; numbers null for incomplete, unsupportedAge or needsReview.
@@ -510,8 +466,6 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/NutritionTargets" }
         "401": { $ref: "#/components/responses/Error" }
-  /meals:
-    $ref: "./openapi-online.json#/paths/~1meals"
   /catalog/programs:
     get:
       operationId: getProgramCatalog
@@ -1067,194 +1021,6 @@ components:
         distanceKm: { type: [number, "null"], description: Great-circle distance rounded to 0.001 km; null without origin. Not travel distance. }
         isFavorite: { type: boolean, description: Present only on the private /places response. }
         favoriteVersion: { $ref: "#/components/schemas/DecimalVersion", description: Private /places only. Includes tombstone version for optimistic favorite mutations; zero if no row. }
-    MealNutrients:
-      type: object
-      additionalProperties: false
-      required: [caloriesKcal, proteinGrams]
-      properties:
-        caloriesKcal: { type: number, minimum: 0 }
-        proteinGrams: { type: number, minimum: 0 }
-        carbohydrateGrams: { type: [number, "null"], minimum: 0 }
-        fatGrams: { type: [number, "null"], minimum: 0 }
-        fiberGrams: { type: [number, "null"], minimum: 0, description: TKPI does not distinguish fiber methods per food. }
-        sodiumMg: { type: [number, "null"], minimum: 0 }
-    FoodGroup:
-      type: string
-      enum: [cereals, tubers, legumes, vegetables, fruits, meat_poultry, fish_seafood, eggs, dairy, fats_oils, sugars_confectionery, condiments, beverages]
-    FoodSourceDetails:
-      type: object
-      required: [dataset, pdfPage, printedPage, originalReference, ediblePercent, imputedOrBorrowedFields, additionalNutrients, withheldNutrients]
-      properties:
-        dataset: { type: string, example: TKPI_2017 }
-        pdfPage: { type: integer, minimum: 1, description: 1-based page in the pinned source PDF. }
-        printedPage: { type: integer, minimum: 1 }
-        originalReference: { type: string, description: Original SUMBER column, not a claim that all values were analyzed by that source. }
-        ediblePercent: { type: [number, "null"], minimum: 0, maximum: 100 }
-        imputedOrBorrowedFields:
-          type: array
-          items: { type: string }
-          description: Source blue-shaded nutrient cells. Other values are not necessarily lab analyzed either.
-        additionalNutrients:
-          type: object
-          additionalProperties: { type: [number, "null"], minimum: 0 }
-          description: Per100g edible portion, not log totals. Field names specify Grams/Mg/Mcg. Missing or withheld amounts are null.
-        withheldNutrients:
-          type: object
-          description: Source outliers held for editorial review, not medical thresholds or guessed corrections.
-          additionalProperties:
-            type: object
-            required: [sourceValue, reason]
-            properties:
-              sourceValue: { type: number }
-              reason: { type: string, enum: [SOURCE_OUTLIER_REQUIRES_REVIEW] }
-    FoodPriceReference:
-      type: object
-      additionalProperties: false
-      required: [id, productName, sourceName, sourceUrl, location, checkedAt, sourceDate, access, priceRupiah, quantity, unit, edibleBasis, note]
-      properties:
-        id: { type: string }
-        productName: { type: string, description: Actual quoted product and selected package, not necessarily the TKPI food's individual price. }
-        sourceName: { type: string }
-        sourceUrl: { type: string, format: uri }
-        location: { type: string, description: Known seller/market location or explicitly unspecified/default storefront. Not inferred to be the user's city. }
-        checkedAt: { type: string, format: date }
-        sourceDate: { type: [string, "null"], format: date, description: Date stated by source; null means unstated, not today's measured price. }
-        access: { type: string, enum: [live_page, search_index, historical_document] }
-        priceRupiah: { type: integer, exclusiveMinimum: 0, description: Observed price of the reference quantity, not the normalized catalog price. }
-        quantity: { type: number, exclusiveMinimum: 0 }
-        unit: { type: string, enum: [g, ml] }
-        edibleBasis: { type: string, enum: [edible, as_purchased] }
-        note: { type: string, description: Variant, promotion, weight midpoint, inconsistent index or historical-source caveats. }
-    FoodPriceCalculation:
-      type: object
-      additionalProperties: false
-      required: [sourceWeightGrams, densityGramsPerMl, edibleFraction, cookedYieldFactor, cookingCostRupiahPer100g, roundingRupiah]
-      properties:
-        sourceWeightGrams: { type: number, exclusiveMinimum: 0 }
-        densityGramsPerMl: { type: [number, "null"], exclusiveMinimum: 0, description: Explicit assumed density when converting ml; not a measurement. }
-        edibleFraction: { type: number, exclusiveMinimum: 0, maximum: 1 }
-        cookedYieldFactor: { type: number, exclusiveMinimum: 0, description: Assumed output/input mass ratio in ingredient models;1 otherwise. }
-        cookingCostRupiahPer100g: { type: integer, minimum: 0, description: Heuristic additional cost, not an observed restaurant markup. }
-        roundingRupiah: { const: 100 }
-    FoodPriceDetails:
-      type: object
-      additionalProperties: false
-      required: [status, label, currency, basisGrams, methodVersion, checkedAt, reference, calculation, assumptions]
-      description: Independent of TKPI nutrient verification. All numeric catalog prices are estimates per100g edible portion. Source/proxy differences and cost assumptions must not be hidden. Low confidence proxies do not guarantee a shopping budget.
-      properties:
-        status: { type: string, enum: [estimated, not_priced] }
-        label: { type: string, enum: ["Estimasi harga, bukan harga jual pasti", "Tidak diberi estimasi harga"] }
-        currency: { const: IDR }
-        basisGrams: { const: 100 }
-        methodVersion: { const: internet-reference-estimates-v1 }
-        checkedAt: { type: string, format: date, description: Source review date, not an assertion that an undated/historical offer is current. }
-        method: { type: string, enum: [reference_conversion, similar_food_proxy, category_proxy, ingredient_cost_model] }
-        confidence: { type: string, enum: [medium, low], description: Editorial matching confidence, not a probability or statistical interval. }
-        reasonCode: { type: string, enum: [NOT_A_RETAIL_FOOD, SENSITIVE_FOOD_REQUIRES_REVIEW] }
-        reference:
-          oneOf: [{ $ref: "#/components/schemas/FoodPriceReference" }, { type: "null" }]
-        calculation:
-          oneOf: [{ $ref: "#/components/schemas/FoodPriceCalculation" }, { type: "null" }]
-        assumptions:
-          type: array
-          minItems: 1
-          items: { type: string }
-      oneOf:
-        - required: [method, confidence]
-          properties:
-            status: { const: estimated }
-            label: { const: "Estimasi harga, bukan harga jual pasti" }
-            reference: { $ref: "#/components/schemas/FoodPriceReference" }
-            calculation: { $ref: "#/components/schemas/FoodPriceCalculation" }
-          not: { required: [reasonCode] }
-        - required: [reasonCode]
-          properties:
-            status: { const: not_priced }
-            label: { const: "Tidak diberi estimasi harga" }
-            reference: { type: "null" }
-            calculation: { type: "null" }
-          not:
-            anyOf: [{ required: [method] }, { required: [confidence] }]
-    MealCatalogItem:
-      type: object
-      required: [id, idLabel, enLabel, portionGrams, foodGroup, caloriesKcal, proteinGrams, carbohydrateGrams, fatGrams, fiberGrams, sodiumMg, sourceType, sourceNote, sourceUrl, sourceCode, sourceCheckedAt, sourceDetails, samplePriceRupiah, priceDetails, active, version, updatedAt]
-      properties:
-        id: { type: string }
-        idLabel: { type: string }
-        enLabel: { type: [string, "null"], description: Only source-provided translations; fallback to idLabel. }
-        portionGrams: { type: [number, "null"], exclusiveMinimum: 0, description: 100g edible portion for TKPI; demo gram weights unknown. servings 1.5 therefore means150g, not1.5 plates. }
-        foodGroup:
-          oneOf: [{ $ref: "#/components/schemas/FoodGroup" }, { type: "null" }]
-        caloriesKcal: { type: number, minimum: 0, maximum: 10000 }
-        proteinGrams: { type: number, minimum: 0, maximum: 1000 }
-        carbohydrateGrams: { type: [number, "null"], minimum: 0, maximum: 1000 }
-        fatGrams: { type: [number, "null"], minimum: 0, maximum: 1000 }
-        fiberGrams: { type: [number, "null"], minimum: 0, maximum: 1000 }
-        sodiumMg: { type: [number, "null"], minimum: 0, maximum: 100000 }
-        samplePriceRupiah: { type: [integer, "null"], minimum: 0, description: Estimated per catalog serving100g edible. Not package/plate price or total servings cost. Always display estimate label. Null is not free. Demos remain illustrative. }
-        priceDetails:
-          oneOf: [{ $ref: "#/components/schemas/FoodPriceDetails" }, { type: "null" }]
-        sourceType: { type: string, enum: [demo, reference] }
-        sourceNote: { type: string }
-        sourceUrl: { type: [string, "null"] }
-        sourceCode: { type: [string, "null"], example: AP001 }
-        sourceCheckedAt: { type: [string, "null"], format: date }
-        sourceDetails:
-          oneOf: [{ $ref: "#/components/schemas/FoodSourceDetails" }, { type: "null" }]
-        active: { type: boolean }
-        version: { $ref: "#/components/schemas/DecimalVersion" }
-        updatedAt: { type: string, format: date-time }
-    MealEntryPayload:
-      type: object
-      additionalProperties: false
-      required: [menuName, note, samplePriceRupiah, snapshot]
-      description: Legacy entries omit all structured fields. Structured entries need servings, consumedAt, recordedOn, mealType and catalogId or per-serving nutrition. Omitted new fields preserve existing values; explicitly null all structured fields to clear. Catalog nutrition is server-authoritative and historical snapshots do not refresh on edits. snapshot.nutritionDetails is server-owned.
-      properties:
-        menuName: { type: [string, "null"], minLength: 1, maxLength: 120 }
-        note: { type: [string, "null"], maxLength: 2000 }
-        samplePriceRupiah: { type: [integer, "null"], minimum: 0 }
-        snapshot: { type: object, additionalProperties: true }
-        catalogId: { type: [string, "null"], minLength: 1, maxLength: 255 }
-        servings: { type: [number, "null"], minimum: 0.01, maximum: 20, multipleOf: 0.01 }
-        consumedAt: { type: [string, "null"], format: date-time }
-        recordedOn: { type: [string, "null"], format: date }
-        mealType: { type: [string, "null"], enum: [breakfast, lunch, dinner, snack, null] }
-        nutrition:
-          description: Per serving, not total. Required for custom meals. Catalog values overwrite client values.
-          anyOf:
-            - type: object
-              additionalProperties: false
-              required: [caloriesKcal, proteinGrams]
-              properties:
-                caloriesKcal: { type: number, minimum: 0, maximum: 10000 }
-                proteinGrams: { type: number, minimum: 0, maximum: 1000 }
-                carbohydrateGrams: { type: [number, "null"], minimum: 0, maximum: 1000 }
-                fatGrams: { type: [number, "null"], minimum: 0, maximum: 1000 }
-                fiberGrams: { type: [number, "null"], minimum: 0, maximum: 1000 }
-                sodiumMg: { type: [number, "null"], minimum: 0, maximum: 100000 }
-            - { type: "null" }
-    MealLogItem:
-      type: object
-      required: [id, menuName, note, samplePriceRupiah, snapshot, catalogId, servings, consumedAt, recordedOn, mealType, nutritionPerServing, caloriesKcal, proteinGrams, version, updatedAt]
-      properties:
-        id: { type: string }
-        menuName: { type: [string, "null"] }
-        note: { type: [string, "null"] }
-        samplePriceRupiah: { type: [integer, "null"] }
-        snapshot: { type: object }
-        catalogId: { type: [string, "null"] }
-        servings: { type: [number, "null"] }
-        consumedAt: { type: [string, "null"], format: date-time }
-        recordedOn: { type: [string, "null"], format: date }
-        mealType: { type: [string, "null"] }
-        nutritionPerServing:
-          anyOf:
-            - { $ref: "#/components/schemas/MealNutrients" }
-            - { type: "null" }
-        caloriesKcal: { type: [number, "null"] }
-        proteinGrams: { type: [number, "null"] }
-        version: { $ref: "#/components/schemas/DecimalVersion" }
-        updatedAt: { type: string, format: date-time }
     ActivityRoutine:
       type: object
       additionalProperties: false
@@ -1585,7 +1351,6 @@ components:
         - workout_session
         - user_preferences
         - place_favorite
-        - meal_entry
         - social_draft
         - legacy_user_metadata
     PushRequest:

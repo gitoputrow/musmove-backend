@@ -10,14 +10,14 @@ BEGIN;
 GRANT USAGE ON SCHEMA public TO musmove_runtime;
 REVOKE CREATE ON SCHEMA public FROM musmove_runtime;
 GRANT SELECT ON TABLE
-  catalog_state, exercise_catalog, equipment_catalog, place_catalog, meal_catalog,
+  catalog_state, exercise_catalog, equipment_catalog, place_catalog,
   workout_program_catalog, workout_program_exercises TO musmove_runtime;
 REVOKE INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON TABLE
-  catalog_state, exercise_catalog, equipment_catalog, place_catalog, meal_catalog,
+  catalog_state, exercise_catalog, equipment_catalog, place_catalog,
   workout_program_catalog, workout_program_exercises FROM musmove_runtime;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE
   users, profiles, training_preferences, custom_programs, user_exercises,
-  workout_sessions, user_preferences, place_favorites, meal_entries, social_drafts,
+  workout_sessions, user_preferences, place_favorites, social_drafts,
   legacy_user_metadata, sync_state, sync_changes, operation_receipts, demo_imports,
   nutrition_estimates, api_rate_limits TO musmove_runtime;
 REVOKE ALL ON sync_snapshots, sync_snapshot_items, account_deletion_jobs,

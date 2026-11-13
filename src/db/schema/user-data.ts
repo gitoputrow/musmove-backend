@@ -35,7 +35,6 @@ import type {
   WorkoutSetLog,
 } from "./types";
 import { users } from "./users";
-import type { MealNutrition } from "@/src/modules/meals/types";
 
 export const profiles = pgTable(
   "profiles",
@@ -263,16 +262,10 @@ export const userPreferences = pgTable(
     userId: uuid("user_id")
       .primaryKey()
       .references(() => users.id, { onDelete: "cascade" }),
-    budgetRupiah: integer("budget_rupiah"),
-    budgetIsManual: boolean("budget_is_manual").notNull().default(false),
     placesArea: varchar("places_area", { length: 120 }),
     ...mutableColumns(),
   },
   (table) => [
-    check(
-      "user_preferences_budget_positive",
-      sql`${table.budgetRupiah} is null or ${table.budgetRupiah} > 0`,
-    ),
     check("user_preferences_version_positive", sql`${table.version} > 0`),
   ],
 );
@@ -290,41 +283,6 @@ export const placeFavorites = pgTable(
     primaryKey({ columns: [table.userId, table.placeId] }),
     check("place_favorites_id_not_blank", sql`length(trim(${table.placeId})) > 0`),
     check("place_favorites_version_positive", sql`${table.version} > 0`),
-  ],
-);
-
-export const mealEntries = pgTable(
-  "meal_entries",
-  {
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    id: varchar("id", { length: 255 }).notNull(),
-    note: text("note"),
-    menuName: varchar("menu_name", { length: 120 }),
-    samplePriceRupiah: integer("sample_price_rupiah"),
-    snapshot: jsonb("snapshot").$type<JsonObject>().notNull(),
-    catalogId: varchar("catalog_id", { length: 255 }),
-    servings: numeric("servings", { mode: "number", precision: 6, scale: 2 }),
-    consumedAt: timestamp("consumed_at", { withTimezone: true }),
-    recordedOn: date("recorded_on"),
-    mealType: varchar("meal_type", { length: 20 }),
-    nutritionPerServing: jsonb("nutrition_per_serving").$type<MealNutrition>(),
-    caloriesKcal: numeric("calories_kcal", { mode: "number", precision: 12, scale: 2 }),
-    proteinGrams: numeric("protein_grams", { mode: "number", precision: 12, scale: 2 }),
-    ...mutableColumns(),
-  },
-  (table) => [
-    primaryKey({ columns: [table.userId, table.id] }),
-    check("meal_entries_id_not_blank", sql`length(trim(${table.id})) > 0`),
-    check(
-      "meal_entries_price_nonnegative",
-      sql`${table.samplePriceRupiah} is null or ${table.samplePriceRupiah} >= 0`,
-    ),
-    check("meal_entries_snapshot_object", sql`jsonb_typeof(${table.snapshot}) = 'object'`),
-    check("meal_entries_version_positive", sql`${table.version} > 0`),
-    index("meal_entries_daily_idx").on(table.userId, table.recordedOn),
-    check("meal_entries_structured", sql`num_nonnulls(${table.servings}, ${table.consumedAt}, ${table.recordedOn}, ${table.mealType}, ${table.nutritionPerServing}, ${table.catalogId}, ${table.caloriesKcal}, ${table.proteinGrams}) = 0 or (num_nonnulls(${table.servings}, ${table.consumedAt}, ${table.recordedOn}, ${table.mealType}, ${table.nutritionPerServing}, ${table.caloriesKcal}, ${table.proteinGrams}) = 7 and ${table.servings} between 0.01 and 20 and ${table.mealType} in ('breakfast', 'lunch', 'dinner', 'snack') and jsonb_typeof(${table.nutritionPerServing}) = 'object' and ${table.caloriesKcal} between 0 and 200000 and ${table.proteinGrams} between 0 and 20000)`),
   ],
 );
 

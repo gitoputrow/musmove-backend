@@ -3,8 +3,6 @@ import { test } from "node:test";
 import fixtures from "../fixtures/nutrition-v1.json";
 import { estimateGoalNutrition, estimateNutrition, MAINTENANCE_FORMULA_VERSION, normalizeNutritionGoal, type NutritionInput } from "../../src/modules/nutrition/estimate";
 import { activityFromRoutine, activityRoutineSchema } from "../../src/modules/nutrition/activity";
-import { mealTotals } from "../../src/modules/meals/resolve";
-import { entityPayloadSchemas } from "../../src/modules/sync/dto";
 
 const input: NutritionInput = { ageYears: 25, weightKg: 70, heightCm: 175, formulaSex: "male", dailyActivity: "light" };
 
@@ -118,15 +116,4 @@ test("Pregnancy/postpartum and professional guidance withhold automatic targets 
     assert.deepEqual(result.reasonCodes, ["SPECIALIZED_NUTRITION_REQUIRED"]);
   }
   assert.equal(estimateNutrition({ ...input, trainingContext: { healthStatus: "needs_professional_guidance" } }).proteinGrams, null);
-});
-test("Portion totals are deterministic with two-decimal output", () => {
-  assert.deepEqual(mealTotals({ caloriesKcal: 380, proteinGrams: 18 }, 1.5), { caloriesKcal: 570, proteinGrams: 27 });
-  assert.deepEqual(mealTotals({ caloriesKcal: 100.55, proteinGrams: 10.55 }, 0.33), { caloriesKcal: 33.18, proteinGrams: 3.48 });
-});
-test("Meal payload retains legacy support and rejects invalid dates/portions/nutrients", () => {
-  const legacy = { menuName: null, note: null, samplePriceRupiah: null, snapshot: {} };
-  assert.ok(entityPayloadSchemas.meal_entry.safeParse(legacy).success);
-  for (const invalid of [{ servings: -1 }, { servings: 21 }, { servings: 0.001 }, { servings: 1.555 }, { recordedOn: "2026-02-30" }, { consumedAt: "no-date" }, { nutrition: { caloriesKcal: -1, proteinGrams: 10 } }, { nutrition: { caloriesKcal: 300, proteinGrams: Infinity } }]) {
-    assert.equal(entityPayloadSchemas.meal_entry.safeParse({ ...legacy, ...invalid }).success, false);
-  }
 });

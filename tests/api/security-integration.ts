@@ -12,13 +12,12 @@ if (!globalThis.crypto) Object.defineProperty(globalThis, "crypto", { value: web
 
 async function main() {
   const { getDatabase, getPool } = await import("../../src/db/client");
-  const { users, mealEntries } = await import("../../src/db/schema");
+  const { users, socialDrafts } = await import("../../src/db/schema");
   const { RATE_LIMIT_SQL } = await import("../../src/lib/security/rate-limit");
   const me = await import("../../app/api/v1/me/route");
   const push = await import("../../app/api/v1/sync/push/route");
   const pull = await import("../../app/api/v1/sync/pull/route");
   const bootstrap = await import("../../app/api/v1/sync/bootstrap/route");
-  const meals = await import("../../app/api/v1/meals/route");
   const deletion = await import("../../app/api/v1/account/deletion-requests/route");
   const db = getDatabase();
   const { privateKey, publicKey } = await generateKeyPair("EdDSA");
@@ -77,37 +76,29 @@ async function main() {
     await me.GET(get("me", jwtA));
     assert.equal((await db.select().from(users).where(eq(users.id, idA)))[0].updatedAt.toISOString(), timestamp);
 
-    const meal = { menuName: "Private account A meal", note: "private-account-a-note", samplePriceRupiah: null, snapshot: {},
-      catalogId: null, servings: 1, consumedAt: "2026-10-17T12:00:00+07:00", recordedOn: "2026-10-17", mealType: "lunch",
-      nutrition: { caloriesKcal: 300, proteinGrams: 20 } };
-    const op = { action: "upsert", baseVersion: "0", entityId: "private-meal", entityType: "meal_entry", operationId: randomUUID(), payload: meal };
+    const draft = { body: "private-account-a-note", metadata: null };
+    const op = { action: "upsert", baseVersion: "0", entityId: "private-draft", entityType: "social_draft", operationId: randomUUID(), payload: draft };
     const input = { schemaVersion: 1, deviceId: "security-test", operations: [op] };
     const saved = await push.POST(post("sync/push", jwtA, input)); assert.equal(saved.status, 200);
     assert.equal((await saved.json()).results[0].status, "applied");
-    const dayA = await meals.GET(get("meals?date=2026-10-17", jwtA));
-    assert.match(dayA.headers.get("cache-control")!, /no-store/);
-    assert.equal((await dayA.json()).entries[0].note, meal.note);
-    const dayB = await meals.GET(get("meals?date=2026-10-17", jwtB));
-    assert.equal((await dayB.json()).entries.length, 0);
-    assert.equal((await meals.GET(get(`meals?date=2026-10-17&userId=${idA}`, jwtB))).status, 400);
     const stateA = await bootstrap.GET(get("sync/bootstrap", jwtA));
     const cursorA = (await stateA.json()).cursor;
     assert.equal((await pull.GET(get(`sync/pull?cursor=${encodeURIComponent(cursorA)}`, jwtB))).status, 400);
     const stateB = await bootstrap.GET(get("sync/bootstrap", jwtB));
-    assert.equal((await stateB.json()).entities.meal_entry.length, 0);
+    assert.equal((await stateB.json()).entities.social_draft.length, 0);
     const attack = await push.POST(post("sync/push", jwtB, { ...input, operations: [{ ...op, baseVersion: "1", operationId: randomUUID() }] }));
     const conflict = (await attack.json()).results[0];
     assert.equal(conflict.status, "conflict");
     assert.equal(conflict.conflict.currentPayload, null);
-    const remove = await push.POST(post("sync/push", jwtB, { ...input, operations: [{ action: "delete", entityType: "meal_entry", entityId: op.entityId, operationId: randomUUID(), baseVersion: "0" }] }));
+    const remove = await push.POST(post("sync/push", jwtB, { ...input, operations: [{ action: "delete", entityType: "social_draft", entityId: op.entityId, operationId: randomUUID(), baseVersion: "0" }] }));
     assert.equal((await remove.json()).results[0].error.code, "ENTITY_NOT_FOUND");
-    assert.equal((await db.select().from(mealEntries).where(and(eq(mealEntries.userId, idA), eq(mealEntries.id, op.entityId))))[0].note, meal.note);
+    assert.equal((await db.select().from(socialDrafts).where(and(eq(socialDrafts.userId, idA), eq(socialDrafts.id, op.entityId))))[0].body, draft.body);
     assert.equal((await push.POST(post("sync/push", jwtA, { ...input, userId: idB }))).status, 400);
     assert.equal((await push.POST(post("sync/push", jwtA, input, "https://attacker.test"))).status, 403);
 
     const jwtLarge = await sign({ sub: subjectLarge });
     const largeUser = (await (await me.GET(get("me", jwtLarge))).json()).user.id as string;
-    await db.insert(mealEntries).values(Array.from({ length: 501 }, (_, index) => ({ userId: largeUser, id: `security-size-${index}`, snapshot: {} })));
+    await db.insert(socialDrafts).values(Array.from({ length: 501 }, (_, index) => ({ userId: largeUser, id: `security-size-${index}`, body: "private", metadata: null })));
     const largeResponse = await bootstrap.GET(get("sync/bootstrap", jwtLarge));
     assert.equal(largeResponse.status, 413);
     assert.equal((await largeResponse.json()).error.code, "BOOTSTRAP_LIMIT");

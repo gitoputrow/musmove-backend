@@ -218,6 +218,13 @@
       "when": 1791657682451,
       "tag": "0030_nutrition_activity_routine",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1791657682452,
+      "tag": "0031_remove_meals_daily_budget",
+      "breakpoints": true
     }
   ]
 }

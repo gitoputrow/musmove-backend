@@ -79,7 +79,7 @@ test("Mobile follow-up integration is isolated from Neon/production", async t =>
     });
 
     await t.test("Large immutable snapshot, resumable pages, concurrent changes and final stream handoff", async () => {
-      await local.query(`INSERT INTO meal_entries(user_id,id,snapshot) SELECT $1,'meal-'||lpad(n::text,4,'0'),jsonb_build_object('filler',repeat('x',3000)) FROM generate_series(1,650) n`, [a]);
+      await local.query(`INSERT INTO social_drafts(user_id,id,body,metadata) SELECT $1,'draft-'||lpad(n::text,4,'0'),'private',jsonb_build_object('filler',repeat('x',3000)) FROM generate_series(1,650) n`, [a]);
       await assert.rejects(bootstrap(a), status("BOOTSTRAP_LIMIT"));
       const id = randomUUID(); const started = await startSnapshot(a, id);
       assert.equal(started.total, 651); assert.deepEqual(await startSnapshot(a, id), started);
@@ -88,24 +88,24 @@ test("Mobile follow-up integration is isolated from Neon/production", async t =>
       assert.deepEqual(await snapshotPage(a, query()), first, "Interrupted first page can be replayed exactly");
       await assert.rejects(snapshotPage(b, query()), status("SNAPSHOT_EXPIRED"));
       await assert.rejects(snapshotPage(b, query(first.nextPageCursor!)), status("INVALID_CURSOR"));
-      const legacyMeal = { menuName: "Changed after snapshot", note: null, samplePriceRupiah: null, snapshot: {} };
-      const changes = await push(a, [operation("meal_entry", "meal-0640", legacyMeal, "1"),
-        { operationId: randomUUID(), entityType: "meal_entry", entityId: "meal-0649", action: "delete", baseVersion: "1" },
-        operation("meal_entry", "after-snapshot", legacyMeal)]);
+      const draft = { body: "Changed after snapshot", metadata: null };
+      const changes = await push(a, [operation("social_draft", "draft-0640", draft, "1"),
+        { operationId: randomUUID(), entityType: "social_draft", entityId: "draft-0649", action: "delete", baseVersion: "1" },
+        operation("social_draft", "after-snapshot", draft)]);
       assert.ok(changes.results.every(r => r.status === "applied"));
       const items = [...first.items]; let page = first;
       while (!page.complete) { page = await snapshotPage(a, query(page.nextPageCursor!)); items.push(...page.items); }
       assert.equal(items.length, 651); assert.equal(new Set(items.map(i => `${i.entityType}:${i.entityId}`)).size, 651);
-      assert.equal((items.find(i => i.entityId === "meal-0640")!.payload as Record<string, unknown>).menuName, null);
-      assert.ok(items.some(i => i.entityId === "meal-0649")); assert.ok(!items.some(i => i.entityId === "after-snapshot"));
+      assert.equal((items.find(i => i.entityId === "draft-0640")!.payload as Record<string, unknown>).body, "private");
+      assert.ok(items.some(i => i.entityId === "draft-0649")); assert.ok(!items.some(i => i.entityId === "after-snapshot"));
       assert.ok(page.syncCursor); assert.equal(decodeCursor(page.syncCursor!, a).sequence, "3");
       const delta = await pullChanges(a, page.syncCursor!, 100); assert.equal(delta.changes.length, 3);
-      assert.ok(delta.changes.some(c => c.entityId === "meal-0649" && c.operation === "delete"));
+      assert.ok(delta.changes.some(c => c.entityId === "draft-0649" && c.operation === "delete"));
       await releaseSnapshot(a, id); assert.equal((await local.query("SELECT 1 FROM sync_snapshot_items WHERE snapshot_id=$1", [id])).rows.length, 0);
     });
 
     await t.test("Snapshot byte budget, active quota, expiry and epoch recovery", async () => {
-      await local.query(`INSERT INTO meal_entries(user_id,id,snapshot) SELECT $1,'wide-'||n,jsonb_build_object('filler',repeat('x',40000)) FROM generate_series(1,60) n`, [b]);
+      await local.query(`INSERT INTO social_drafts(user_id,id,body,metadata) SELECT $1,'wide-'||n,'private',jsonb_build_object('filler',repeat('x',40000)) FROM generate_series(1,60) n`, [b]);
       const one = randomUUID(), two = randomUUID(); await startSnapshot(b, one); await startSnapshot(b, two);
       await assert.rejects(startSnapshot(b, randomUUID()), status("SNAPSHOT_BUSY"));
       const first = await snapshotPage(b, snapshotPageSchema.parse({ snapshotId: one, limit: 100 }));
@@ -119,7 +119,7 @@ test("Mobile follow-up integration is isolated from Neon/production", async t =>
       await releaseSnapshot(b, one); await releaseSnapshot(b, two);
     });
 
-    await t.test("Onboarding ACK creates canonical nutrition and personalized programs without trusting client meal nutrition", async () => {
+    await t.test("Onboarding ACK creates canonical nutrition and personalized programs", async () => {
       const profile = { displayName: "Synthetic A", ageYears: 25, weightKg: 70, heightCm: 175, formulaSex: "male", gender: "prefer_not_to_say", dailyActivity: "light", goal: "bulk", focus: "full", trainingLevel: "beginner", sessionMinutes: 60, trainingFrequency: 3, setupCompleted: true, trainingContext: { healthStatus: "no_known_restrictions", recoveryStatus: "recovered" } };
       const saved = await push(a, [operation("profile", "profile", profile, "1"), operation("training_preferences", "training_preferences", { mode: "gym", equipment: ["dumbbell", "bench"], noEquipment: false })]);
       assert.ok(saved.results.every(r => r.status === "applied"));
@@ -127,10 +127,6 @@ test("Mobile follow-up integration is isolated from Neon/production", async t =>
       const targets = await getNutritionTargets(a); assert.equal(targets.estimate?.status, "ready"); assert.equal(targets.estimate?.calories, 2850); assert.equal(targets.estimate?.proteinGrams, 112);
       const { getProgramCatalog } = await import("../../src/modules/programs/service");
       assert.ok((await getProgramCatalog(a)).programs.length > 0);
-      const meal = { menuName: "forged", note: null, samplePriceRupiah: null, snapshot: {}, catalogId: "tkpi-ap001", servings: 1.5, consumedAt: "2026-10-18T07:00:00+07:00", recordedOn: "2026-10-18", mealType: "breakfast", nutrition: { caloriesKcal: 1, proteinGrams: 1 } };
-      assert.equal((await push(a, [operation("meal_entry", "reference-food", meal)])).results[0].status, "applied");
-      const [stored] = await db.select().from(schema.mealEntries).where(eq(schema.mealEntries.id, "reference-food"));
-      assert.equal(stored.caloriesKcal, 270); assert.equal(stored.proteinGrams, 4.5); assert.notEqual(stored.menuName, "forged");
     });
 
     await t.test("Explicit text publishing, drafts never leak, owner deletes and private reports/moderation", async () => {
@@ -199,7 +195,7 @@ test("Mobile follow-up integration is isolated from Neon/production", async t =>
       await local.query("UPDATE account_deletion_jobs SET retry_at=now()-interval '1 minute' WHERE user_id=$1", [a]);
       assert.equal((await processOneDeletion(provider)).status, "completed"); assert.equal(calls, 1);
       assert.equal((await db.select().from(schema.users).where(eq(schema.users.id, a))).length, 0);
-      assert.equal((await local.query("SELECT 1 FROM meal_entries WHERE user_id=$1", [a])).rows.length, 0);
+      assert.equal((await local.query("SELECT 1 FROM social_drafts WHERE user_id=$1", [a])).rows.length, 0);
       await local.exec("SET ROLE musmove_runtime;");
       try { await assert.rejects(local.query("INSERT INTO users(issuer,subject) VALUES ($1,$2)", [issuer, subjectA])); }
       finally { await local.exec("RESET ROLE;"); }
