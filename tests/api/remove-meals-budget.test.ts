@@ -24,7 +24,9 @@ test("removal migration clears retired storage and cached data, preserving other
   const db = new PGlite();
   try {
     const migrations = readMigrationFiles({ migrationsFolder: "drizzle" });
-    for (const migration of migrations.slice(0, -1)) await db.exec(migration.sql.join("\n"));
+    const index = migrations.findIndex(m => m.folderMillis === 1791657682452);
+    assert.ok(index > 0);
+    for (const migration of migrations.slice(0, index)) await db.exec(migration.sql.join("\n"));
     const user = randomUUID(), epoch = randomUUID(), snapshot = randomUUID();
     await db.query("INSERT INTO users(id,issuer,subject) VALUES($1::uuid,'synthetic',$1::text)", [user]);
     await db.query("INSERT INTO sync_state(user_id,epoch,next_sequence) VALUES($1,$2,4)", [user, epoch]);
@@ -51,7 +53,7 @@ test("removal migration clears retired storage and cached data, preserving other
     await db.query("INSERT INTO sync_snapshots(id,user_id,epoch,sequence,total,expires_at) VALUES($1,$2,$3,3,1,now()+interval '1 hour')", [snapshot, user, epoch]);
     await db.query("INSERT INTO sync_snapshot_items(snapshot_id,position,entity_type,entity_id,version,updated_at,payload) VALUES($1,1,'meal_entry','old',1,now(),'{}')", [snapshot]);
     const drafts = (await db.query("SELECT * FROM social_drafts")).rows;
-    await db.exec(migrations.at(-1)!.sql.join("\n"));
+    await db.exec(migrations[index].sql.join("\n"));
     assert.deepEqual((await db.query("SELECT * FROM social_drafts")).rows, drafts);
     assert.deepEqual((await db.query("SELECT places_area,version::text FROM user_preferences")).rows, [{ places_area: "Jakarta", version: "7" }]);
     assert.deepEqual((await db.query<{ payload: unknown }>("SELECT payload FROM sync_changes ORDER BY sequence")).rows.map(r => r.payload), [{ placesArea: "Jakarta" }, { body: "private", metadata: null }]);

@@ -3,6 +3,11 @@ import { bigint, boolean, check, date, index, jsonb, numeric, pgTable, text, tim
 import { trainingModeEnum } from "./enums";
 
 export type PlaceAccessModel = "membership" | "per_visit" | "membership_or_per_visit" | "public" | "unknown";
+export interface PlaceOpeningHoursEntry {
+  labelID: string;
+  labelEN: string;
+  hours: string;
+}
 export interface PlaceSource {
   url: string;
   kind: "operator" | "publisher" | "map" | "community";
@@ -18,6 +23,7 @@ export const placeCatalog = pgTable("place_catalog", {
   brand: varchar("brand", { length: 80 }),
   accessModel: varchar("access_model", { length: 30 }).$type<PlaceAccessModel>().notNull(),
   dayPassAvailable: boolean("day_pass_available"),
+  openingHours: jsonb("opening_hours").$type<PlaceOpeningHoursEntry[]>(),
   area: varchar("area", { length: 120 }).notNull(),
   city: varchar("city", { length: 120 }).notNull(),
   address: text("address").notNull(),
@@ -37,4 +43,5 @@ export const placeCatalog = pgTable("place_catalog", {
   check("place_catalog_sources", sql`jsonb_typeof(${table.sources}) = 'array' and jsonb_array_length(${table.sources}) > 0`),
   check("place_catalog_maps_url", sql`${table.googleMapsUrl} like 'https://www.google.com/maps/%'`),
   check("place_catalog_version", sql`${table.version} > 0`),
+  check("place_catalog_opening_hours", sql`${table.openingHours} is null or public.valid_place_opening_hours(${table.openingHours})`),
 ]);

@@ -77,6 +77,9 @@ async function main() {
           AND NOT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public'
             AND table_name='user_preferences' AND column_name IN ('budget_rupiah','budget_is_manual')) AS ready`)).rows[0];
         if (!retiredFeatures.ready) issues.push("DATABASE_MIGRATIONS: apply migration 0031 with the meals/daily budget API removal");
+        const openingHours = (await client.query(`SELECT EXISTS(SELECT 1 FROM information_schema.columns
+          WHERE table_schema='public' AND table_name='place_catalog' AND column_name='opening_hours' AND data_type='jsonb') AS ready`)).rows[0];
+        if (!openingHours.ready) issues.push("DATABASE_MIGRATIONS: apply migration 0033 before deploying JSON places opening hours");
         await client.query("ROLLBACK");
       } finally { client.release(); }
     } catch {

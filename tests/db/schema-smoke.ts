@@ -76,7 +76,7 @@ async function main() {
       from place_catalog
     `);
     const counts = places.rows[0];
-    if (counts.total !== 18 || counts.brands !== 13 || counts.locals !== 2 || counts.parks !== 3) {
+    if (counts.total !== 105 || counts.brands !== 99 || counts.locals !== 3 || counts.parks !== 3) {
       throw new Error("Jakarta place seed is incomplete");
     }
     const removedColumns = await client.query<{ count: number }>(`

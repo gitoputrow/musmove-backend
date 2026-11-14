@@ -7,6 +7,10 @@ async function main() {
   try {
     await client.query("BEGIN READ ONLY");
     const places = (await client.query(`SELECT count(*)::int AS entries,
+      count(*) FILTER (WHERE brand='fithub')::int AS fithub,
+      count(*) FILTER (WHERE brand='ftl')::int AS ftl,
+      count(*) FILTER (WHERE brand='anytime_fitness')::int AS anytime_fitness,
+      count(*) FILTER (WHERE brand='fitness_first')::int AS fitness_first,
       count(*) FILTER (WHERE trim(address)='' OR latitude NOT BETWEEN -90 AND 90 OR longitude NOT BETWEEN -180 AND 180 OR google_maps_url NOT LIKE 'https://www.google.com/maps/%' OR jsonb_array_length(sources)=0)::int AS invalid,
       count(*) FILTER (WHERE day_pass_available IS NULL)::int AS unknown_day_pass,
       count(*) FILTER (WHERE access_model IN ('per_visit','membership_or_per_visit') AND day_pass_available IS DISTINCT FROM true)::int AS inconsistent_access,
@@ -19,7 +23,7 @@ async function main() {
     const exercises = (await client.query(`SELECT count(*)::int AS entries, count(*) FILTER (WHERE movement_tags IS NULL OR cardinality(movement_tags)=0)::int AS missing_tags FROM exercise_catalog WHERE active`)).rows[0];
     await client.query("ROLLBACK");
     console.info(JSON.stringify({ mode: "read-only", places, exercises,
-      limitations: ["Source presence does not verify current operator access/hours/prices", "Gym prices/hours/facilities are not modeled"] }, null, 2));
+      limitations: ["Source presence does not verify current operator access/hours/prices", "Gym prices/facilities are not modeled; opening hours may be owner-supplied"] }, null, 2));
     if (places.invalid || places.inconsistent_access || places.malformed_sources || exercises.missing_tags) process.exitCode = 1;
   } finally { client.release(); await getPool().end(); }
 }

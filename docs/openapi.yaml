@@ -405,6 +405,21 @@ paths:
         "429": { $ref: "#/components/responses/Error" }
         "502": { $ref: "#/components/responses/Error" }
         "503": { $ref: "#/components/responses/Error" }
+  /catalog/places/brands:
+    get:
+      operationId: getGymBrands
+      security: []
+      description: Distinct active gym brands from the database, normalized to lowercase trimmed IDs and sorted by ID. Excludes conventional gyms, outdoor places, null/blank brands and inactive places. All brands returned without pagination or query parameters. Use the returned id as the brand filter on places endpoints. Known display names are mapped; future brands fall back to their canonical ID. Counts and catalogVersion share one read-only snapshot. Response is no-store.
+      responses:
+        "200":
+          description: Current gym brand choices and active place counts.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GymBrandsResponse" }
+        "400": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "500": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
   /catalog/places:
     get:
       operationId: getPlaceCatalog
@@ -974,6 +989,24 @@ components:
         equipmentCatalogVersion: { $ref: "#/components/schemas/DecimalVersion" }
         requiresConfirmation: { const: true }
         warnings: { type: array, items: { type: string } }
+    GymBrandsResponse:
+      type: object
+      additionalProperties: false
+      required: [catalogVersion, brands, total]
+      properties:
+        catalogVersion: { $ref: "#/components/schemas/DecimalVersion" }
+        brands:
+          type: array
+          description: One item per canonical active gym brand, ordered by id; empty when none are active.
+          items:
+            type: object
+            additionalProperties: false
+            required: [id, name, placeCount]
+            properties:
+              id: { type: string, minLength: 1, maxLength: 80, description: Canonical value for the places brand query parameter. }
+              name: { type: string, minLength: 1, description: Display name; unknown future brands use their canonical ID. }
+              placeCount: { type: integer, minimum: 1 }
+        total: { type: integer, minimum: 0, description: Number of unique brands, not number of places. }
     PlaceCatalogResponse:
       type: object
       required: [catalogVersion, places, total, hasMore, nextOffset, distanceType, warnings]
@@ -989,15 +1022,30 @@ components:
         warnings: { type: array, items: { type: string } }
     PlaceCatalogItem:
       type: object
-      required: [id, name, mode, gymCategory, brand, accessModel, dayPassAvailable, area, city, address, latitude, longitude, googleMapsUrl, sources, checkedAt, active, version, updatedAt, distanceKm]
+      required: [id, name, mode, gymCategory, brand, accessModel, dayPassAvailable, openingHours, area, city, address, latitude, longitude, googleMapsUrl, sources, checkedAt, active, version, updatedAt, distanceKm]
       properties:
         id: { type: string, maxLength: 255 }
         name: { type: string }
         mode: { type: string, enum: [gym, calisthenics] }
         gymCategory: { type: [string, "null"], enum: [brand, conventional, null] }
-        brand: { type: [string, "null"] }
+        brand: { type: [string, "null"], description: "Current chain keys: fithub, ftl, anytime_fitness, fitness_first. Null for local gyms/outdoor." }
         accessModel: { type: string, enum: [membership, per_visit, membership_or_per_visit, public, unknown] }
         dayPassAvailable: { type: [boolean, "null"], description: Null means unknown, not unavailable. }
+        openingHours:
+          type: [array, "null"]
+          minItems: 1
+          description: Bilingual display schedule entries in order, with times in WIB (Asia/Jakarta). Null means unknown. Public holiday hours override weekday hours. 00.00 is midnight at the end of the stated day. Owner-supplied schedules, not an open-now calculation.
+          items:
+            type: object
+            additionalProperties: false
+            required: [labelID, labelEN, hours]
+            properties:
+              labelID: { type: string, minLength: 1 }
+              labelEN: { type: string, minLength: 1 }
+              hours: { type: string, minLength: 1 }
+          examples:
+            - [{ labelID: "Setiap Hari", labelEN: "All Day", hours: "24 jam" }]
+            - [{ labelID: "Senin - Jumat", labelEN: "Monday - Friday", hours: "05.00 - 00.00" }, { labelID: "Sabtu, Minggu dan Libur Nasional", labelEN: "Saturday, Sunday and Public Holidays", hours: "06.00 - 21.00" }]
         area: { type: string }
         city: { type: string }
         address: { type: string }

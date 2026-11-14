@@ -28,7 +28,7 @@
     "test:movement-tags": "tsx --test tests/api/movement-tags.test.ts",
     "db:test-movement-tags": "NODE_OPTIONS='--conditions=react-server' tsx tests/api/movement-tags-integration.ts",
     "test:nutrition": "tsx --test tests/api/nutrition.test.ts",
-    "test:places": "tsx --test tests/api/places.test.ts",
+    "test:places": "NODE_OPTIONS='--conditions=react-server' tsx --test tests/api/places.test.ts tests/api/place-opening-hours.test.ts tests/api/jakarta-places-catalog.test.ts tests/api/fitness-first-catalog.test.ts tests/api/gym-brands.test.ts",
     "test:equipment": "NODE_OPTIONS='--conditions=react-server' tsx --test tests/api/equipment.test.ts tests/api/equipment-modes.test.ts",
     "db:test-equipment": "NODE_OPTIONS='--conditions=react-server' tsx tests/api/equipment-integration.ts",
     "test:vision": "services/equipment-vision/.venv/bin/python -m unittest discover -s services/equipment-vision -p 'test_*.py'",

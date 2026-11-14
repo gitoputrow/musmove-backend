@@ -9,6 +9,9 @@ Panduan berbahasa Indonesia untuk struktur database, penggunaan endpoint,
 alur Neon Auth native, dan sync offline tersedia di
 [`docs/mobile-integration.md`](docs/mobile-integration.md).
 
+Dokumentasi khusus daftar places, pagination, jam operasional, dan brand gym:
+[`docs/api-places.md`](docs/api-places.md).
+
 For the latest online-only mobile flow, use the
 [direct feature API handoff](docs/frontend-follow-up-online-api.md). It supersedes
 legacy sync instructions for new clients, without deleting the legacy API/data.
@@ -50,7 +53,8 @@ must never send a `userId` to select ownership. Current endpoints are:
 - `POST /equipment/recognize` (private multipart photo; self-hosted SigLIP 2, candidates require confirmation)
 - `GET /catalog/programs` (public template catalog)
 - `GET /programs/recommendations` (private selection using saved preferences)
-- `GET /catalog/places` (public Jakarta catalog, category/access filters and optional distance)
+- `GET /catalog/places/brands` (public unique active gym brands with display names and place counts)
+- `GET /catalog/places` (105 Jakarta places, including 36 FIT HUB, 24 FTL, 30 Anytime Fitness and 9 Fitness First; category/access filters and optional distance)
 - `GET /places` (private `isFavorite` and `favoriteVersion`); `PUT/DELETE /places/{id}/favorite`
 - `GET /nutrition/targets` (private, stored profile-versioned estimates)
 - `GET/POST /social/drafts`; `GET/PATCH/DELETE /social/drafts/{id}` (private, never auto-published)
@@ -131,13 +135,9 @@ prevents dangling keys. The private photo API validates/normalizes uploads
 and calls a separate pinned SigLIP 2 Python service, without storing photos.
 See the [equipment scan setup, API and limitations](docs/equipment-scan.md).
 
-`place_catalog` contains 18 researched Jakarta places: 10 FIT HUB branches,
-3 FTL branches, 2 local gyms with publisher-reported per-visit access, and
-3 outdoor training locations. Addresses, coordinates, Maps links, access
-models, sources and the research date are stored in Neon. Category
-and access model are separate; an unknown day-pass flag is not false.
-See the [places contract and research notes](docs/places.md). Existing mobile
-demo favorites are preserved, not remapped to unrelated real-world locations.
+`place_catalog` contains 105 Jakarta places: 36 FIT HUB, 24 FTL, 30 Anytime
+Fitness, 9 Fitness First, 3 conventional gyms and 3 outdoor locations. See
+[places data and API](docs/places.md) for coverage, sources, hours and pagination.
 
 The global exercise catalog is stored in `exercise_catalog` with 117 legacy seeded
 entries across gym and calisthenics. Existing IDs are preserved within each

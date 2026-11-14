@@ -323,7 +323,7 @@ Audit awal pada 18 Oktober 2026, sebelum migrasi harga0018 (`npm run catalogs:au
   tersimpan 11 Oktober 2026; ini bukan verifikasi ulang ke operator hari ini.
 - 117 exercise aktif: 0 movement tags kosong.
 
-Jam buka/fasilitas/harga gym belum dimodelkan; tidak ditambahkan dengan tebakan.
+Harga dan fasilitas gym belum dimodelkan. Jam buka FTL dan FIT HUB tersedia dari input pemilik proyek; lihat [places](places.md).
 Audit struktur tidak membuktikan sebuah link operator masih benar/terbaru.
 
 ## 6. Rollout dan verifikasi

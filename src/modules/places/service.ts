@@ -3,6 +3,31 @@ import { getDatabase } from "@/src/db/client";
 import { catalogState, placeCatalog, placeFavorites } from "@/src/db/schema";
 import type { PlacesQuery } from "./query";
 
+const gymBrandNames = new Map([
+  ["fithub", "FIT HUB"],
+  ["ftl", "FTL"],
+  ["anytime_fitness", "Anytime Fitness"],
+  ["fitness_first", "Fitness First"],
+]);
+
+export async function getGymBrands() {
+  return getDatabase().transaction(async transaction => {
+    const [state] = await transaction.select().from(catalogState).where(eq(catalogState.name, "places"));
+    if (!state) throw new Error("Place catalog migration has not been applied");
+    const brandId = sql<string>`lower(trim(${placeCatalog.brand}))`;
+    const rows = await transaction.select({ id: brandId, placeCount: sql<number>`count(*)::integer` })
+      .from(placeCatalog).where(and(
+        eq(placeCatalog.active, true), eq(placeCatalog.mode, "gym"), eq(placeCatalog.gymCategory, "brand"),
+        sql`${placeCatalog.brand} IS NOT NULL AND length(trim(${placeCatalog.brand})) > 0`,
+      )).groupBy(brandId).orderBy(asc(brandId));
+    return {
+      catalogVersion: state.version.toString(),
+      brands: rows.map(row => ({ id: row.id, name: gymBrandNames.get(row.id) ?? row.id, placeCount: row.placeCount })),
+      total: rows.length,
+    };
+  }, { accessMode: "read only", isolationLevel: "repeatable read" });
+}
+
 export async function getPlaceCatalog(query: PlacesQuery, userId?: string) {
   return getDatabase().transaction(async (transaction) => {
     const [state] = await transaction.select().from(catalogState).where(eq(catalogState.name, "places"));
@@ -12,7 +37,7 @@ export async function getPlaceCatalog(query: PlacesQuery, userId?: string) {
     if (query.city !== undefined) conditions.push(sql`lower(${placeCatalog.city}) = lower(${query.city})`);
     if (query.mode !== undefined) conditions.push(eq(placeCatalog.mode, query.mode));
     if (query.gymCategory !== undefined) conditions.push(eq(placeCatalog.gymCategory, query.gymCategory));
-    if (query.brand !== undefined) conditions.push(sql`lower(${placeCatalog.brand}) = lower(${query.brand})`);
+    if (query.brand !== undefined) conditions.push(sql`lower(trim(${placeCatalog.brand})) = lower(${query.brand})`);
     if (query.accessModel !== undefined) conditions.push(eq(placeCatalog.accessModel, query.accessModel));
     if (query.dayPassAvailable !== undefined) conditions.push(eq(placeCatalog.dayPassAvailable, query.dayPassAvailable));
 

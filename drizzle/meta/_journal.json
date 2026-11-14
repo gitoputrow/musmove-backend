@@ -225,6 +225,41 @@
       "when": 1791657682452,
       "tag": "0031_remove_meals_daily_budget",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1791657682453,
+      "tag": "0032_place_opening_hours",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1791657682454,
+      "tag": "0033_place_opening_hours_json",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1791657682455,
+      "tag": "0034_complete_jakarta_chain_places",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1791657682456,
+      "tag": "0035_fitness_first_jakarta",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1791657682457,
+      "tag": "0036_musclebound_epfc",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,4358 @@
+{
+  "checkedAt": "2026-11-14",
+  "scope": "Operational FIT HUB, FTL-branded (excluding Stride), and Anytime Fitness branches in DKI Jakarta; not all Jabodetabek.",
+  "counts": {
+    "fithub": 36,
+    "ftl": 24,
+    "anytime_fitness": 30
+  },
+  "notes": [
+    "Opening hours follow the project owner instructions: FIT HUB weekday/weekend/holiday schedule; FTL and Anytime Fitness 24 hours.",
+    "Locations and operational status cross-checked against official brand directories; not on-site verification.",
+    "FTL coordinates use actual Google Maps venue pins linked by the operator when available, not viewport centers or repeated API placeholders.",
+    "Anytime Fitness uses its official global directory coordinates and Indonesian club list; administrative cities are normalized using the physical addresses.",
+    "Existing place IDs and all user favorites are preserved.",
+    "Presale/coming-soon and separate Stride-branded clubs are excluded from the active catalog."
+  ],
+  "excluded": [
+    {
+      "brand": "fithub",
+      "name": "FIT HUB OSAKA PIK 2",
+      "reason": "Outside DKI Jakarta: Kabupaten Tangerang",
+      "source": "https://fithub.id/location/jakarta"
+    },
+    {
+      "brand": "stride",
+      "name": "Stride - Tambora",
+      "reason": "Separate brand, outside requested FIT HUB/FTL/Anytime Fitness scope",
+      "source": "https://clubs.ftlgym.com/"
+    },
+    {
+      "brand": "stride",
+      "name": "Stride - Gading Timur",
+      "reason": "Separate brand, outside requested FIT HUB/FTL/Anytime Fitness scope",
+      "source": "https://clubs.ftlgym.com/"
+    },
+    {
+      "brand": "stride",
+      "name": "Stride - Pecenongan",
+      "reason": "Separate brand, outside requested FIT HUB/FTL/Anytime Fitness scope",
+      "source": "https://clubs.ftlgym.com/"
+    },
+    {
+      "brand": "stride",
+      "name": "Stride - Latumenten",
+      "reason": "Separate brand, outside requested FIT HUB/FTL/Anytime Fitness scope",
+      "source": "https://clubs.ftlgym.com/"
+    },
+    {
+      "brand": "ftl",
+      "name": "FTL - Senayan Park",
+      "reason": "Presale / coming soon",
+      "source": "https://clubs.ftlgym.com/?city=coming-soon"
+    },
+    {
+      "brand": "ftl",
+      "name": "FTL - Artha Gading",
+      "reason": "Presale / coming soon",
+      "source": "https://clubs.ftlgym.com/?city=coming-soon"
+    },
+    {
+      "brand": "stride",
+      "name": "Stride - PIK Elang Laut",
+      "reason": "Separate brand, outside requested FIT HUB/FTL/Anytime Fitness scope",
+      "source": "https://clubs.ftlgym.com/"
+    },
+    {
+      "brand": "ftl",
+      "name": "FTL - Grand Cakung",
+      "reason": "Presale / coming soon",
+      "source": "https://clubs.ftlgym.com/?city=coming-soon"
+    },
+    {
+      "brand": "anytime_fitness",
+      "name": "Lippo Icon Cibubur",
+      "reason": "Coming Soon",
+      "source": "https://www.anytimefitness.com/en-id/locations/jakarta-jakarta-id-0099"
+    },
+    {
+      "brand": "anytime_fitness",
+      "name": "Kalibata City Square",
+      "reason": "Pre-Sale",
+      "source": "https://www.anytimefitness.com/en-id/locations/south-jakarta-city-jakarta-id-0100"
+    }
+  ],
+  "places": [
+    {
+      "id": "jakarta-anytime-fitness-antasari-place",
+      "name": "Anytime Fitness Antasari Place",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "anytime_fitness",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "Jl. Pangeran Antasari No.Kav 45, RT.12/RW.1, Cilandak Bar., Kec. Cilandak, Kota Jakarta Selatan, Daerah Khusus Ibukota",
+      "latitude": -6.28974,
+      "longitude": 106.80675,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.28974%2C106.80675",
+      "sources": [
+        {
+          "url": "https://www.anytimefitness.com/en-id/locations/jakarta-jakarta-id-0045",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "access"
+          ]
+        },
+        {
+          "url": "https://www.anytimefitness.co.jp/wp/wp-content/plugins/shoplist.php",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://linktr.ee/afindonesia",
+          "kind": "operator",
+          "fields": [
+            "identity"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "anytime-fitness:id-0045"
+    },
+    {
+      "id": "jakarta-anytime-fitness-bella-terra",
+      "name": "Anytime Fitness Bella Terra",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "anytime_fitness",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Utara",
+      "address": "Ruko Kirana Boutique, Jl. Boulevard Raya No.1, Klp. Gading Tim., Kec. Klp. Gading, Jkt Utara,",
+      "latitude": -6.17391,
+      "longitude": 106.89358,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.17391%2C106.89358",
+      "sources": [
+        {
+          "url": "https://www.anytimefitness.com/en-id/locations/daerah-khusu-ibukota-jakarta-id-0032",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "access"
+          ]
+        },
+        {
+          "url": "https://www.anytimefitness.co.jp/wp/wp-content/plugins/shoplist.php",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://linktr.ee/afindonesia",
+          "kind": "operator",
+          "fields": [
+            "identity"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "anytime-fitness:id-0032"
+    },
+    {
+      "id": "jakarta-anytime-fitness-cikini",
+      "name": "Anytime Fitness Cikini",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "anytime_fitness",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Pusat",
+      "address": "Jalan Cikini Raya No.75, Cikin Menteng, Cikini",
+      "latitude": -6.1912,
+      "longitude": 106.83868,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.1912%2C106.83868",
+      "sources": [
+        {
+          "url": "https://www.anytimefitness.com/en-id/locations/jakarta-jakarta-id-0014",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "access"
+          ]
+        },
+        {
+          "url": "https://www.anytimefitness.co.jp/wp/wp-content/plugins/shoplist.php",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://linktr.ee/afindonesia",
+          "kind": "operator",
+          "fields": [
+            "identity"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "anytime-fitness:id-0014"
+    },
+    {
+      "id": "jakarta-anytime-fitness-citra-kemayoran",
+      "name": "Anytime Fitness Citra Kemayoran",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "anytime_fitness",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Pusat",
+      "address": "Jalan Casa No. 170 RT-13/RW 6, Kebon Kosong, Kemayoran",
+      "latitude": -6.15968,
+      "longitude": 106.85223,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.15968%2C106.85223",
+      "sources": [
+        {
+          "url": "https://www.anytimefitness.com/en-id/locations/citra-towers-kemayoran-jakarta-id-0005",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "access"
+          ]
+        },
+        {
+          "url": "https://www.anytimefitness.co.jp/wp/wp-content/plugins/shoplist.php",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://linktr.ee/afindonesia",
+          "kind": "operator",
+          "fields": [
+            "identity"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "anytime-fitness:id-0005"
+    },
+    {
+      "id": "jakarta-anytime-fitness-citywalk-sudirman",
+      "name": "Anytime Fitness Citywalk Sudirman",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "anytime_fitness",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Pusat",
+      "address": "Jl. K.H. Mas Mansyur No.10, RW.11, Karet Tengsin, Tanah Abang",
+      "latitude": -6.21096,
+      "longitude": 106.81797,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.21096%2C106.81797",
+      "sources": [
+        {
+          "url": "https://www.anytimefitness.com/en-id/locations/central-jakarta-city-jakarta-id-0008",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "access"
+          ]
+        },
+        {
+          "url": "https://www.anytimefitness.co.jp/wp/wp-content/plugins/shoplist.php",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://linktr.ee/afindonesia",
+          "kind": "operator",
+          "fields": [
+            "identity"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "anytime-fitness:id-0008"
+    },
+    {
+      "id": "jakarta-anytime-fitness-de-ritz-menteng",
+      "name": "Anytime Fitness De Ritz Menteng",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "anytime_fitness",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Pusat",
+      "address": "Jl. HOS. Cokroaminoto No.91, Menteng, Kec. Menteng, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakart",
+      "latitude": -6.19821,
+      "longitude": 106.82608,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.19821%2C106.82608",
+      "sources": [
+        {
+          "url": "https://www.anytimefitness.com/en-id/locations/daerah-khusus-ibukota-jakarta-id-0079",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "access"
+          ]
+        },
+        {
+          "url": "https://www.anytimefitness.co.jp/wp/wp-content/plugins/shoplist.php",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://linktr.ee/afindonesia",
+          "kind": "operator",
+          "fields": [
+            "identity"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "anytime-fitness:id-0079"
+    },
+    {
+      "id": "jakarta-anytime-fitness-gandaria",
+      "name": "Anytime Fitness Gandaria",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "anytime_fitness",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "1Park Gandaria Jl. Duku Raya No.11, RT.4/RW.5, Kby. Lama Utara, Kec. Kby. Lama, Kota Jakarta Selatan",
+      "latitude": -6.24238,
+      "longitude": 106.78857,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.24238%2C106.78857",
+      "sources": [
+        {
+          "url": "https://www.anytimefitness.com/en-id/locations/daerah-khusus-ibukota-jakarta-id-0057",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "access"
+          ]
+        },
+        {
+          "url": "https://www.anytimefitness.co.jp/wp/wp-content/plugins/shoplist.php",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://linktr.ee/afindonesia",
+          "kind": "operator",
+          "fields": [
+            "identity"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "anytime-fitness:id-0057"
+    },
+    {
+      "id": "jakarta-anytime-fitness-green-sedayu-mall",
+      "name": "Anytime Fitness Green Sedayu Mall",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "anytime_fitness",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Barat",
+      "address": "Blok B17, Jl. Taman Palem Lestari No.2, RW.13, Cengkareng Bar., Kecamatan Cengkareng, Daerah Khusus",
+      "latitude": -6.13767,
+      "longitude": 106.72335,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.13767%2C106.72335",
+      "sources": [
+        {
+          "url": "https://www.anytimefitness.com/en-id/locations/daerah-khusus-ibukota-jakarta-id-0011",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "access"
+          ]
+        },
+        {
+          "url": "https://www.anytimefitness.co.jp/wp/wp-content/plugins/shoplist.php",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://linktr.ee/afindonesia",
+          "kind": "operator",
+          "fields": [
+            "identity"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "anytime-fitness:id-0011"
+    },
+    {
+      "id": "jakarta-anytime-fitness-greenville",
+      "name": "Anytime Fitness Greenville",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "anytime_fitness",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Barat",
+      "address": "RT.8/RW.14, Duri Kepa, Kebonjeruk, West Jakarta City, Jakarta 11510, Indonesia",
+      "latitude": -6.16973,
+      "longitude": 106.75114,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.16973%2C106.75114",
+      "sources": [
+        {
+          "url": "https://www.anytimefitness.com/en-id/locations/west-jakarta-city-jakarta-id-0025",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "access"
+          ]
+        },
+        {
+          "url": "https://www.anytimefitness.co.jp/wp/wp-content/plugins/shoplist.php",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://linktr.ee/afindonesia",
+          "kind": "operator",
+          "fields": [
+            "identity"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "anytime-fitness:id-0025"
+    },
+    {
+      "id": "jakarta-anytime-fitness-hublife-taman-anggrek",
+      "name": "Anytime Fitness Hublife Taman Anggrek",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "anytime_fitness",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Barat",
+      "address": "Unit LG-01, LG Floor HUB Life Jl. Letjen S. Parman Kav.21 RT 013 RW 001",
+      "latitude": -6.18333,
+      "longitude": 106.79621,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.18333%2C106.79621",
+      "sources": [
+        {
+          "url": "https://www.anytimefitness.com/en-id/locations/taman-anggrek-jakarta-id-0009",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "access"
+          ]
+        },
+        {
+          "url": "https://www.anytimefitness.co.jp/wp/wp-content/plugins/shoplist.php",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://linktr.ee/afindonesia",
+          "kind": "operator",
+          "fields": [
+            "identity"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "anytime-fitness:id-0009"
+    },
+    {
+      "id": "jakarta-anytime-fitness-jtown-jatinegara",
+      "name": "Anytime Fitness JTown Jatinegara",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "anytime_fitness",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Timur",
+      "address": "JL. Jatinegara Timur , Balimester, Jatinegara, 13310 Jakarta Timur, DKI Jakarta, RT.11/RW.3, Bali Me",
+      "latitude": -6.21923,
+      "longitude": 106.85535,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.21923%2C106.85535",
+      "sources": [
+        {
+          "url": "https://www.anytimefitness.com/en-id/locations/jakarta-jakarta-id-0058",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "access"
+          ]
+        },
+        {
+          "url": "https://www.anytimefitness.co.jp/wp/wp-content/plugins/shoplist.php",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://linktr.ee/afindonesia",
+          "kind": "operator",
+          "fields": [
+            "identity"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "anytime-fitness:id-0058"
+    },
+    {
+      "id": "jakarta-anytime-fitness-kebon-jeruk-akr-tower",
+      "name": "Anytime Fitness Kebon Jeruk (AKR Tower)",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "anytime_fitness",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Barat",
+      "address": "Jl. Panjang No.5, Kebon Jeruk Special Capital Region of Jakarta, 11520, ID",
+      "latitude": -6.19106,
+      "longitude": 106.76793,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.19106%2C106.76793",
+      "sources": [
+        {
+          "url": "https://www.anytimefitness.com/en-id/locations/kebun-jeruk-jakarta-id-0030",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "access"
+          ]
+        },
+        {
+          "url": "https://www.anytimefitness.co.jp/wp/wp-content/plugins/shoplist.php",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://linktr.ee/afindonesia",
+          "kind": "operator",
+          "fields": [
+            "identity"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "anytime-fitness:id-0030"
+    },
+    {
+      "id": "jakarta-anytime-fitness-la-codefin-kemang",
+      "name": "Anytime Fitness La Codefin Kemang",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "anytime_fitness",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "KEMANG RAYA NO. 8 MAMPANG PRAPATAN",
+      "latitude": -6.25576,
+      "longitude": 106.81278,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.25576%2C106.81278",
+      "sources": [
+        {
+          "url": "https://www.anytimefitness.com/en-id/locations/la-codefin-kemang-jakarta-id-0010",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "access"
+          ]
+        },
+        {
+          "url": "https://www.anytimefitness.co.jp/wp/wp-content/plugins/shoplist.php",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://linktr.ee/afindonesia",
+          "kind": "operator",
+          "fields": [
+            "identity"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "anytime-fitness:id-0010"
+    },
+    {
+      "id": "jakarta-anytime-fitness-lippo-mall-nusantara",
+      "name": "Anytime Fitness Lippo Mall Nusantara",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "anytime_fitness",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "Kawasan Bisnis Granadha, Jl. Jend. Sudirman No.Kav. 50, Karet Semanggi, Kecamatan Setiabudi Kota Jakarta Selatan, Daerah Khusus Ibukota Jakarta",
+      "latitude": -6.21946,
+      "longitude": 106.81461,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.21946%2C106.81461",
+      "sources": [
+        {
+          "url": "https://www.anytimefitness.com/en-id/locations/jakarta-java-id-0095",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "access"
+          ]
+        },
+        {
+          "url": "https://www.anytimefitness.co.jp/wp/wp-content/plugins/shoplist.php",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://linktr.ee/afindonesia",
+          "kind": "operator",
+          "fields": [
+            "identity"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "anytime-fitness:id-0095"
+    },
+    {
+      "id": "jakarta-anytime-fitness-mall-of-indonesia",
+      "name": "Anytime Fitness Mall of Indonesia",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "anytime_fitness",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Utara",
+      "address": "Jl. Boulevard Bar. Raya No.12, RT.18/RW.19, West Kelapa Gading",
+      "latitude": -6.15067,
+      "longitude": 106.88828,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.15067%2C106.88828",
+      "sources": [
+        {
+          "url": "https://www.anytimefitness.com/en-id/locations/kelapa-gading-jakarta-id-0022",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "access"
+          ]
+        },
+        {
+          "url": "https://www.anytimefitness.co.jp/wp/wp-content/plugins/shoplist.php",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://linktr.ee/afindonesia",
+          "kind": "operator",
+          "fields": [
+            "identity"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "anytime-fitness:id-0022"
+    },
+    {
+      "id": "jakarta-anytime-fitness-mampang",
+      "name": "Anytime Fitness Mampang",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "anytime_fitness",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "10, Jl. Mampang Prpt. Raya No.66, RT.9/RW.3, Tegal Parang, Kec. Mampang Prpt., Kota Jakarta Selatan,",
+      "latitude": -6.26517,
+      "longitude": 106.8303,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.26517%2C106.8303",
+      "sources": [
+        {
+          "url": "https://www.anytimefitness.com/en-id/locations/daerah-khusus-ibukota-jakarta-id-0035",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "access"
+          ]
+        },
+        {
+          "url": "https://www.anytimefitness.co.jp/wp/wp-content/plugins/shoplist.php",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://linktr.ee/afindonesia",
+          "kind": "operator",
+          "fields": [
+            "identity"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "anytime-fitness:id-0035"
+    },
+    {
+      "id": "jakarta-anytime-fitness-menara-cakrawala",
+      "name": "Anytime Fitness Menara Cakrawala",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "anytime_fitness",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Pusat",
+      "address": "Level 5, Jl. M.H. Thamrin, No.9, RT.2/RW.1, Kb. Sirih",
+      "latitude": -6.1865,
+      "longitude": 106.8238,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.1865%2C106.8238",
+      "sources": [
+        {
+          "url": "https://www.anytimefitness.com/en-id/locations/kec-menteng-jakarta-id-0015",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "access"
+          ]
+        },
+        {
+          "url": "https://www.anytimefitness.co.jp/wp/wp-content/plugins/shoplist.php",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://linktr.ee/afindonesia",
+          "kind": "operator",
+          "fields": [
+            "identity"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "anytime-fitness:id-0015"
+    },
+    {
+      "id": "jakarta-anytime-fitness-pasaraya-blok-m",
+      "name": "Anytime Fitness Pasaraya Blok M",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "anytime_fitness",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "Pasaraya Blok M, GF Gedung B, Jl. Iskandarsyah Raya, No.2, RT.3/RW.1, Melawai, Kec. Kby. Baru, Kota Jakarta Selatan",
+      "latitude": -6.24426,
+      "longitude": 106.80266,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.24426%2C106.80266",
+      "sources": [
+        {
+          "url": "https://www.anytimefitness.com/en-id/locations/daerah-khusus-ibukota-jakarta-id-0029",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "access"
+          ]
+        },
+        {
+          "url": "https://www.anytimefitness.co.jp/wp/wp-content/plugins/shoplist.php",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://linktr.ee/afindonesia",
+          "kind": "operator",
+          "fields": [
+            "identity"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "anytime-fitness:id-0029"
+    },
+    {
+      "id": "jakarta-anytime-fitness-puri-indah-cni",
+      "name": "Anytime Fitness Puri Indah CNI",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "anytime_fitness",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Barat",
+      "address": "Gedung CNI Puri, Kembangan Selatan, Kembangan, Jakarta Barat, Jakarta 11610",
+      "latitude": -6.19054,
+      "longitude": 106.73788,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.19054%2C106.73788",
+      "sources": [
+        {
+          "url": "https://www.anytimefitness.com/en-id/locations/daerah-khusus-ibukota-jakarta-id-0042",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "access"
+          ]
+        },
+        {
+          "url": "https://www.anytimefitness.co.jp/wp/wp-content/plugins/shoplist.php",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://linktr.ee/afindonesia",
+          "kind": "operator",
+          "fields": [
+            "identity"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "anytime-fitness:id-0042"
+    },
+    {
+      "id": "jakarta-anytime-fitness-rosthen-garden-slipi",
+      "name": "Anytime Fitness Rosthen Garden Slipi",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "anytime_fitness",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Barat",
+      "address": "Letjen S. Parman St No.Kav No.65, RW.66, Slipi, Palmerah, West Jakarta City, Jakarta 11410, Indonesi",
+      "latitude": -6.18876,
+      "longitude": 106.79791,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.18876%2C106.79791",
+      "sources": [
+        {
+          "url": "https://www.anytimefitness.com/en-id/locations/jakarta-jakarta-id-0028",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "access"
+          ]
+        },
+        {
+          "url": "https://www.anytimefitness.co.jp/wp/wp-content/plugins/shoplist.php",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://linktr.ee/afindonesia",
+          "kind": "operator",
+          "fields": [
+            "identity"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "anytime-fitness:id-0028"
+    },
+    {
+      "id": "jakarta-anytime-fitness-sakura-garden-city",
+      "name": "Anytime Fitness Sakura Garden City",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "anytime_fitness",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Timur",
+      "address": "Sakura Garden City Jl. Bina Marga No.88, Cipayung, Kec. Cipayung, Kota Jakarta Timur, Daerah Khusus",
+      "latitude": -6.32355,
+      "longitude": 106.88877,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.32355%2C106.88877",
+      "sources": [
+        {
+          "url": "https://www.anytimefitness.com/en-id/locations/daerah-khusus-ibukota-jakarta-id-0094",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "access"
+          ]
+        },
+        {
+          "url": "https://www.anytimefitness.co.jp/wp/wp-content/plugins/shoplist.php",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://linktr.ee/afindonesia",
+          "kind": "operator",
+          "fields": [
+            "identity"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "anytime-fitness:id-0094"
+    },
+    {
+      "id": "jakarta-anytime-fitness-sarana-square",
+      "name": "Anytime Fitness Sarana Square",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "anytime_fitness",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "Jl. Tebet Barat IV No.20, RT.8/RW.2, Tebet Bar., Kec. Tebet",
+      "latitude": -6.23366,
+      "longitude": 106.84795,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.23366%2C106.84795",
+      "sources": [
+        {
+          "url": "https://www.anytimefitness.com/en-id/locations/kota-jakarta-selatan-jakarta-id-0021",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "access"
+          ]
+        },
+        {
+          "url": "https://www.anytimefitness.co.jp/wp/wp-content/plugins/shoplist.php",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://linktr.ee/afindonesia",
+          "kind": "operator",
+          "fields": [
+            "identity"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "anytime-fitness:id-0021"
+    },
+    {
+      "id": "jakarta-anytime-fitness-sedayu-city",
+      "name": "Anytime Fitness Sedayu City",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "anytime_fitness",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Timur",
+      "address": "Suite Life, Jl. Sedayu Boulevard Raya, RT.8/RW.5, Rw. Terate, Kec. Cakung, Kota Jakarta Timur, Daerah Khusus Ibukota",
+      "latitude": -6.16896,
+      "longitude": 106.92151,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.16896%2C106.92151",
+      "sources": [
+        {
+          "url": "https://www.anytimefitness.com/en-id/locations/jakarta-jakarta-id-0003",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "access"
+          ]
+        },
+        {
+          "url": "https://www.anytimefitness.co.jp/wp/wp-content/plugins/shoplist.php",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://linktr.ee/afindonesia",
+          "kind": "operator",
+          "fields": [
+            "identity"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "anytime-fitness:id-0003"
+    },
+    {
+      "id": "jakarta-anytime-fitness-senopati",
+      "name": "Anytime Fitness Senopati",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "anytime_fitness",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "Jl. Senayan No.59, RT.8/RW.5, Rw. Bar., Kec. Kby. Baru, Kota Jakarta Selatan,",
+      "latitude": -6.23621,
+      "longitude": 106.81633,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.23621%2C106.81633",
+      "sources": [
+        {
+          "url": "https://www.anytimefitness.com/en-id/locations/daerah-khusus-ibukota-jakarta-id-0019",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "access"
+          ]
+        },
+        {
+          "url": "https://www.anytimefitness.co.jp/wp/wp-content/plugins/shoplist.php",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://linktr.ee/afindonesia",
+          "kind": "operator",
+          "fields": [
+            "identity"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "anytime-fitness:id-0019"
+    },
+    {
+      "id": "jakarta-anytime-fitness-setiabudi-one",
+      "name": "Anytime Fitness Setiabudi One",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "anytime_fitness",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "Kuningan, Karet Kuningan, Kecamatan Setiabudi, Kota Jakarta Selatan, Daerah Khusus Ibukota",
+      "latitude": -6.21521,
+      "longitude": 106.82998,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.21521%2C106.82998",
+      "sources": [
+        {
+          "url": "https://www.anytimefitness.com/en-id/locations/kerat-kuningan-bali-id-0007",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "access"
+          ]
+        },
+        {
+          "url": "https://www.anytimefitness.co.jp/wp/wp-content/plugins/shoplist.php",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://linktr.ee/afindonesia",
+          "kind": "operator",
+          "fields": [
+            "identity"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "anytime-fitness:id-0007"
+    },
+    {
+      "id": "jakarta-anytime-fitness-simatupang",
+      "name": "Anytime Fitness Simatupang",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "anytime_fitness",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "Menera FIF Jl. TB. Simatupang kav.15",
+      "latitude": -6.29232,
+      "longitude": 106.78355,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.29232%2C106.78355",
+      "sources": [
+        {
+          "url": "https://www.anytimefitness.com/en-id/locations/jakarta-jakarta-id-0016",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "access"
+          ]
+        },
+        {
+          "url": "https://www.anytimefitness.co.jp/wp/wp-content/plugins/shoplist.php",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://linktr.ee/afindonesia",
+          "kind": "operator",
+          "fields": [
+            "identity"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "anytime-fitness:id-0016"
+    },
+    {
+      "id": "jakarta-anytime-fitness-sopo-del-mega-kuningan",
+      "name": "Anytime Fitness Sopo Del Mega Kuningan",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "anytime_fitness",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "SOPO DEL TOWER & LIFESTYLE, JL. MEGA KUNINGAN BARAT III LOT 10, 1-6 RT 05 / RW 02, KAWASAN MEGA KUNI",
+      "latitude": -6.22813,
+      "longitude": 106.82458,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.22813%2C106.82458",
+      "sources": [
+        {
+          "url": "https://www.anytimefitness.com/en-id/locations/mega-kuningan-jakarta-id-0012",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "access"
+          ]
+        },
+        {
+          "url": "https://www.anytimefitness.co.jp/wp/wp-content/plugins/shoplist.php",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://linktr.ee/afindonesia",
+          "kind": "operator",
+          "fields": [
+            "identity"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "anytime-fitness:id-0012"
+    },
+    {
+      "id": "jakarta-anytime-fitness-sunter-mall",
+      "name": "Anytime Fitness Sunter Mall",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "anytime_fitness",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Utara",
+      "address": "Jl. Danau Sunter Utara No.Kav.II, RT.14/RW.13, Sunter Agung, Tj. Priok, Kota Jkt Utara,",
+      "latitude": -6.13813,
+      "longitude": 106.87095,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.13813%2C106.87095",
+      "sources": [
+        {
+          "url": "https://www.anytimefitness.com/en-id/locations/sunter-mall-jakarta-id-0006",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "access"
+          ]
+        },
+        {
+          "url": "https://www.anytimefitness.co.jp/wp/wp-content/plugins/shoplist.php",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://linktr.ee/afindonesia",
+          "kind": "operator",
+          "fields": [
+            "identity"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "anytime-fitness:id-0006"
+    },
+    {
+      "id": "jakarta-anytime-fitness-the-amboja",
+      "name": "Anytime Fitness The Amboja",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "anytime_fitness",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Timur",
+      "address": "THE AMBOJA, Jl. Raya Mabes Hankam, RT.3/RW.2, Bambu Apus, Kec. Cipayung",
+      "latitude": -6.30942,
+      "longitude": 106.90115,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.30942%2C106.90115",
+      "sources": [
+        {
+          "url": "https://www.anytimefitness.com/en-id/locations/east-jakarta-jakarta-id-0017",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "access"
+          ]
+        },
+        {
+          "url": "https://www.anytimefitness.co.jp/wp/wp-content/plugins/shoplist.php",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://linktr.ee/afindonesia",
+          "kind": "operator",
+          "fields": [
+            "identity"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "anytime-fitness:id-0017"
+    },
+    {
+      "id": "jakarta-anytime-fitness-the-hive-cawang",
+      "name": "Anytime Fitness The Hive Cawang",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "anytime_fitness",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Timur",
+      "address": "Jl. D.I. Panjaitan No.Kav. 3-4, RT.7/RW.11, Cipinang Cempedak, Kecamatan Jatinegara, Kota Jakarta Timur, Daerah Khusus Ibukota",
+      "latitude": -6.2445,
+      "longitude": 106.8755,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.2445%2C106.8755",
+      "sources": [
+        {
+          "url": "https://www.anytimefitness.com/en-id/locations/jakarta-jakarta-id-0044",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "access"
+          ]
+        },
+        {
+          "url": "https://www.anytimefitness.co.jp/wp/wp-content/plugins/shoplist.php",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://linktr.ee/afindonesia",
+          "kind": "operator",
+          "fields": [
+            "identity"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "anytime-fitness:id-0044"
+    },
+    {
+      "id": "jakarta-fithub-benhil",
+      "name": "FIT HUB Bendungan Hilir (Benhil)",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Pusat",
+      "address": "Jl. Bendungan Hilir No.10, RT.1/RW.4, Jakarta Pusat, Daerah KhususIbukota Jakarta 10210",
+      "latitude": -6.20645,
+      "longitude": 106.809834,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.20645%2C106.809834",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:benhil"
+    },
+    {
+      "id": "jakarta-fithub-bintaro-sektor-1",
+      "name": "FIT HUB BINTARO SEKTOR 1",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "Jalan Bintaro Raya Blok FII Persil no. 1, RT 016/RW08, Kecamatan. Pesanggrahan Kota Jakarta Selatan, Jakarta, Daerah Khusus Ibukota Jakarta 12330",
+      "latitude": -6.2430762,
+      "longitude": 106.7573816,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.2430762%2C106.7573816",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        },
+        {
+          "url": "https://fithub.id/location/jakarta/bintaro-sektor-1",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:123"
+    },
+    {
+      "id": "jakarta-fithub-blok-m",
+      "name": "FIT HUB BLOK M",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "Jalan Panglima Polim Raya Blok M.3 No. 1 dan 2, RT.1/RW.2, Melawai, Kec. Kby. Baru, Daerah Khusus Ibukota Jakarta 12130, Indonesia",
+      "latitude": -6.2107188,
+      "longitude": 106.8025269,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.2107188%2C106.8025269",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        },
+        {
+          "url": "https://fithub.id/location/jakarta/blok-m",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:126"
+    },
+    {
+      "id": "jakarta-fithub-cempaka-putih",
+      "name": "FIT HUB CEMPAKA PUTIH",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Pusat",
+      "address": "Jl. Cempaka Putih Raya B No.44, RT.7/RW.8, Cemp. Putih Tim., Kec. Cemp. Putih, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10510, Indonesia",
+      "latitude": -6.1426306,
+      "longitude": 106.8653664,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.1426306%2C106.8653664",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        },
+        {
+          "url": "https://fithub.id/location/jakarta/cempaka-putih",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:130"
+    },
+    {
+      "id": "jakarta-fithub-cideng",
+      "name": "FIT HUB CIDENG",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Pusat",
+      "address": "Jl. Cideng Barat No.70 B, RT.004/RW.001, Kelurahan Cideng, Kecamatan Gambir, Kota, Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10150",
+      "latitude": -6.1761323,
+      "longitude": 106.8118328,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.1761323%2C106.8118328",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        },
+        {
+          "url": "https://fithub.id/location/jakarta/cideng",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:192"
+    },
+    {
+      "id": "jakarta-fithub-danau-sunter-utara",
+      "name": "FIT HUB Danau Sunter Utara",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Utara",
+      "address": "Jl. Danau Sunter Utara Blok B 36 A No.13, Kelurahan Sunter Agung, Kecamatan Tanjung Priok, Jakarta Utara, DKI Jakarta - 14350",
+      "latitude": -6.1393407,
+      "longitude": 106.8614411,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.1393407%2C106.8614411",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        },
+        {
+          "url": "https://fithub.id/location/jakarta/danau-sunter-utara",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:235"
+    },
+    {
+      "id": "jakarta-fithub-duren-sawit",
+      "name": "FIT HUB DUREN SAWIT",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Timur",
+      "address": "Jl. Kolonel Sugiono No.3, RT.1/RW.3, Duren Sawit, Kec. Duren Sawit, Kota Jakarta Timur, Daerah Khusus Ibukota Jakarta 13440",
+      "latitude": -6.2291973,
+      "longitude": 106.9111136,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.2291973%2C106.9111136",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:duren-sawit"
+    },
+    {
+      "id": "jakarta-fithub-elang-laut-pik",
+      "name": "FIT HUB ELANG LAUT PIK",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Utara",
+      "address": "Jl. Pantai Indah Selatan No.10, RT.3/RW.3, Kamal Muara, Kec. Penjaringan, Jkt Utara, Daerah Khusus Ibukota Jakarta 14470",
+      "latitude": -6.1238713,
+      "longitude": 106.7432083,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.1238713%2C106.7432083",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:elang-laut-pik"
+    },
+    {
+      "id": "jakarta-fithub-fatmawati",
+      "name": "FIT HUB FATMAWATI",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "Jl. RS. Fatmawati Raya No.9, Gandaria Sel., Kec. Cilandak, Kota Jakarta Selatan, Daerah Khusus Ibukota Jakarta 12140",
+      "latitude": -6.2724586,
+      "longitude": 106.797445,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.2724586%2C106.797445",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:fatmawati"
+    },
+    {
+      "id": "jakarta-fithub-gajah-mada",
+      "name": "FIT HUB GAJAH MADA",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Barat",
+      "address": "Jl. Gajah Mada No.220, Glodok, Kec. Taman Sari, Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11120",
+      "latitude": -6.1438979,
+      "longitude": 106.8152194,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.1438979%2C106.8152194",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        },
+        {
+          "url": "https://fithub.id/location/jakarta/gajah-mada",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:83"
+    },
+    {
+      "id": "jakarta-fithub-gandaria",
+      "name": "FIT HUB GANDARIA",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "Jalan Sultan Iskandar Muda No.15 C-D, RT.05/RW.07, North Kebayoran Lama, Kebayoran Lama, South Jakarta City, Jakarta 12240",
+      "latitude": -6.2442352,
+      "longitude": 106.7814814,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.2442352%2C106.7814814",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        },
+        {
+          "url": "https://fithub.id/location/jakarta/gandaria",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:184"
+    },
+    {
+      "id": "jakarta-fithub-greenville",
+      "name": "FIT HUB GREENVILLE",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Barat",
+      "address": "Jl. Green Ville Blk. BJ-BK No.5, RT.8/RW.14, Duri Kepa, Kec. Kb. Jeruk, Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11510",
+      "latitude": -6.1637497,
+      "longitude": 106.7729975,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.1637497%2C106.7729975",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        },
+        {
+          "url": "https://fithub.id/location/jakarta/greenville",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:85"
+    },
+    {
+      "id": "jakarta-fithub-grogol",
+      "name": "FIT HUB GROGOL",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Barat",
+      "address": "Jl. Makaliwe Raya No.42, RW.5, Grogol, Kec. Grogol petamburan, Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11450",
+      "latitude": -6.1647816,
+      "longitude": 106.789537,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.1647816%2C106.789537",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:grogol"
+    },
+    {
+      "id": "jakarta-fithub-itc-kuningan",
+      "name": "FIT HUB ITC KUNINGAN",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "ITC Kuningan Lantai 5 Jembatan 1, Jl. Prof. DR. Satrio, Kuningan, Karet Kuningan, Kecamatan Setiabudi, Kota Jakarta Selatan, Daerah Khusus Ibukota Jakarta 12940",
+      "latitude": -6.2238828,
+      "longitude": 106.8266834,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.2238828%2C106.8266834",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        },
+        {
+          "url": "https://fithub.id/location/jakarta/itc-kuningan",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:89"
+    },
+    {
+      "id": "jakarta-fithub-itc-permata-hijau",
+      "name": "FIT HUB ITC PERMATA HIJAU",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "Jl. Arteri Permata Hijau No.11, RT.11/RW.10, Grogol Utara, Kec. Kby. Lama, Kota Jakarta Selatan, Daerah Khusus Ibukota Jakarta 12210 (Grand ITC Permata Hijau Lantai Lower Ground)",
+      "latitude": -6.2213216,
+      "longitude": 106.7840509,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.2213216%2C106.7840509",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        },
+        {
+          "url": "https://fithub.id/location/jakarta/itc-permata-hijau",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:97"
+    },
+    {
+      "id": "jakarta-fithub-jagakarsa",
+      "name": "FIT HUB JAGAKARSA",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "Jl. Moh. Kahfi 1, No.100, RT. 7 RW. 1, Kelurahan Ciganjur, Kecamatan Jagakarsa, Kota Administrasi Jakarta Selatan",
+      "latitude": -6.3321438,
+      "longitude": 106.8074926,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.3321438%2C106.8074926",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        },
+        {
+          "url": "https://fithub.id/location/jakarta/jagakarsa",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:234"
+    },
+    {
+      "id": "jakarta-fithub-jakarta-garden-city",
+      "name": "FIT HUB Jakarta Garden City (JGC)",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Timur",
+      "address": "Ruko New East, Jl. Jkt Garden City Boulevard, Cakung Tim., Kec. Cakung, Daerah Khusus Ibukota Jakarta 13910",
+      "latitude": -6.1713298,
+      "longitude": 106.9594933,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.1713298%2C106.9594933",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        },
+        {
+          "url": "https://fithub.id/location/jakarta/jakarta-garden-city",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:90"
+    },
+    {
+      "id": "jakarta-fithub-kalimalang",
+      "name": "FIT HUB KALIMALANG",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Timur",
+      "address": "Jl. KH. Noer Ali No.45, RT.2/RW.3, Pd. Klp., Kec. Duren Sawit, Kota Jakarta Timur, Daerah Khusus Ibukota Jakarta 13450",
+      "latitude": -6.2490633,
+      "longitude": 106.9406973,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.2490633%2C106.9406973",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        },
+        {
+          "url": "https://fithub.id/location/jakarta/kalimalang",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:115"
+    },
+    {
+      "id": "jakarta-fithub-kemang",
+      "name": "FIT HUB KEMANG",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "Gedung Kemang 54 Lantai 2 Jl. Kemang Raya No.54, RT.8/RW.2, Bangka, Kec. Mampang Prpt., Kota Jakarta Selatan, Daerah Khusus Ibukota Jakarta 12730",
+      "latitude": -6.2630899,
+      "longitude": 106.8158171,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.2630899%2C106.8158171",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        },
+        {
+          "url": "https://fithub.id/location/jakarta/kemang",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:237"
+    },
+    {
+      "id": "jakarta-fithub-kemanggisan",
+      "name": "FIT HUB KEMANGGISAN",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Barat",
+      "address": "Jalan Kebon Jeruk Raya Gg. Abc No.15, RT.007/RW.005, Sukabumi Sel., Kec. Kb. Jeruk, Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11530",
+      "latitude": -6.2104434,
+      "longitude": 106.7755624,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.2104434%2C106.7755624",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        },
+        {
+          "url": "https://fithub.id/location/jakarta/kemanggisan",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:118"
+    },
+    {
+      "id": "jakarta-fithub-mampang",
+      "name": "FIT HUB MAMPANG",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "Jl. Mampang Prpt. Raya No.81, RT.7/RW.1, Tegal Parang, Kec. Mampang Prpt., Kota Jakarta Selatan, Daerah Khusus Ibukota Jakarta 12790",
+      "latitude": -6.2495298,
+      "longitude": 106.8267596,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.2495298%2C106.8267596",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:mampang"
+    },
+    {
+      "id": "jakarta-fithub-maspion-plaza",
+      "name": "FIT HUB MASPION PLAZA",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Utara",
+      "address": "Jl. Gn. Sahari No.Kav.18, Pademangan Bar., Kec. Pademangan, Jkt Utara, Daerah Khusus Ibukota Jakarta 14420",
+      "latitude": -6.1411447,
+      "longitude": 106.8338311,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.1411447%2C106.8338311",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        },
+        {
+          "url": "https://fithub.id/location/jakarta/maspion-plaza",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:142"
+    },
+    {
+      "id": "jakarta-fithub-meruya",
+      "name": "FIT HUB MERUYA JAMESON",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Barat",
+      "address": "Komp. Ruko Taman Kb. Jeruk, Jl. Meruya Ilir Raya No.12, RT.4/RW.7, Meruya Sel., Kec. Kembangan, Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11640 (Lantai 3)",
+      "latitude": -6.1980817,
+      "longitude": 106.7455331,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.1980817%2C106.7455331",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        },
+        {
+          "url": "https://fithub.id/location/jakarta/meruya",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:94"
+    },
+    {
+      "id": "jakarta-fithub-pasar-minggu",
+      "name": "FIT HUB PASAR MINGGU",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "Jl. Raya Pasar Minggu No.05, RT.2/RW.7, Duren Tiga, Kec. Pancoran, Kota Jakarta Selatan, Daerah Khusus Ibukota Jakarta 12760",
+      "latitude": -6.2516112,
+      "longitude": 106.8428887,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.2516112%2C106.8428887",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        },
+        {
+          "url": "https://fithub.id/location/jakarta/pasar-minggu",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:139"
+    },
+    {
+      "id": "jakarta-fithub-plaza-oleos",
+      "name": "FIT HUB PLAZA OLEOS",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "Jl. TB Simatupang, RT.2/RW.1, Kebagusan, Ps. Minggu, Kota Jakarta Selatan, Daerah Khusus Ibukota Jakarta 12520",
+      "latitude": -6.2972511,
+      "longitude": 106.8294916,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.2972511%2C106.8294916",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        },
+        {
+          "url": "https://fithub.id/location/jakarta/plaza-oleos",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:138"
+    },
+    {
+      "id": "jakarta-fithub-pluit",
+      "name": "FIT HUB PLUIT",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Utara",
+      "address": "Jl. Pluit Indah No.34, Pluit, Kec. Penjaringan, Kota Jkt Utara, Daerah Khusus Ibukota Jakarta 14450",
+      "latitude": -6.1180293,
+      "longitude": 106.7850065,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.1180293%2C106.7850065",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        },
+        {
+          "url": "https://fithub.id/location/jakarta/pluit",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:98"
+    },
+    {
+      "id": "jakarta-fithub-puri-indah",
+      "name": "FIT HUB PURI INDAH",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Barat",
+      "address": "Sentra Niaga Puri Indah Blok T1 No. 9-10, Jl. Puri Lkr. Dalam No.Raya, RT.1/RW.2, South Kembangan, Kembangan, West Jakarta City, Jakarta 11610",
+      "latitude": -6.1878826,
+      "longitude": 106.7353694,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.1878826%2C106.7353694",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        },
+        {
+          "url": "https://fithub.id/location/jakarta/puri-indah",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:99"
+    },
+    {
+      "id": "jakarta-fithub-rawamangun",
+      "name": "FIT HUB RAWAMANGUN",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Timur",
+      "address": "Jl. Sunan Drajad No.39, RW.8, Jati, Pulo Gadung, East Jakarta City, Jakarta 13220",
+      "latitude": -6.1939044,
+      "longitude": 106.8949267,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.1939044%2C106.8949267",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        },
+        {
+          "url": "https://fithub.id/location/jakarta/rawamangun",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:100"
+    },
+    {
+      "id": "jakarta-fithub-salemba",
+      "name": "FIT HUB SALEMBA",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Pusat",
+      "address": "Jl. Salemba Raya No.57 - 59, Paseban, Kec. Senen, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10430",
+      "latitude": -6.1975365,
+      "longitude": 106.8522644,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.1975365%2C106.8522644",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        },
+        {
+          "url": "https://fithub.id/location/jakarta/salemba",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:101"
+    },
+    {
+      "id": "jakarta-fithub-sedayu-city",
+      "name": "FIT HUB SEDAYU CITY KELAPA GADING",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Timur",
+      "address": "Jl. Boulevard Raya Sedayu City Blok SCBRA NO. 3, 5 dan 6, Cakung, Kota Jakarta Timur, Daerah Khusus Ibukota Jakarta 13910",
+      "latitude": -6.1658119,
+      "longitude": 106.9247889,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.1658119%2C106.9247889",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        },
+        {
+          "url": "https://fithub.id/location/jakarta/sedayu-city",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:102"
+    },
+    {
+      "id": "jakarta-fithub-sintesa-menara-duta",
+      "name": "FIT HUB SINTESA MENARA DUTA",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "Jalan H. R. Rasuna Said No.Kav B/09, RT.5/RW.1, Kuningan, Jakarta Selatan, Daerah Khusus Ibukota Jakarta 12910",
+      "latitude": -6.208976,
+      "longitude": 106.829227,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.208976%2C106.829227",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:sintesa-menara-duta"
+    },
+    {
+      "id": "jakarta-fithub-sunter-altira",
+      "name": "FIT HUB SUNTER ALTIRA BUSINESS PARK",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Utara",
+      "address": "Altira Business Park Blok A01-A03 Lantai 2, Jakarta, DKI Jakarta 14350",
+      "latitude": -6.152046,
+      "longitude": 106.88609,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.152046%2C106.88609",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:sunter-altira"
+    },
+    {
+      "id": "jakarta-fithub-taman-palem-lestari",
+      "name": "FIT HUB TAMAN PALEM LESTARI",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Barat",
+      "address": "Perumahan Taman Palem Lestari Blok A-11/5-A 11730, RT.8/RW.13, Cengkareng Bar., Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11730",
+      "latitude": -6.1379075,
+      "longitude": 106.724676,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.1379075%2C106.724676",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        },
+        {
+          "url": "https://fithub.id/location/jakarta/taman-palem-lestari",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:143"
+    },
+    {
+      "id": "jakarta-fithub-tamini-square",
+      "name": "FIT HUB TAMINI SQUARE",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Timur",
+      "address": "Jl. Taman Mini Raya Garuda, Pinang Ranti, Makasar,Jakarta Timur 13560,DKI Jakarta (Tamini Square Lantai 2)",
+      "latitude": -6.2917244,
+      "longitude": 106.8815173,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.2917244%2C106.8815173",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        },
+        {
+          "url": "https://fithub.id/location/jakarta/tamini-square",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:106"
+    },
+    {
+      "id": "jakarta-fithub-tebet",
+      "name": "FIT HUB TEBET",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "Jl. Prof. DR. Soepomo No.30, RT.13/RW.2, Tebet Bar., Kec. Tebet, Kota Jakarta Selatan, Daerah Khusus Ibukota Jakarta 12810",
+      "latitude": -6.2330222,
+      "longitude": 106.8447124,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.2330222%2C106.8447124",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:tebet"
+    },
+    {
+      "id": "jakarta-fithub-wisma-bni-46",
+      "name": "FIT HUB WISMA 46",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "fithub",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Pusat",
+      "address": "Jl. Jenderal Sudirman No.Kav. 1, RT.1/RW.8, Karet Tengsin, Kecamatan Tanah Abang, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10220",
+      "latitude": -6.2034773,
+      "longitude": 106.8204207,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.2034773%2C106.8204207",
+      "sources": [
+        {
+          "url": "https://fithub.id/location/jakarta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location",
+            "access"
+          ]
+        },
+        {
+          "url": "https://fithub.id/location/jakarta/wisma-bni-46",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Senin - Jumat",
+          "labelEN": "Monday - Friday",
+          "hours": "05.00 - 00.00"
+        },
+        {
+          "labelID": "Sabtu, Minggu dan Libur Nasional",
+          "labelEN": "Saturday, Sunday and Public Holidays",
+          "hours": "06.00 - 21.00"
+        }
+      ],
+      "source_id": "fithub:127"
+    },
+    {
+      "id": "jakarta-ftl-agora",
+      "name": "FTL Gym Agora",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "ftl",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Pusat",
+      "address": "Jl. M.H. Thamrin No.10, Kb. Melati, Kecamatan Tanah Abang, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10230",
+      "latitude": -6.1987901,
+      "longitude": 106.8218375,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.1987901%2C106.8218375",
+      "sources": [
+        {
+          "url": "https://ftlgym.com/outlet/agora",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://ftlgym.com/",
+          "kind": "operator",
+          "fields": [
+            "access"
+          ]
+        },
+        {
+          "url": "https://maps.app.goo.gl/xgXemArBwNK6Qz4SA",
+          "kind": "map",
+          "fields": [
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "ftl:126"
+    },
+    {
+      "id": "jakarta-ftl-arjuna-utara",
+      "name": "FTL Gym Arjuna Utara",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "ftl",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Barat",
+      "address": "Jl. Arjuna Utara No.42E, RT.11/RW.2, Tj. Duren Sel., Kec. Grogol petamburan, Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11470",
+      "latitude": -6.1849145,
+      "longitude": 106.7834866,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.1849145%2C106.7834866",
+      "sources": [
+        {
+          "url": "https://ftlgym.com/outlet/arjuna-utara",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://ftlgym.com/",
+          "kind": "operator",
+          "fields": [
+            "access"
+          ]
+        },
+        {
+          "url": "https://maps.app.goo.gl/Wh6XPvNWr9S1Dfc46",
+          "kind": "map",
+          "fields": [
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "ftl:123"
+    },
+    {
+      "id": "jakarta-ftl-bendungan-hilir",
+      "name": "FTL Gym Bendungan Hilir",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "ftl",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Pusat",
+      "address": "Jl. Bendungan Hilir No.118, RT.13/RW.6, Bend. Hilir, Kecamatan Tanah Abang, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10210",
+      "latitude": -6.2086843,
+      "longitude": 106.8120209,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.2086843%2C106.8120209",
+      "sources": [
+        {
+          "url": "https://ftlgym.com/outlet/bendungan-hilir",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://ftlgym.com/",
+          "kind": "operator",
+          "fields": [
+            "access"
+          ]
+        },
+        {
+          "url": "https://maps.app.goo.gl/uBG3jbwyGzijQmfE9",
+          "kind": "map",
+          "fields": [
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "ftl:20"
+    },
+    {
+      "id": "jakarta-ftl-blok-m",
+      "name": "FTL Gym Blok M",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "ftl",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "Jl. Sunan Kalijaga No.2, RT.2/RW.1, Melawai",
+      "latitude": -6.2426794,
+      "longitude": 106.7994013,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.2426794%2C106.7994013",
+      "sources": [
+        {
+          "url": "https://ftlgym.com/outlet/blok-m",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://ftlgym.com/",
+          "kind": "operator",
+          "fields": [
+            "access"
+          ]
+        },
+        {
+          "url": "https://maps.app.goo.gl/Vq77aiZLscDmWwkr7",
+          "kind": "map",
+          "fields": [
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "ftl:87"
+    },
+    {
+      "id": "jakarta-ftl-citra-garden",
+      "name": "FTL Gym Citra Garden",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "ftl",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Barat",
+      "address": "Jl. Peta Barat No.72 8, RT.1/RW.12, Kalideres, Kec. Kalideres, Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 15124",
+      "latitude": -6.1434078,
+      "longitude": 106.6982775,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.1434078%2C106.6982775",
+      "sources": [
+        {
+          "url": "https://ftlgym.com/outlet/citra-garden",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://ftlgym.com/",
+          "kind": "operator",
+          "fields": [
+            "access"
+          ]
+        },
+        {
+          "url": "https://maps.app.goo.gl/ehmuhGyQjEzRyQpE8",
+          "kind": "map",
+          "fields": [
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "ftl:67"
+    },
+    {
+      "id": "jakarta-ftl-gading-sunter",
+      "name": "FTL Gym Gading Sunter",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "ftl",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Utara",
+      "address": "Jl. Yos Sudarso No.84, RT.6/RW.11, Sunter Jaya, Kec. Tj. Priok, Jkt Utara, Daerah Khusus Ibukota Jakarta 14360",
+      "latitude": -6.1535582,
+      "longitude": 106.8864547,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.1535582%2C106.8864547",
+      "sources": [
+        {
+          "url": "https://ftlgym.com/outlet/gading-sunter",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://ftlgym.com/",
+          "kind": "operator",
+          "fields": [
+            "access"
+          ]
+        },
+        {
+          "url": "https://maps.app.goo.gl/nfkBNb5gncFqvLNZ8",
+          "kind": "map",
+          "fields": [
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "ftl:69"
+    },
+    {
+      "id": "jakarta-ftl-gandaria",
+      "name": "FTL Gym Gandaria",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "ftl",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "Jl. Gandaria 1 No.336, RT.4/RW.2, Kec. Kramat Pela, Jakarta Selatan 12130",
+      "latitude": -6.2430088,
+      "longitude": 106.7877195,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.2430088%2C106.7877195",
+      "sources": [
+        {
+          "url": "https://ftlgym.com/outlet/gandaria",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://ftlgym.com/",
+          "kind": "operator",
+          "fields": [
+            "access"
+          ]
+        },
+        {
+          "url": "https://maps.app.goo.gl/7KDa6pSWGUnUsZNF9",
+          "kind": "map",
+          "fields": [
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "ftl:8"
+    },
+    {
+      "id": "jakarta-ftl-green-garden",
+      "name": "FTL Gym Green Garden",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "ftl",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Barat",
+      "address": "Jl. Panjang Arteri Klp. Dua Raya, RT.1/RW.3, Kedoya Utara, Kec. Kb. Jeruk, Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11520",
+      "latitude": -6.1652307,
+      "longitude": 106.7626968,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.1652307%2C106.7626968",
+      "sources": [
+        {
+          "url": "https://ftlgym.com/outlet/green-garden",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://ftlgym.com/",
+          "kind": "operator",
+          "fields": [
+            "access"
+          ]
+        },
+        {
+          "url": "https://maps.app.goo.gl/mh7CkkKaG3yE7mwH9",
+          "kind": "map",
+          "fields": [
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "ftl:17"
+    },
+    {
+      "id": "jakarta-ftl-gunung-sahari",
+      "name": "FTL Gym Gunung Sahari",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "ftl",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Utara",
+      "address": "Jl. Gn. Sahari Pademangan No.14D, RT.5/RW.10, Pademangan Bar., Kec. Pademangan, Jkt Utara, Daerah Khusus Ibukota Jakarta 14420",
+      "latitude": -6.14007,
+      "longitude": 106.83336,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.14007%2C106.83336",
+      "sources": [
+        {
+          "url": "https://ftlgym.com/outlet/gunung-sahari",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://ftlgym.com/",
+          "kind": "operator",
+          "fields": [
+            "access"
+          ]
+        },
+        {
+          "url": "https://maps.app.goo.gl/6Z7QXn6knU5JfUvP6",
+          "kind": "map",
+          "fields": [
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "ftl:57"
+    },
+    {
+      "id": "jakarta-ftl-kebon-sirih",
+      "name": "FTL Gym Kebon Sirih",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "ftl",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Pusat",
+      "address": "Jl. Kebon Sirih Timur, Kb. Sirih, Kec. Menteng, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10340",
+      "latitude": -6.183565,
+      "longitude": 106.82814,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.183565%2C106.82814",
+      "sources": [
+        {
+          "url": "https://ftlgym.com/outlet/kebon-sirih",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://ftlgym.com/",
+          "kind": "operator",
+          "fields": [
+            "access"
+          ]
+        },
+        {
+          "url": "https://maps.app.goo.gl/oYDHU5jFZSdZrisN8",
+          "kind": "map",
+          "fields": [
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "ftl:131"
+    },
+    {
+      "id": "jakarta-ftl-kemanggisan",
+      "name": "FTL Gym Kemanggisan",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "ftl",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Barat",
+      "address": "Jl. Raya Kb. Jeruk No.18, RT.8/RW.5, Kec. Kebon Jeruk, Jakarta Barat 11530",
+      "latitude": -6.1986931,
+      "longitude": 106.7820129,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.1986931%2C106.7820129",
+      "sources": [
+        {
+          "url": "https://ftlgym.com/outlet/kemanggisan",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://ftlgym.com/",
+          "kind": "operator",
+          "fields": [
+            "access"
+          ]
+        },
+        {
+          "url": "https://maps.app.goo.gl/vAE3NEanA2f8Depy8",
+          "kind": "map",
+          "fields": [
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "ftl:79"
+    },
+    {
+      "id": "jakarta-ftl-mampang",
+      "name": "FTL Gym Mampang",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "ftl",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "Jl. Mampang Prpt. Raya No.6, Kalibata, Kec. Pancoran, Jakarta, Daerah Khusus Ibukota Jakarta 12740",
+      "latitude": -6.2495171,
+      "longitude": 106.8260697,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.2495171%2C106.8260697",
+      "sources": [
+        {
+          "url": "https://ftlgym.com/outlet/mampang",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://ftlgym.com/",
+          "kind": "operator",
+          "fields": [
+            "access"
+          ]
+        },
+        {
+          "url": "https://maps.app.goo.gl/yseGTHPa17ZFyttWA",
+          "kind": "map",
+          "fields": [
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "ftl:93"
+    },
+    {
+      "id": "jakarta-ftl-menteng",
+      "name": "FTL Gym Menteng",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "ftl",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Pusat",
+      "address": "Jl. H. Agus Salim No.65, RT.8/RW.4, Gondangdia, Kec. Menteng, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10350",
+      "latitude": -6.1877917,
+      "longitude": 106.8252638,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.1877917%2C106.8252638",
+      "sources": [
+        {
+          "url": "https://ftlgym.com/outlet/menteng",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://ftlgym.com/",
+          "kind": "operator",
+          "fields": [
+            "access"
+          ]
+        },
+        {
+          "url": "https://maps.app.goo.gl/X3NM4vy3KvpUTzrS9",
+          "kind": "map",
+          "fields": [
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "ftl:15"
+    },
+    {
+      "id": "jakarta-ftl-pasar-minggu",
+      "name": "FTL Gym Pasar Minggu",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "ftl",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "Jl. Raya Pasar Minggu No.25, RT.1/RW.4, Pasar Minggu, Kec. Pasar Minggu, Jakarta Selatan 12520",
+      "latitude": -6.2865943,
+      "longitude": 106.8435514,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.2865943%2C106.8435514",
+      "sources": [
+        {
+          "url": "https://ftlgym.com/outlet/pasar-minggu",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://ftlgym.com/",
+          "kind": "operator",
+          "fields": [
+            "access"
+          ]
+        },
+        {
+          "url": "https://maps.app.goo.gl/ujrifzRVdY4CXgQo8",
+          "kind": "map",
+          "fields": [
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "ftl:73"
+    },
+    {
+      "id": "jakarta-ftl-permata-hijau",
+      "name": "FTL Gym Permata Hijau",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "ftl",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Barat",
+      "address": "Jl. Panjang Raya, Desa/Kelurahan Sukabumi Utara, Kec. Kebon Jeruk, Kota Adm. Jakarta Barat, Provinsi DKI Jakarta, 11540",
+      "latitude": -6.21285,
+      "longitude": 106.7726149,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.21285%2C106.7726149",
+      "sources": [
+        {
+          "url": "https://ftlgym.com/outlet/permata-hijau",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://ftlgym.com/",
+          "kind": "operator",
+          "fields": [
+            "access"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "ftl:143"
+    },
+    {
+      "id": "jakarta-ftl-pondok-bambu",
+      "name": "FTL Gym Pondok Bambu",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "ftl",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Timur",
+      "address": "Jl. Pahlawan Revolusi No.11, RT.5/RW.11, Pd. Bambu, Kec. Duren Sawit, Jakarta Timur 13430",
+      "latitude": -6.2183871,
+      "longitude": 106.9000718,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.2183871%2C106.9000718",
+      "sources": [
+        {
+          "url": "https://ftlgym.com/outlet/pondok-bambu",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://ftlgym.com/",
+          "kind": "operator",
+          "fields": [
+            "access"
+          ]
+        },
+        {
+          "url": "https://maps.app.goo.gl/HpDVwfzYQ7zAvDj49",
+          "kind": "map",
+          "fields": [
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "ftl:9"
+    },
+    {
+      "id": "jakarta-ftl-pondok-indah",
+      "name": "FTL Gym Pondok Indah",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "ftl",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "Jl. Ciputat Raya No.63, Pd. Pinang, Kec. Kby. Lama, Kota Jakarta Selatan, Daerah Khusus Ibukota Jakarta 12310",
+      "latitude": -6.2701568,
+      "longitude": 106.7749136,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.2701568%2C106.7749136",
+      "sources": [
+        {
+          "url": "https://ftlgym.com/outlet/pondok-indah",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://ftlgym.com/",
+          "kind": "operator",
+          "fields": [
+            "access"
+          ]
+        },
+        {
+          "url": "https://maps.app.goo.gl/3YG1u81A3t4eYP2G8",
+          "kind": "map",
+          "fields": [
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "ftl:95"
+    },
+    {
+      "id": "jakarta-ftl-puri",
+      "name": "FTL Gym Puri",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "ftl",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Barat",
+      "address": "Jl. Kembang Kerep No.3, RT.3/RW.2, Kembangan Sel., Kec. Kembangan, Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11610",
+      "latitude": -6.1887766,
+      "longitude": 106.7415967,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.1887766%2C106.7415967",
+      "sources": [
+        {
+          "url": "https://ftlgym.com/outlet/puri",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://ftlgym.com/",
+          "kind": "operator",
+          "fields": [
+            "access"
+          ]
+        },
+        {
+          "url": "https://maps.app.goo.gl/tVmgU3sj1GuQ5mxj6",
+          "kind": "map",
+          "fields": [
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "ftl:68"
+    },
+    {
+      "id": "jakarta-ftl-rawamangun",
+      "name": "FTL Gym Rawamangun",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "ftl",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Timur",
+      "address": "Jl. Pemuda, RT.1/RW.2, Jati, Kec. Pulo Gadung, Jakarta Timur 13220",
+      "latitude": -6.1932086,
+      "longitude": 106.8959759,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.1932086%2C106.8959759",
+      "sources": [
+        {
+          "url": "https://ftlgym.com/outlet/rawamangun",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://ftlgym.com/",
+          "kind": "operator",
+          "fields": [
+            "access"
+          ]
+        },
+        {
+          "url": "https://maps.app.goo.gl/bMkC9FK81K5niYau5",
+          "kind": "map",
+          "fields": [
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "ftl:3"
+    },
+    {
+      "id": "jakarta-ftl-satrio",
+      "name": "FTL Gym Satrio",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "ftl",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "Jl. Profesor Doktor Satrio Nomor 277 2, Kuningan, Desa/Kelurahan Karet Kuningan, Setiabudi, Jakarta Selatan 12940",
+      "latitude": -6.2184726,
+      "longitude": 106.8197403,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.2184726%2C106.8197403",
+      "sources": [
+        {
+          "url": "https://ftlgym.com/outlet/satrio",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://ftlgym.com/",
+          "kind": "operator",
+          "fields": [
+            "access"
+          ]
+        },
+        {
+          "url": "https://maps.app.goo.gl/yscZLrdTH55mthD67",
+          "kind": "map",
+          "fields": [
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "ftl:86"
+    },
+    {
+      "id": "jakarta-ftl-scbd",
+      "name": "FTL Gym SCBD",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "ftl",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "Fairgrounds SCBD Lot 14, Jl. Jend. Sudirman kav 52-53, RT.5/RW.3, Senayan, Kec. Kby. Baru, Kota Jakarta Selatan, Daerah Khusus Ibukota Jakarta 12190",
+      "latitude": -6.2262888,
+      "longitude": 106.8071618,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.2262888%2C106.8071618",
+      "sources": [
+        {
+          "url": "https://ftlgym.com/outlet/scbd",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://ftlgym.com/",
+          "kind": "operator",
+          "fields": [
+            "access"
+          ]
+        },
+        {
+          "url": "https://maps.app.goo.gl/oJc7fvVgWAe2uYHF6",
+          "kind": "map",
+          "fields": [
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "ftl:92"
+    },
+    {
+      "id": "jakarta-ftl-tanjung-duren",
+      "name": "FTL Gym Tanjung Duren",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "ftl",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Barat",
+      "address": "Jl. Tanjung Duren Raya No.21 Lantai. 2, RT.1/RW.5, Tanjung Duren Selatan, Kec. Grogol petamburan, Jakarta Barat 11470",
+      "latitude": -6.1739627,
+      "longitude": 106.7855181,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.1739627%2C106.7855181",
+      "sources": [
+        {
+          "url": "https://ftlgym.com/outlet/tanjung-duren",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://ftlgym.com/",
+          "kind": "operator",
+          "fields": [
+            "access"
+          ]
+        },
+        {
+          "url": "https://maps.app.goo.gl/2z5j1enfSavTyzsF7",
+          "kind": "map",
+          "fields": [
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "ftl:2"
+    },
+    {
+      "id": "jakarta-ftl-tebet",
+      "name": "FTL Gym Tebet",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "ftl",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Selatan",
+      "address": "Jl. Tebet Utara Dalam No.19, RT.7/RW.2, Tebet Timur, Kec. Tebet, Jakarta Selatan 12820",
+      "latitude": -6.226542,
+      "longitude": 106.8546583,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.226542%2C106.8546583",
+      "sources": [
+        {
+          "url": "https://ftlgym.com/outlet/tebet",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://ftlgym.com/",
+          "kind": "operator",
+          "fields": [
+            "access"
+          ]
+        },
+        {
+          "url": "https://maps.app.goo.gl/AYT7WczFsNPgK34a8",
+          "kind": "map",
+          "fields": [
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "ftl:5"
+    },
+    {
+      "id": "jakarta-ftl-tomang",
+      "name": "FTL Gym Tomang",
+      "mode": "gym",
+      "gym_category": "brand",
+      "brand": "ftl",
+      "access_model": "membership",
+      "day_pass_available": null,
+      "area": "Jakarta",
+      "city": "Jakarta Barat",
+      "address": "Jl. Tomang Raya No.41 12, RT.12/RW.5, Tomang, Kec. Grogol petamburan, Kota Jakarta Barat, Daerah Khusus Ibukota Jakarta 11440",
+      "latitude": -6.1765367,
+      "longitude": 106.8012897,
+      "google_maps_url": "https://www.google.com/maps/search/?api=1&query=-6.1765367%2C106.8012897",
+      "sources": [
+        {
+          "url": "https://ftlgym.com/outlet/tomang",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://ftlgym.com/",
+          "kind": "operator",
+          "fields": [
+            "access"
+          ]
+        },
+        {
+          "url": "https://maps.app.goo.gl/frxEcngyXmYiR9vFA",
+          "kind": "map",
+          "fields": [
+            "location"
+          ]
+        }
+      ],
+      "checked_at": "2026-11-14",
+      "opening_hours": [
+        {
+          "labelID": "Setiap Hari",
+          "labelEN": "All Day",
+          "hours": "24 jam"
+        }
+      ],
+      "source_id": "ftl:128"
+    }
+  ]
+}

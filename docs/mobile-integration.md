@@ -91,7 +91,7 @@ migration di schema `drizzle` dan tabel Auth yang dikelola provider di
 | `equipment_catalog` | ID alat kanonis, nama, dan alias pencarian |
 | `workout_program_catalog` | Template program, mode, fokus, durasi, status aktif |
 | `workout_program_exercises` | Urutan exercise dan sets/reps pada setiap template; referensi ke katalog exercise |
-| `place_catalog` | Tempat olahraga, kategori gym, model akses, alamat, koordinat, tautan Maps, sumber/tanggal pemeriksaan |
+| `place_catalog` | Tempat olahraga, kategori gym, model akses, `openingHours` (array objek `labelID`, `labelEN`, `hours`; WIB; null bila belum diketahui), alamat, koordinat, tautan Maps, sumber/tanggal pemeriksaan |
 | `catalog_state` | Versi katalog untuk cache/refresh client |
 
 Perubahan katalog dilakukan administrator melalui workflow yang ditinjau,

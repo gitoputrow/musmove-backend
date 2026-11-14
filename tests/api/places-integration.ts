@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
+import fitnessFirstData from "../../src/db/data/fitness-first-jakarta-2026-11-14.json";
 import { loadEnvConfig } from "@next/env";
 import { inArray, sql } from "drizzle-orm";
 import { distanceKm, placesQuerySchema } from "../../src/modules/places/query";
@@ -40,45 +41,67 @@ async function main() {
       and column_name in ('access_evidence', 'access_note', 'location_note', 'equipment', 'coordinate_scope')
     `);
     assert.equal(removedColumns.rows.length, 0, "Removed place columns must not exist in Neon");
-    const catalog = await getPlaceCatalog(query());
-    assert.equal(catalog.total, 18);
-    assert.equal(catalog.places.length, 18);
+    const firstPage = await getPlaceCatalog(query({ limit: "100" }));
+    const catalog = { ...firstPage, places: [...firstPage.places] };
+    let offset = firstPage.nextOffset;
+    while (offset !== null) {
+      const next = await getPlaceCatalog(query({ limit: "100", offset: String(offset) }));
+      catalog.places.push(...next.places); offset = next.nextOffset;
+    }
+    assert.equal(catalog.total, 105);
+    assert.equal(catalog.places.length, 105);
     assert.equal(catalog.distanceType, null);
     assert.ok(catalog.places.every((p) => p.distanceKm === null && !("isFavorite" in p)));
-    assert.ok(catalog.places.every((p) => p.area === "Jakarta" && p.checkedAt === "2026-10-11" && p.sources.length > 0));
+    assert.ok(catalog.places.every((p) => p.area === "Jakarta" && p.checkedAt === (p.gymCategory === "brand" || p.id === "jakarta-musclebound-epfc" ? "2026-11-14" : "2026-10-11") && p.sources.length > 0));
     for (const p of catalog.places) {
       for (const field of ["accessEvidence", "accessNote", "locationNote", "equipment", "coordinateScope"]) {
         assert.ok(!(field in p), `Removed field ${field} must not appear in the API`);
       }
+      assert.deepEqual(p.openingHours, (p.brand === "ftl" || p.brand === "anytime_fitness")
+        ? [{ labelID: "Setiap Hari", labelEN: "All Day", hours: "24 jam" }]
+        : p.brand === "fithub" ? [
+          { labelID: "Senin - Jumat", labelEN: "Monday - Friday", hours: "05.00 - 00.00" },
+          { labelID: "Sabtu, Minggu dan Libur Nasional", labelEN: "Saturday, Sunday and Public Holidays", hours: "06.00 - 21.00" },
+        ] : p.id === "jakarta-musclebound-epfc" ? [
+          { labelID: "Senin - Jumat", labelEN: "Monday - Friday", hours: "06.00 - 23.30" },
+          { labelID: "Sabtu - Minggu", labelEN: "Saturday - Sunday", hours: "06.00 - 21.00" },
+        ] : p.brand === "fitness_first" ? fitnessFirstData.places.find(row => row.id === p.id)?.opening_hours : null);
       assert.ok(p.sources.every((source) => source.fields.length > 0 && !source.fields.some((field: string) => field === "equipment")));
       assert.ok(p.latitude >= -6.4 && p.latitude <= -6 && p.longitude >= 106.6 && p.longitude <= 107);
       const maps = new URL(p.googleMapsUrl);
       assert.equal(maps.host, "www.google.com");
-      assert.equal(maps.searchParams.get("api"), "1");
-      assert.equal(maps.searchParams.get("query"), `${p.latitude},${p.longitude}`);
+      if (p.id === "jakarta-musclebound-epfc") {
+        assert.equal(maps.searchParams.get("cid"), "13462237417293359381");
+        assert.equal(p.gymCategory, "conventional"); assert.equal(p.brand, null);
+      } else {
+        assert.equal(maps.searchParams.get("api"), "1");
+        assert.equal(maps.searchParams.get("query"), `${p.latitude},${p.longitude}`);
+      }
     }
-    assert.equal((await getPlaceCatalog(query({ mode: "gym", gymCategory: "brand" }))).total, 13);
+    assert.equal((await getPlaceCatalog(query({ mode: "gym", gymCategory: "brand" }))).total, 99);
     const locals = await getPlaceCatalog(query({ gymCategory: "conventional", dayPassAvailable: "true" }));
-    assert.equal(locals.total, 2);
-    assert.ok(locals.places.every((p) => p.accessModel === "membership_or_per_visit" && p.sources.some((source) => source.kind === "publisher" && source.fields.includes("access"))));
-    assert.equal((await getPlaceCatalog(query({ brand: "FITHub", area: "jakarta" }))).total, 10);
-    assert.equal((await getPlaceCatalog(query({ brand: "ftl" }))).total, 3);
+    assert.equal(locals.total, 3);
+    assert.ok(locals.places.every((p) => p.accessModel === "membership_or_per_visit" && (p.id === "jakarta-musclebound-epfc" || p.sources.some((source) => source.kind === "publisher" && source.fields.includes("access")))));
+    assert.equal((await getPlaceCatalog(query({ brand: "FITHub", area: "jakarta" }))).total, 36);
+    assert.equal((await getPlaceCatalog(query({ brand: "ftl" }))).total, 24);
+    assert.equal((await getPlaceCatalog(query({ brand: "anytime_fitness" }))).total, 30);
+    assert.equal((await getPlaceCatalog(query({ brand: "fitness_first" }))).total, 9);
     assert.equal((await getPlaceCatalog(query({ mode: "calisthenics" }))).total, 3);
-    assert.equal((await getPlaceCatalog(query({ city: "Jakarta Pusat" }))).total, 4);
+    assert.equal((await getPlaceCatalog(query({ city: "Jakarta Pusat" }))).total, catalog.places.filter(p => p.city === "Jakarta Pusat").length);
     assert.equal((await getPlaceCatalog(query({ area: "Bandung" }))).total, 0);
     assert.equal((await getPlaceCatalog(query({ dayPassAvailable: "false" }))).total, 0); // null is not false
-    assert.equal((await getPlaceCatalog(query({ accessModel: "membership" }))).total, 13);
+    assert.equal((await getPlaceCatalog(query({ accessModel: "membership" }))).total, 99);
     const page = await getPlaceCatalog(query({ limit: "2", offset: "1" }));
     assert.deepEqual(page.places.map((p) => p.id), catalog.places.slice(1, 3).map((p) => p.id));
-    assert.equal(page.total, 18);
+    assert.equal(page.total, 105);
     assert.equal(page.hasMore, true);
     assert.equal(page.nextOffset, 3);
-    const beyond = await getPlaceCatalog(query({ offset: "100" }));
+    const beyond = await getPlaceCatalog(query({ offset: "1000" }));
     assert.equal(beyond.places.length, 0);
     assert.equal(beyond.hasMore, false);
 
     const origin = { latitude: "-6.226542", longitude: "106.8546583" };
-    const near = await getPlaceCatalog(query(origin));
+    const near = await getPlaceCatalog(query({ ...origin, limit: "100" }));
     assert.equal(near.places[0].id, "jakarta-ftl-tebet");
     assert.equal(near.places[0].distanceKm, 0);
     assert.equal(near.distanceType, "straight_line");
@@ -96,12 +119,12 @@ async function main() {
     const user = await createUser(), other = await createUser();
     assert.equal((await favorite(user, "jakarta-ftl-tebet", "upsert", "0")).results[0].status, "applied");
     assert.equal((await favorite(user, "Jakarta-0", "upsert", "0")).results[0].status, "applied"); // preserve old mobile IDs
-    const own = await getPlaceCatalog(query(), user);
-    const others = await getPlaceCatalog(query(), other);
+    const own = await getPlaceCatalog(query({ limit: "100" }), user);
+    const others = await getPlaceCatalog(query({ limit: "100" }), other);
     assert.equal(own.places.filter((p) => "isFavorite" in p && p.isFavorite).length, 1);
     assert.equal(others.places.filter((p) => "isFavorite" in p && p.isFavorite).length, 0);
     assert.equal((await favorite(user, "jakarta-ftl-tebet", "delete", "1")).results[0].status, "applied");
-    assert.equal((await getPlaceCatalog(query(), user)).places.filter((p) => "isFavorite" in p && p.isFavorite).length, 0);
+    assert.equal((await getPlaceCatalog(query({ limit: "100" }), user)).places.filter((p) => "isFavorite" in p && p.isFavorite).length, 0);
 
     const response = await publicRoute.GET(new Request("http://localhost/api/v1/catalog/places?mode=calisthenics"));
     assert.equal(response.status, 200);
@@ -113,7 +136,7 @@ async function main() {
     assert.equal((await invalid.json()).error.code, "VALIDATION_ERROR");
     assert.equal((await privateRoute.GET(new Request("http://localhost/api/v1/places"))).status, 401);
     assert.equal((await publicRoute.OPTIONS(new Request("http://localhost/api/v1/catalog/places", { method: "OPTIONS" }))).status, 204);
-    console.info("Places integration passed: 18 persisted places, filters, distances, pagination, isolated favorites and routes");
+    console.info("Places integration passed: 105 persisted places, filters, distances, pagination, isolated favorites and routes");
   } finally {
     if (ids.length) await db.delete(users).where(inArray(users.id, ids));
     await getPool().end();
