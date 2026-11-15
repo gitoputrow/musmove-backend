@@ -33,6 +33,10 @@ export async function getPlaceCatalog(query: PlacesQuery, userId?: string) {
     const [state] = await transaction.select().from(catalogState).where(eq(catalogState.name, "places"));
     if (!state) throw new Error("Place catalog migration has not been applied");
     const conditions = [eq(placeCatalog.active, true)];
+    if (query.q !== undefined) conditions.push(sql`(
+      strpos(lower(${placeCatalog.name}), lower(${query.q})) > 0
+      OR strpos(lower(${placeCatalog.address}), lower(${query.q})) > 0
+    )`);
     if (query.area !== undefined) conditions.push(sql`lower(${placeCatalog.area}) = lower(${query.area})`);
     if (query.city !== undefined) conditions.push(sql`lower(${placeCatalog.city}) = lower(${query.city})`);
     if (query.mode !== undefined) conditions.push(eq(placeCatalog.mode, query.mode));

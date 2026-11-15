@@ -44,6 +44,7 @@ yang dikembalikan. Semua parameter opsional; beberapa filter digabung dengan AND
 
 | Parameter | Tipe / nilai | Default | Keterangan |
 | --- | --- | --- | --- |
+| `q` | String, 1–160 karakter setelah trim | — | Cari sebagian nama atau alamat, tanpa membedakan huruf besar/kecil |
 | `area` | String, 1–120 karakter | — | Nama wilayah, misalnya `Jakarta`; cocok persis tanpa membedakan huruf besar/kecil |
 | `city` | String, 1–120 karakter | — | Misalnya `Jakarta Timur`; cocok persis tanpa membedakan huruf besar/kecil |
 | `mode` | `gym`, `calisthenics` | — | Jenis tempat latihan |
@@ -64,6 +65,8 @@ Gunakan nilai boolean literal `true` / `false`, bukan `1` / `0`.
 Contoh filter:
 
 ```http
+GET /api/v1/catalog/places?q=tebet&limit=20&offset=0
+GET /api/v1/catalog/places?q=musclebound
 GET /api/v1/catalog/places?mode=gym&gymCategory=brand&brand=fithub&limit=20&offset=0
 GET /api/v1/catalog/places?brand=fitness_first
 GET /api/v1/catalog/places?mode=gym&gymCategory=conventional
@@ -75,6 +78,32 @@ GET /api/v1/catalog/places?latitude=-6.1877521&longitude=106.9057324&radiusKm=5&
 `accessModel=per_visit` hanya memilih model tersebut. Untuk mencari semua tempat
 yang menyediakan opsi per kunjungan, termasuk `membership_or_per_visit`, gunakan
 `dayPassAvailable=true`.
+
+### Pencarian nama dan alamat
+
+Gunakan `q` pada endpoint publik maupun privat:
+
+```http
+GET /api/v1/catalog/places?q=tebet&brand=ftl&limit=20&offset=0
+GET /api/v1/places?q=musclebound
+Authorization: Bearer <access-token>
+```
+
+`q` mencari teks utuh sebagai potongan nama **atau** alamat. Misalnya `tebet`
+dapat cocok dengan nama cabang maupun alamat yang mengandung Tebet. Pencarian
+tidak membedakan huruf besar/kecil dan menghapus spasi di awal/akhir input.
+Karakter `%`, `_`, dan backslash dianggap teks literal, bukan wildcard.
+Pencarian tidak memakai fuzzy matching atau koreksi typo.
+
+Query kosong, hanya spasi, lebih dari 160 karakter setelah trim, atau `q`
+berulang menghasilkan 400. Hilangkan parameter `q` jika kotak pencarian kosong.
+Encode nilai dengan URL query encoder, misalnya `q=grand%20indonesia`.
+
+Pencarian digabung dengan filter lain menggunakan AND dan diterapkan sebelum
+pagination. `total`, `hasMore`, dan `nextOffset` mengikuti hasil pencarian dan
+seluruh filter. Urutan tetap berdasarkan nama/ID atau jarak jika koordinat
+diberikan. Reset `offset=0` ketika kata pencarian berubah.
+Endpoint daftar brand tidak menerima parameter `q`.
 
 ### Bentuk respons places
 
@@ -164,7 +193,7 @@ Field setiap tempat:
 | `openingHours` | Array objek `{labelID, labelEN, hours}`, atau `null` jika belum diketahui |
 | `area`, `city`, `address` | String wilayah, kota, dan alamat |
 | `latitude`, `longitude` | Koordinat numerik tempat |
-| `googleMapsUrl` | URL Google Maps yang bisa dibuka langsung; dapat memakai koordinat atau CID |
+| `googleMapsUrl` | URL Google Maps yang bisa dibuka langsung; memakai CID profil jika terverifikasi, atau pencarian nama/alamat untuk tempat yang belum memiliki identitas Maps terverifikasi |
 | `sources` | Array sumber: `url`, `kind` (`operator`, `publisher`, `map`, `community`), dan `fields` (`identity`, `location`, `access`) |
 | `checkedAt` | Tanggal pengecekan sumber, format `YYYY-MM-DD` |
 | `active` | `true` untuk hasil kedua endpoint GET ini |
@@ -249,6 +278,26 @@ tengah malam pada akhir hari yang disebutkan. Jadwal libur nasional menggantikan
 jadwal hari biasa. Nilai `hours` juga dapat berisi `"Tutup"`; nilai
 `openingHours=null` berarti belum diketahui. Tampilkan array sesuai urutan dari
 server. API tidak mengembalikan status buka/tutup saat ini.
+
+### Tautan Google Maps
+
+Buka `googleMapsUrl` dari respons secara langsung. Client tidak perlu membangun
+ulang tautan menggunakan latitude/longitude. Setelah migrasi `0037`, katalog
+memiliki 102 tautan CID profil (termasuk Musclebound yang sudah ada). Contoh FTL
+Mampang:
+
+```json
+{
+  "id": "jakarta-ftl-mampang",
+  "googleMapsUrl": "https://www.google.com/maps/?cid=16806278859894474600"
+}
+```
+
+Tiga tempat belum memiliki CID/Place ID spesifik yang dapat diverifikasi:
+FTL Permata Hijau, GBK Gate VII — Calisthenics, dan GBK Jalan Lingkar Stadion —
+Monkey Bar. Tautan ketiganya memakai pencarian nama dan alamat, sehingga hasilnya
+belum dijamin membuka profil tertentu. Tidak ada lagi tautan katalog yang hanya
+mencari koordinat. Bentuk respons dan perhitungan jarak tetap sama.
 
 ## GET brand gym
 

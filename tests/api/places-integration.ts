@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import fitnessFirstData from "../../src/db/data/fitness-first-jakarta-2026-11-14.json";
+import mapsData from "../../src/db/data/place-google-maps-2026-11-14.json";
 import { loadEnvConfig } from "@next/env";
 import { inArray, sql } from "drizzle-orm";
 import { distanceKm, placesQuerySchema } from "../../src/modules/places/query";
@@ -74,8 +75,7 @@ async function main() {
         assert.equal(maps.searchParams.get("cid"), "13462237417293359381");
         assert.equal(p.gymCategory, "conventional"); assert.equal(p.brand, null);
       } else {
-        assert.equal(maps.searchParams.get("api"), "1");
-        assert.equal(maps.searchParams.get("query"), `${p.latitude},${p.longitude}`);
+        assert.equal(p.googleMapsUrl, mapsData.places.find(row => row.id === p.id)?.googleMapsUrl);
       }
     }
     assert.equal((await getPlaceCatalog(query({ mode: "gym", gymCategory: "brand" }))).total, 99);

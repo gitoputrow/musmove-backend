@@ -426,6 +426,7 @@ paths:
       security: []
       description: Public catalog. Initial 18 Jakarta entries researched on 2026-10-11, not on-site verified. Category and access model are independent; null day-pass availability is unknown. See docs/places.md.
       parameters:
+        - { $ref: "#/components/parameters/PlacesSearch" }
         - { $ref: "#/components/parameters/PlacesArea" }
         - { $ref: "#/components/parameters/PlacesCity" }
         - { $ref: "#/components/parameters/PlacesMode" }
@@ -450,6 +451,7 @@ paths:
       operationId: listPlacesWithFavorites
       description: Same catalog and filters with isFavorite and favoriteVersion for the verified account only. Tombstones are not favorites but their version remains available for re-add. Mutate only the changed place through PUT/DELETE /places/{id}/favorite; legacy sync/push remains supported.
       parameters:
+        - { $ref: "#/components/parameters/PlacesSearch" }
         - { $ref: "#/components/parameters/PlacesArea" }
         - { $ref: "#/components/parameters/PlacesCity" }
         - { $ref: "#/components/parameters/PlacesMode" }
@@ -751,6 +753,11 @@ paths:
         "401": { $ref: "#/components/responses/Error" }
 components:
   parameters:
+    PlacesSearch:
+      in: query
+      name: q
+      description: Trimmed case-insensitive literal substring of the place name or address, applied before pagination and combined with other filters. Percent, underscore and backslash are literal characters. Empty or whitespace-only values are invalid. Does not change sort order.
+      schema: { type: string, minLength: 1, maxLength: 160 }
     PlacesArea:
       in: query
       name: area
@@ -1051,7 +1058,7 @@ components:
         address: { type: string }
         latitude: { type: number, minimum: -90, maximum: 90 }
         longitude: { type: number, minimum: -180, maximum: 180 }
-        googleMapsUrl: { type: string, format: uri }
+        googleMapsUrl: { type: string, format: uri, description: Open this URL directly. Verified Google Maps profiles use CID URLs; places without a verified profile use name/address searches. A search URL does not guarantee a specific profile. }
         sources:
           type: array
           minItems: 1

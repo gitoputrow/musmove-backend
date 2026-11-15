@@ -4,6 +4,7 @@ import { badRequest } from "@/src/lib/api-error";
 const decimal = z.string().trim().regex(/^[+-]?(?:\d+(?:\.\d+)?|\.\d+)$/).transform(Number);
 
 export const placesQuerySchema = z.object({
+  q: z.string().trim().min(1).max(160).optional(),
   area: z.string().trim().min(1).max(120).optional(),
   city: z.string().trim().min(1).max(120).optional(),
   mode: z.enum(["gym", "calisthenics"]).optional(),

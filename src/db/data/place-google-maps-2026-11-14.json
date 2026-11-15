@@ -1,0 +1,3145 @@
+{
+  "checkedAt": "2026-11-14",
+  "counts": {
+    "updated": 104,
+    "profiles": 101,
+    "nameAddressSearch": 3,
+    "existingProfileUnchanged": 1
+  },
+  "notes": [
+    "Current link overrides applied by migration 0037. Earlier catalog JSON files and migrations remain historical snapshots.",
+    "CID values are converted losslessly from the Google Maps feature ID hexadecimal suffix linked by the cited source; no API key is required.",
+    "The existing Musclebound EPFC CID remains unchanged.",
+    "Three records have no verified branch/spot-specific profile; they use explicit name/address searches, never fabricated CIDs or a different venue profile.",
+    "Only Google Maps links and link provenance are updated. Existing coordinates, addresses, hours, access, place IDs and favorites are preserved.",
+    "Some directory identity pins differ from stored operator coordinates; branch names and address context were matched without silently replacing catalog coordinates."
+  ],
+  "places": [
+    {
+      "id": "jakarta-anytime-fitness-antasari-place",
+      "name": "Anytime Fitness Antasari Place",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.28974%2C106.80675",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=6992866351523884636",
+      "resolution": "profile",
+      "cid": "6992866351523884636",
+      "featureId": "0x2e69f1175ac0fe55:0x610ba6e59c5cee5c",
+      "matchedName": "Anytime Fitness Antasari Place",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-selatan/cilandak/anytime-fitness-antasari-place-cila-imp1",
+      "identityUrl": "https://www.google.com/maps/place/Anytime+Fitness+Antasari+Place/data=!4m7!3m6!1s0x2e69f1175ac0fe55:0x610ba6e59c5cee5c!8m2!3d-6.2897352!4d106.8067459!16s%2Fg%2F11ywmgpl4j!19sChIJVf7AWhfxaS4RXO5cnOWmC2E",
+      "matchedAddress": "Antasari Place",
+      "catalogDistanceKm": 0.001,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-selatan/cilandak/anytime-fitness-antasari-place-cila-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=6992866351523884636",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-anytime-fitness-bella-terra",
+      "name": "Anytime Fitness Bella Terra",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.17391%2C106.89358",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=11844998446371487550",
+      "resolution": "profile",
+      "cid": "11844998446371487550",
+      "featureId": "0x2e69f5004e4b47e3:0xa461e3545906bf3e",
+      "matchedName": "Anytime Fitness Bella Terra",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-utara/kelapa-gading/anytime-fitness-bella-terra-kela-imp1",
+      "identityUrl": "https://www.google.com/maps/place/Anytime+Fitness+Bella+Terra/data=!4m7!3m6!1s0x2e69f5004e4b47e3:0xa461e3545906bf3e!8m2!3d-6.173998!4d106.8943273!16s%2Fg%2F11vwr8yh2t!19sChIJ40dLTgD1aS4RPr8GWVTjYaQ",
+      "matchedAddress": "Bella Terra Lifestyle Center",
+      "catalogDistanceKm": 0.083,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-utara/kelapa-gading/anytime-fitness-bella-terra-kela-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=11844998446371487550",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-anytime-fitness-cikini",
+      "name": "Anytime Fitness Cikini",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1912%2C106.83868",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=2306570086824506866",
+      "resolution": "profile",
+      "cid": "2306570086824506866",
+      "featureId": "0x2e69f56a04c0e6b5:0x20029545f2b775f2",
+      "matchedName": "Anytime Fitness Cikini",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-pusat/menteng/anytime-fitness-cikini-ment-imp1",
+      "identityUrl": "https://www.google.com/maps/place/Anytime+Fitness+Cikini/data=!4m7!3m6!1s0x2e69f56a04c0e6b5:0x20029545f2b775f2!8m2!3d-6.1915229!4d106.8387563!16s%2Fg%2F11t9c6zl5k!19sChIJtebABGr1aS4R8nW38kWVAiA",
+      "matchedAddress": "1",
+      "catalogDistanceKm": 0.037,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-pusat/menteng/anytime-fitness-cikini-ment-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=2306570086824506866",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-anytime-fitness-citra-kemayoran",
+      "name": "Anytime Fitness Citra Kemayoran",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.15968%2C106.85223",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=4047054544457762331",
+      "resolution": "profile",
+      "cid": "4047054544457762331",
+      "featureId": "0x2e69f5b62d4534db:0x382a06aa7d09061b",
+      "matchedName": "Anytime Fitness Citra Xperience",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-pusat/kemayoran/anytime-fitness-citra-xperienc-kema-imp1",
+      "identityUrl": "https://www.google.com/maps/place/Anytime+Fitness+Citra+Xperience/@-6.1588059,106.8524808,17z/data=!3m1!4b1!4m6!3m5!1s0x2e69f5b62d4534db:0x382a06aa7d09061b!8m2!3d-6.1588059!4d106.8524808!16s%2Fg%2F11fprxbr4m",
+      "matchedAddress": "RT.13/RW.6",
+      "catalogDistanceKm": 0.101,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-pusat/kemayoran/anytime-fitness-citra-xperienc-kema-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=4047054544457762331",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-anytime-fitness-citywalk-sudirman",
+      "name": "Anytime Fitness Citywalk Sudirman",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.21096%2C106.81797",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=4999083732957709887",
+      "resolution": "profile",
+      "cid": "4999083732957709887",
+      "featureId": "0x2e69f700632c9987:0x4560502b3960c63f",
+      "matchedName": "Anytime Fitness Citywalk Sudirman",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-pusat/tanah-abang/anytime-fitness-citywalk-sudir-tana-imp1",
+      "identityUrl": "https://www.google.com/maps/place/Anytime+Fitness+Citywalk+Sudirman/@-6.2090383,106.8184179,17z/data=!3m1!4b1!4m6!3m5!1s0x2e69f700632c9987:0x4560502b3960c63f!8m2!3d-6.2090383!4d106.8184179!16s%2Fg%2F11yd5p3cmv",
+      "matchedAddress": "Jl. K.H. Mas Mansyur No.Kavling 121",
+      "catalogDistanceKm": 0.219,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-pusat/tanah-abang/anytime-fitness-citywalk-sudir-tana-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=4999083732957709887",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-anytime-fitness-de-ritz-menteng",
+      "name": "Anytime Fitness De Ritz Menteng",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.19821%2C106.82608",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=14486877341483995163",
+      "resolution": "profile",
+      "cid": "14486877341483995163",
+      "featureId": "0x2e69f5006479e2ff:0xc90bba2ff3cf101b",
+      "matchedName": "Anytime Fitness de Ritz Menteng",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-pusat/menteng/anytime-fitness-de-ritz-menten-ment-imp1",
+      "identityUrl": "https://www.google.com/maps/place/Anytime+Fitness+de+Ritz+Menteng/data=!4m7!3m6!1s0x2e69f5006479e2ff:0xc90bba2ff3cf101b!8m2!3d-6.1981144!4d106.8287276!16s%2Fg%2F11xd_hvrbj!19sChIJ_-J5ZAD1aS4RGxDP8y-6C8k",
+      "matchedAddress": "De RITZ",
+      "catalogDistanceKm": 0.293,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-pusat/menteng/anytime-fitness-de-ritz-menten-ment-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=14486877341483995163",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-anytime-fitness-gandaria",
+      "name": "Anytime Fitness Gandaria",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.24238%2C106.78857",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=2811490346962361667",
+      "resolution": "profile",
+      "cid": "2811490346962361667",
+      "featureId": "0x2e69f1adc48fabbb:0x27046b931c219d43",
+      "matchedName": "Anytime Fitness gandaria",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-selatan/kebayoran-lama/anytime-fitness-gandaria-keba-imp1",
+      "identityUrl": "https://www.google.com/maps/place/Anytime+Fitness+gandaria/data=!4m7!3m6!1s0x2e69f1adc48fabbb:0x27046b931c219d43!8m2!3d-6.246955!4d106.7864466!16s%2Fg%2F11z2cg0fzb!19sChIJu6uPxK3xaS4RQ50hHJNrBCc",
+      "matchedAddress": "Selatan",
+      "catalogDistanceKm": 0.56,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-selatan/kebayoran-lama/anytime-fitness-gandaria-keba-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=2811490346962361667",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-anytime-fitness-green-sedayu-mall",
+      "name": "Anytime Fitness Green Sedayu Mall",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.13767%2C106.72335",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=9152756165757553",
+      "resolution": "profile",
+      "cid": "9152756165757553",
+      "featureId": "0x2e6a1d14e47957a5:0x2084621bf9ca71",
+      "matchedName": "Anytime Fitness Green Sedayu Mall",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-barat/cengkareng/anytime-fitness-green-sedayu-m-ceng-imp1",
+      "identityUrl": "https://www.google.com/maps/place/Anytime+Fitness+Green+Sedayu+Mall/data=!4m7!3m6!1s0x2e6a1d14e47957a5:0x2084621bf9ca71!8m2!3d-6.1383877!4d106.7284989!16s%2Fg%2F11tsp5jv93!19sChIJpVd55BQdai4Rccr5G2KEIAA",
+      "matchedAddress": "Green Sedayu Mall",
+      "catalogDistanceKm": 0.575,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-barat/cengkareng/anytime-fitness-green-sedayu-m-ceng-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=9152756165757553",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-anytime-fitness-greenville",
+      "name": "Anytime Fitness Greenville",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.16973%2C106.75114",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=13905543530191591150",
+      "resolution": "profile",
+      "cid": "13905543530191591150",
+      "featureId": "0x2e69f764d8286109:0xc0fa6a2a7dcd16ee",
+      "matchedName": "Anytime Fitness Greenville",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-barat/cengkareng/anytime-fitness-greenville-ceng-imp1",
+      "identityUrl": "https://www.google.com/maps/place/Anytime+Fitness+Greenville/@-6.1697471,106.7695891,17z/data=!3m1!4b1!4m6!3m5!1s0x2e69f764d8286109:0xc0fa6a2a7dcd16ee!8m2!3d-6.1697471!4d106.7695891!16s%2Fg%2F11vxh61jcj",
+      "matchedAddress": "Duri Kepa",
+      "catalogDistanceKm": 2.04,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-barat/cengkareng/anytime-fitness-greenville-ceng-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=13905543530191591150",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-anytime-fitness-hublife-taman-anggrek",
+      "name": "Anytime Fitness Hublife Taman Anggrek",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.18333%2C106.79621",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=9931501535694987437",
+      "resolution": "profile",
+      "cid": "9931501535694987437",
+      "featureId": "0x2e69f7c51bda8557:0x89d3c8070158a0ad",
+      "matchedName": "Anytime Fitness HUBlife Taman Anggrek",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-barat/grogol-petamburan/anytime-fitness-hublife-taman--grog-imp1",
+      "identityUrl": "https://www.google.com/maps/place/Anytime+Fitness+HUBlife+Taman+Anggrek/data=!4m7!3m6!1s0x2e69f7c51bda8557:0x89d3c8070158a0ad!8m2!3d-6.1804832!4d106.792455!16s%2Fg%2F11fmqn8g6b!19sChIJV4XaG8X3aS4RraBYAQfI04k",
+      "matchedAddress": "HUBlife Jakarta",
+      "catalogDistanceKm": 0.522,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-barat/grogol-petamburan/anytime-fitness-hublife-taman--grog-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=9931501535694987437",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-anytime-fitness-jtown-jatinegara",
+      "name": "Anytime Fitness JTown Jatinegara",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.21923%2C106.85535",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=4469081243585145168",
+      "resolution": "profile",
+      "cid": "4469081243585145168",
+      "featureId": "0x2e69f3000f93309f:0x3e055db67c40e950",
+      "matchedName": "Anytime Fitness - JTown Jatinegara",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-timur/jatinegara/anytime-fitness-jtown-jatinega-jati-imp1",
+      "identityUrl": "https://www.google.com/maps/place/Anytime+Fitness+-+JTown+Jatinegara/data=!4m7!3m6!1s0x2e69f3000f93309f:0x3e055db67c40e950!8m2!3d-6.2206317!4d106.8676903!16s%2Fg%2F11y8w1qbh_!19sChIJnzCTDwDzaS4RUOlAfLZdBT4",
+      "matchedAddress": "JTOWN Food and Entertainment Center",
+      "catalogDistanceKm": 1.373,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-timur/jatinegara/anytime-fitness-jtown-jatinega-jati-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=4469081243585145168",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-anytime-fitness-kebon-jeruk-akr-tower",
+      "name": "Anytime Fitness Kebon Jeruk (AKR Tower)",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.19106%2C106.76793",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=7338428639410514986",
+      "resolution": "profile",
+      "cid": "7338428639410514986",
+      "featureId": "0x2e69f794460b64c9:0x65d755f7859dec2a",
+      "matchedName": "Anytime Fitness Kebon Jeruk",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-barat/cengkareng/anytime-fitness-kebon-jeruk-ceng-imp1",
+      "identityUrl": "https://www.google.com/maps/place/Anytime+Fitness+Kebon+Jeruk/@-6.1914261,106.7679386,17z/data=!3m1!4b1!4m6!3m5!1s0x2e69f794460b64c9:0x65d755f7859dec2a!8m2!3d-6.1914261!4d106.7679386!16s%2Fg%2F11y64wskm2",
+      "matchedAddress": "Lantai 6",
+      "catalogDistanceKm": 0.041,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-barat/cengkareng/anytime-fitness-kebon-jeruk-ceng-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=7338428639410514986",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-anytime-fitness-la-codefin-kemang",
+      "name": "Anytime Fitness La Codefin Kemang",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.25576%2C106.81278",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=14658727658066042804",
+      "resolution": "profile",
+      "cid": "14658727658066042804",
+      "featureId": "0x2e69f1a7233373c5:0xcb6e4323c6385fb4",
+      "matchedName": "Anytime Fitness La Codefin Kemang",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-selatan/mampang-prapatan/anytime-fitness-la-codefin-kem-mamp-imp1",
+      "identityUrl": "https://www.google.com/maps/place/Anytime+Fitness+La+Codefin+Kemang/data=!4m7!3m6!1s0x2e69f1a7233373c5:0xcb6e4323c6385fb4!8m2!3d-6.2564192!4d106.8129466!16s%2Fg%2F11j0d36f27!19sChIJxXMzI6fxaS4RtF84xiNDbss",
+      "matchedAddress": "Jl. Kemang I No.3-5",
+      "catalogDistanceKm": 0.076,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-selatan/mampang-prapatan/anytime-fitness-la-codefin-kem-mamp-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=14658727658066042804",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-anytime-fitness-lippo-mall-nusantara",
+      "name": "Anytime Fitness Lippo Mall Nusantara",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.21946%2C106.81461",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=1651081493623775124",
+      "resolution": "profile",
+      "cid": "1651081493623775124",
+      "featureId": "0x2e69f12ecb6c97a3:0x16e9d1dee2aa9f94",
+      "matchedName": "Anytime Fitness Lippo Mall Nusantara",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-selatan/setiabudi/anytime-fitness-lippo-mall-nus-seti-imp1",
+      "identityUrl": "https://www.google.com/maps/place/Anytime+Fitness+Lippo+Mall+Nusantara/data=!4m7!3m6!1s0x2e69f12ecb6c97a3:0x16e9d1dee2aa9f94!8m2!3d-6.2191505!4d106.8144817!16s%2Fg%2F11mlw3qz18!19sChIJo5dsyy7xaS4RlJ-q4t7R6RY",
+      "matchedAddress": "Lippo Mall Nusantara",
+      "catalogDistanceKm": 0.037,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-selatan/setiabudi/anytime-fitness-lippo-mall-nus-seti-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=1651081493623775124",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-anytime-fitness-mall-of-indonesia",
+      "name": "Anytime Fitness Mall of Indonesia",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.15067%2C106.88828",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=1462758036504462549",
+      "resolution": "profile",
+      "cid": "1462758036504462549",
+      "featureId": "0x2e69f519b383bb19:0x144cc2af263244d5",
+      "matchedName": "Anytime Fitness MOI",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-selatan/kebayoran-baru/anytime-fitness-moi-keba-imp1",
+      "identityUrl": "https://www.google.com/maps/place/Anytime+Fitness+MOI/@-6.1514288,106.8915971,17z/data=!3m1!4b1!4m6!3m5!1s0x2e69f519b383bb19:0x144cc2af263244d5!8m2!3d-6.1514288!4d106.8915971!16s%2Fg%2F11wfghrzq3",
+      "matchedAddress": "Mall of indonesia",
+      "catalogDistanceKm": 0.376,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-selatan/kebayoran-baru/anytime-fitness-moi-keba-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=1462758036504462549",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-anytime-fitness-mampang",
+      "name": "Anytime Fitness Mampang",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.26517%2C106.8303",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=10849168582946120900",
+      "resolution": "profile",
+      "cid": "10849168582946120900",
+      "featureId": "0x2e69f3007e6a279d:0x968ffd5846d4e4c4",
+      "matchedName": "Anytime Fitness Mampang",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-selatan/mampang-prapatan/anytime-fitness-mampang-mamp-imp1",
+      "identityUrl": "https://www.google.com/maps/place/Anytime+Fitness+Mampang/data=!4m7!3m6!1s0x2e69f3007e6a279d:0x968ffd5846d4e4c4!8m2!3d-6.2470483!4d106.8255399!16s%2Fg%2F11w_s69w48!19sChIJnSdqfgDzaS4RxOTURlj9j5Y",
+      "matchedAddress": "10",
+      "catalogDistanceKm": 2.083,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-selatan/mampang-prapatan/anytime-fitness-mampang-mamp-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=10849168582946120900",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-anytime-fitness-menara-cakrawala",
+      "name": "Anytime Fitness Menara Cakrawala",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1865%2C106.8238",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=13305349041130847268",
+      "resolution": "profile",
+      "cid": "13305349041130847268",
+      "featureId": "0x2e69f52a20782e8f:0xb8a6187549303c24",
+      "matchedName": "Anytime Fitness Menara Cakrawala",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-pusat/menteng/anytime-fitness-menara-cakrawa-ment-imp1",
+      "identityUrl": "https://www.google.com/maps/place/Anytime+Fitness+Menara+Cakrawala/data=!4m7!3m6!1s0x2e69f52a20782e8f:0xb8a6187549303c24!8m2!3d-6.1864796!4d106.8236478!16s%2Fg%2F11v4mzbg9j!19sChIJjy54ICr1aS4RJDwwSXUYprg",
+      "matchedAddress": "Jl. M.H. Thamrin No.9",
+      "catalogDistanceKm": 0.017,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-pusat/menteng/anytime-fitness-menara-cakrawa-ment-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=13305349041130847268",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-anytime-fitness-pasaraya-blok-m",
+      "name": "Anytime Fitness Pasaraya Blok M",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.24426%2C106.80266",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=9246539392051762444",
+      "resolution": "profile",
+      "cid": "9246539392051762444",
+      "featureId": "0x2e69f1005b12d4e7:0x80524e9638e6d50c",
+      "matchedName": "Anytime Fitness Pasaraya Blok M",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-selatan/kebayoran-baru/anytime-fitness-pasaraya-blok--keba-imp1",
+      "identityUrl": "https://www.google.com/maps/place/Anytime+Fitness+Pasaraya+Blok+M/data=!4m7!3m6!1s0x2e69f1005b12d4e7:0x80524e9638e6d50c!8m2!3d-6.2448782!4d106.8026266!16s%2Fg%2F11vslk_s3_!19sChIJ59QSWwDxaS4RDNXmOJZOUoA",
+      "matchedAddress": "QR43+23R",
+      "catalogDistanceKm": 0.069,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-selatan/kebayoran-baru/anytime-fitness-pasaraya-blok--keba-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=9246539392051762444",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-anytime-fitness-puri-indah-cni",
+      "name": "Anytime Fitness Puri Indah CNI",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.19054%2C106.73788",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=6870501697528784126",
+      "resolution": "profile",
+      "cid": "6870501697528784126",
+      "featureId": "0x2e69f70028ec025b:0x5f58ece475ebe4fe",
+      "matchedName": "Anytime Fitness Puri Indah",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-barat/kembangan/anytime-fitness-puri-indah-kemb-imp1",
+      "identityUrl": "https://www.google.com/maps/place/Anytime+Fitness+Puri+Indah/data=!4m7!3m6!1s0x2e69f70028ec025b:0x5f58ece475ebe4fe!8m2!3d-6.1904551!4d106.7378257!16s%2Fg%2F11lylfvk50!19sChIJWwLsKAD3aS4R_uTrdeTsWF8",
+      "matchedAddress": "RP5Q+R48 Gedung CNI Puri",
+      "catalogDistanceKm": 0.011,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-barat/kembangan/anytime-fitness-puri-indah-kemb-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=6870501697528784126",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-anytime-fitness-rosthen-garden-slipi",
+      "name": "Anytime Fitness Rosthen Garden Slipi",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.18876%2C106.79791",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=1270370175094732518",
+      "resolution": "profile",
+      "cid": "1270370175094732518",
+      "featureId": "0x2e69f700492ddd45:0x11a142f18bc5b6e6",
+      "matchedName": "Anytime Fitness Rosthen Garden",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-barat/palmerah/anytime-fitness-rosthen-garden-palm-imp1",
+      "identityUrl": "https://www.google.com/maps/place/Anytime+Fitness+Rosthen+Garden/data=!4m7!3m6!1s0x2e69f700492ddd45:0x11a142f18bc5b6e6!8m2!3d-6.1955201!4d106.7979498!16s%2Fg%2F11x2jw0qgg!19sChIJRd0tSQD3aS4R5rbFi_FCoRE",
+      "matchedAddress": "Jl. Letjen S. Parman No.Kav 66 Blok G",
+      "catalogDistanceKm": 0.752,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-barat/palmerah/anytime-fitness-rosthen-garden-palm-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=1270370175094732518",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-anytime-fitness-sakura-garden-city",
+      "name": "Anytime Fitness Sakura Garden City",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.32355%2C106.88877",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=9561057700494812697",
+      "resolution": "profile",
+      "cid": "9561057700494812697",
+      "featureId": "0x2e69ed003a901735:0x84afb3526b01a619",
+      "matchedName": "Anytime Fitness Sakura Garden City",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-timur/cipayung/anytime-fitness-sakura-garden--cipa-imp1",
+      "identityUrl": "https://www.google.com/maps/place/Anytime+Fitness+Sakura+Garden+City/data=!4m7!3m6!1s0x2e69ed003a901735:0x84afb3526b01a619!8m2!3d-6.3229309!4d106.8889967!16s%2Fg%2F11yrdq6f11!19sChIJNReQOgDtaS4RGaYBa1Kzr4Q",
+      "matchedAddress": "MVGQ+RHH Open now",
+      "catalogDistanceKm": 0.073,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-timur/cipayung/anytime-fitness-sakura-garden--cipa-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=9561057700494812697",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-anytime-fitness-sarana-square",
+      "name": "Anytime Fitness Sarana Square",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.23366%2C106.84795",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=4181520786932231645",
+      "resolution": "profile",
+      "cid": "4181520786932231645",
+      "featureId": "0x2e69f3e1630e1085:0x3a07bf004601eddd",
+      "matchedName": "Anytime Fitness Sarana Square",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-selatan/tebet/anytime-fitness-sarana-square-tebe-imp1",
+      "identityUrl": "https://www.google.com/maps/place/Anytime+Fitness+Sarana+Square/@-6.2337454,106.8481702,17z/data=!3m1!4b1!4m6!3m5!1s0x2e69f3e1630e1085:0x3a07bf004601eddd!8m2!3d-6.2337454!4d106.8481702!16s%2Fg%2F11v069djgl",
+      "matchedAddress": "Gedung Sarana Square",
+      "catalogDistanceKm": 0.026,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-selatan/tebet/anytime-fitness-sarana-square-tebe-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=4181520786932231645",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-anytime-fitness-sedayu-city",
+      "name": "Anytime Fitness Sedayu City",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.16896%2C106.92151",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=12665856080601202270",
+      "resolution": "profile",
+      "cid": "12665856080601202270",
+      "featureId": "0x2e698b0250163ef7:0xafc628ffac74be5e",
+      "matchedName": "Anytime Fitness Suite Life Sedayu City",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-timur/cakung/anytime-fitness-suite-life-sed-caku-imp1",
+      "identityUrl": "https://www.google.com/maps/place/Anytime+Fitness+Suite+Life+Sedayu+City/data=!4m7!3m6!1s0x2e698b0250163ef7:0xafc628ffac74be5e!8m2!3d-6.1690661!4d106.9211807!16s%2Fg%2F11xg4m2p19!19sChIJ9z4WUAKLaS4RXr50rP8oxq8",
+      "matchedAddress": "Suite Life",
+      "catalogDistanceKm": 0.038,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-timur/cakung/anytime-fitness-suite-life-sed-caku-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=12665856080601202270",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-anytime-fitness-senopati",
+      "name": "Anytime Fitness Senopati",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.23621%2C106.81633",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=16775647388913847367",
+      "resolution": "profile",
+      "cid": "16775647388913847367",
+      "featureId": "0x2e69f1006d1f6705:0xe8cf126b456b4c47",
+      "matchedName": "Anytime Fitness Senopati",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-selatan/kebayoran-baru/anytime-fitness-senopati-keba-imp1",
+      "identityUrl": "https://www.google.com/maps/place/Anytime+Fitness+Senopati/data=!4m7!3m6!1s0x2e69f1006d1f6705:0xe8cf126b456b4c47!8m2!3d-6.2365358!4d106.8166639!16s%2Fg%2F11vprwh7yv!19sChIJBWcfbQDxaS4RR0xrRWsSz-g",
+      "matchedAddress": "Jl. Birah II",
+      "catalogDistanceKm": 0.052,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-selatan/kebayoran-baru/anytime-fitness-senopati-keba-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=16775647388913847367",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-anytime-fitness-setiabudi-one",
+      "name": "Anytime Fitness Setiabudi One",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.21521%2C106.82998",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=13054004168535111529",
+      "resolution": "profile",
+      "cid": "13054004168535111529",
+      "featureId": "0x2e69f5151dd3f1fb:0xb52923a0d200f769",
+      "matchedName": "Anytime Fitness Setiabudi One",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-selatan/setiabudi/anytime-fitness-setiabudi-one-seti-imp1",
+      "identityUrl": "https://www.google.com/maps/place/Anytime+Fitness+Setiabudi+One/data=!4m7!3m6!1s0x2e69f5151dd3f1fb:0xb52923a0d200f769!8m2!3d-6.2152394!4d106.8300557!16s%2Fg%2F11sjcfyjvm!19sChIJ-_HTHRX1aS4RafcA0qAjKbU",
+      "matchedAddress": "Setiabudi One",
+      "catalogDistanceKm": 0.009,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-selatan/setiabudi/anytime-fitness-setiabudi-one-seti-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=13054004168535111529",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-anytime-fitness-simatupang",
+      "name": "Anytime Fitness Simatupang",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.29232%2C106.78355",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=7791181434320184297",
+      "resolution": "profile",
+      "cid": "7791181434320184297",
+      "featureId": "0x2e69f3f00ecb3f01:0x6c1fd63c2d45e3e9",
+      "matchedName": "Anytime Fitness Simatupang",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-selatan/cilandak/anytime-fitness-simatupang-cila-imp1",
+      "identityUrl": "https://www.google.com/maps/place/Anytime+Fitness+Simatupang/data=!4m7!3m6!1s0x2e69f3f00ecb3f01:0x6c1fd63c2d45e3e9!8m2!3d-6.2925639!4d106.7835774!16s%2Fg%2F11twpyvt4w!19sChIJAT_LDvDzaS4R6eNFLTzWH2w",
+      "matchedAddress": "Menara FIF",
+      "catalogDistanceKm": 0.027,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-selatan/cilandak/anytime-fitness-simatupang-cila-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=7791181434320184297",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-anytime-fitness-sopo-del-mega-kuningan",
+      "name": "Anytime Fitness Sopo Del Mega Kuningan",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.22813%2C106.82458",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=12732802048417068127",
+      "resolution": "profile",
+      "cid": "12732802048417068127",
+      "featureId": "0x2e69f31e69dde501:0xb0b400007343f45f",
+      "matchedName": "Anytime Fitness Sopo Del Mega Kuningan",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-selatan/setiabudi/anytime-fitness-sopo-del-mega--seti-imp1",
+      "identityUrl": "https://www.google.com/maps/place/Anytime+Fitness+Sopo+Del+Mega+Kuningan/data=!4m7!3m6!1s0x2e69f31e69dde501:0xb0b400007343f45f!8m2!3d-6.2308839!4d106.8241725!16s%2Fg%2F11j90mg71b!19sChIJAeXdaR7zaS4RX_RDcwAAtLA",
+      "matchedAddress": "1",
+      "catalogDistanceKm": 0.31,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-selatan/setiabudi/anytime-fitness-sopo-del-mega--seti-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=12732802048417068127",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-anytime-fitness-sunter-mall",
+      "name": "Anytime Fitness Sunter Mall",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.13813%2C106.87095",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=1488071143765095728",
+      "resolution": "profile",
+      "cid": "1488071143765095728",
+      "featureId": "0x2e69f54c884dad23:0x14a6b0d234a0b530",
+      "matchedName": "Anytime Fitness Sunter Mall",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-utara/penjaringan/anytime-fitness-sunter-mall-penj-imp1",
+      "identityUrl": "https://www.google.com/maps/place/Anytime+Fitness+Sunter+Mall/data=!4m7!3m6!1s0x2e69f54c884dad23:0x14a6b0d234a0b530!8m2!3d-6.1379816!4d106.8708469!16s%2Fg%2F11kq28jyln!19sChIJI61NiEz1aS4RMLWgNNKwphQ",
+      "matchedAddress": "Sunter Mall",
+      "catalogDistanceKm": 0.02,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-utara/penjaringan/anytime-fitness-sunter-mall-penj-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=1488071143765095728",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-anytime-fitness-the-amboja",
+      "name": "Anytime Fitness The Amboja",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.30942%2C106.90115",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=14617178916568064554",
+      "resolution": "profile",
+      "cid": "14617178916568064554",
+      "featureId": "0x2e69ede851a636eb:0xcadaa6c78c5e622a",
+      "matchedName": "Anytime Fitness The Amboja",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-selatan/kebayoran-baru/anytime-fitness-the-amboja-keba-imp1",
+      "identityUrl": "https://www.google.com/maps/place/Anytime+Fitness+The+Amboja/data=!4m7!3m6!1s0x2e69ede851a636eb:0xcadaa6c78c5e622a!8m2!3d-6.3094534!4d106.900819!16s%2Fg%2F11v0jdrgx8!19sChIJ6zamUejtaS4RKmJejMem2so",
+      "matchedAddress": "Jl. Raya Mabes Hankam",
+      "catalogDistanceKm": 0.037,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-selatan/kebayoran-baru/anytime-fitness-the-amboja-keba-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=14617178916568064554",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-anytime-fitness-the-hive-cawang",
+      "name": "Anytime Fitness The Hive Cawang",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2445%2C106.8755",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=12363575814345278792",
+      "resolution": "profile",
+      "cid": "12363575814345278792",
+      "featureId": "0x2e69f3577e890c3b:0xab943eb2b7a94548",
+      "matchedName": "Anytime Fitness The Hive Cawang",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-timur/jatinegara/anytime-fitness-the-hive-cawan-jati-imp1",
+      "identityUrl": "https://www.google.com/maps/place/Anytime+Fitness+The+Hive+Cawang/data=!4m7!3m6!1s0x2e69f3577e890c3b:0xab943eb2b7a94548!8m2!3d-6.2449574!4d106.8753612!16s%2Fg%2F11ydb6y_03!19sChIJOwyJflfzaS4RSEWpt7I-lKs",
+      "matchedAddress": "The Hive",
+      "catalogDistanceKm": 0.053,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-timur/jatinegara/anytime-fitness-the-hive-cawan-jati-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=12363575814345278792",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-benhil",
+      "name": "FIT HUB Bendungan Hilir (Benhil)",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.20645%2C106.809834",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=341125052736836854",
+      "resolution": "profile",
+      "cid": "341125052736836854",
+      "featureId": "0x2e69f77d115b5cb3:0x4bbeb6d985d94f6",
+      "matchedName": "FIT HUB Bendungan Hilir (Benhil)",
+      "evidenceUrl": "https://fithub.id/location/jakarta/benhil",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1983.211448635059!2d106.80960203882799!3d-6.207817881962116!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f77d115b5cb3%3A0x4bbeb6d985d94f6!2sFIT%20HUB%20Bendungan%20Hilir%20(Benhil)!5e0!3m2!1sen!2sid!4v1691035719456!5m2!1sen!2sid",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/benhil",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=341125052736836854",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-bintaro-sektor-1",
+      "name": "FIT HUB BINTARO SEKTOR 1",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2430762%2C106.7573816",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=4984010109308275984",
+      "resolution": "profile",
+      "cid": "4984010109308275984",
+      "featureId": "0x2e69f11cac999dd7:0x452ac2c9ba468d10",
+      "matchedName": "FIT HUB Bintaro Sektor 1",
+      "evidenceUrl": "https://fithub.id/location/jakarta/bintaro-sektor-1",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d507639.53593428415!2d106.754635!3d-6.272426!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f11cac999dd7%3A0x452ac2c9ba468d10!2sFIT%20HUB%20Bintaro%20Sektor%201!5e0!3m2!1sen!2sus!4v1691483172711!5m2!1sen!2sus",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/bintaro-sektor-1",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=4984010109308275984",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-blok-m",
+      "name": "FIT HUB BLOK M",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2107188%2C106.8025269",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=17048554996000258456",
+      "resolution": "profile",
+      "cid": "17048554996000258456",
+      "featureId": "0x2e69f1f5a7d1748f:0xec98a271164e7998",
+      "matchedName": "FIT HUB Blok M",
+      "evidenceUrl": "https://fithub.id/location/jakarta/blok-m",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d507665.67130846507!2d106.798407!3d-6.245531!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f1f5a7d1748f%3A0xec98a271164e7998!2sFIT%20HUB%20Blok%20M!5e0!3m2!1sen!2sus!4v1691557569339!5m2!1sen!2sus",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/blok-m",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=17048554996000258456",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-cempaka-putih",
+      "name": "FIT HUB CEMPAKA PUTIH",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1426306%2C106.8653664",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=8223027017747443868",
+      "resolution": "profile",
+      "cid": "8223027017747443868",
+      "featureId": "0x2e69f5b34fbbea31:0x721e0f815346b09c",
+      "matchedName": "FIT HUB Cempaka Putih",
+      "evidenceUrl": "https://fithub.id/location/jakarta/cempaka-putih",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d507732.6414076322!2d106.868113!3d-6.176082!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f5b34fbbea31%3A0x721e0f815346b09c!2sFIT%20HUB%20Cempaka%20Putih!5e0!3m2!1sen!2sus!4v1691561494996!5m2!1sen!2sus",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/cempaka-putih",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=8223027017747443868",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-cideng",
+      "name": "FIT HUB CIDENG",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1761323%2C106.8118328",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=10664827744288440860",
+      "resolution": "profile",
+      "cid": "10664827744288440860",
+      "featureId": "0x2e69f70028061e5d:0x94011454290b021c",
+      "matchedName": "FIT HUB Cideng",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-pusat/gambir/fit-hub-cideng-gamb-imp1",
+      "identityUrl": "https://www.google.com/maps/place/FIT+HUB+Cideng/data=!4m7!3m6!1s0x2e69f70028061e5d:0x94011454290b021c!8m2!3d-6.1762004!4d106.8118432!16s%2Fg%2F11xlstlfgt!19sChIJXR4GKAD3aS4RHAILKVQUAZQ",
+      "matchedAddress": "Jl. Cideng Barat Kel No.70B",
+      "catalogDistanceKm": 0.008,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-pusat/gambir/fit-hub-cideng-gamb-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=10664827744288440860",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-danau-sunter-utara",
+      "name": "FIT HUB Danau Sunter Utara",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1393407%2C106.8614411",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=2733783841721293800",
+      "resolution": "profile",
+      "cid": "2733783841721293800",
+      "featureId": "0x2e69f529fdd49a69:0x25f059eb7a801be8",
+      "matchedName": "FIT HUB Danau Sunter Utara",
+      "evidenceUrl": "https://fithub.id/location/jakarta/danau-sunter-utara",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d5072.30407705746!2d106.8613982!3d-6.1395219999999995!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f529fdd49a69%3A0x25f059eb7a801be8!2sFIT%20HUB%20Danau%20Sunter%20Utara!5e1!3m2!1sen!2sid!4v1753415022360!5m2!1sen!2sid",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/danau-sunter-utara",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=2733783841721293800",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-duren-sawit",
+      "name": "FIT HUB DUREN SAWIT",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2291973%2C106.9111136",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=8071187682815736033",
+      "resolution": "profile",
+      "cid": "8071187682815736033",
+      "featureId": "0x2e69f382131d7b85:0x70029e6f3dbd78e1",
+      "matchedName": "FIT HUB Duren Sawit",
+      "evidenceUrl": "https://fithub.id/location/jakarta/duren-sawit",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.2600621015986!2d106.9085279738193!3d-6.229405261003976!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f382131d7b85%3A0x70029e6f3dbd78e1!2sFIT%20HUB%20Duren%20Sawit!5e0!3m2!1sen!2sid!4v1691565128758!5m2!1sen!2sid",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/duren-sawit",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=8071187682815736033",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-elang-laut-pik",
+      "name": "FIT HUB ELANG LAUT PIK",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1238713%2C106.7432083",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=4774351024183367457",
+      "resolution": "profile",
+      "cid": "4774351024183367457",
+      "featureId": "0x2e6a1d77e0f9a7ab:0x4241e6f5fd78d721",
+      "matchedName": "FIT HUB Elang Laut PIK",
+      "evidenceUrl": "https://fithub.id/location/jakarta/elang-laut-pik",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3967.0496112692394!2d106.74056897381776!3d-6.1240259600463345!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e6a1d77e0f9a7ab%3A0x4241e6f5fd78d721!2sFIT%20HUB%20Elang%20Laut%20PIK!5e0!3m2!1sen!2sid!4v1691565203926!5m2!1sen!2sid",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/elang-laut-pik",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=4774351024183367457",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-fatmawati",
+      "name": "FIT HUB FATMAWATI",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2724586%2C106.797445",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=2371638427654357732",
+      "resolution": "profile",
+      "cid": "2371638427654357732",
+      "featureId": "0x2e69f1ea3b9d4ced:0x20e9c095a00102e4",
+      "matchedName": "FIT HUB Fatmawati",
+      "evidenceUrl": "https://fithub.id/location/jakarta/fatmawati",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3965.9309897061066!2d106.79495587381987!3d-6.272805161403625!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f1ea3b9d4ced%3A0x20e9c095a00102e4!2sFIT%20HUB%20Fatmawati!5e0!3m2!1sen!2sid!4v1691565257940!5m2!1sen!2sid",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/fatmawati",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=2371638427654357732",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-gajah-mada",
+      "name": "FIT HUB GAJAH MADA",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1438979%2C106.8152194",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=14378154410818950400",
+      "resolution": "profile",
+      "cid": "14378154410818950400",
+      "featureId": "0x2e69f7aded656803:0xc789774206945500",
+      "matchedName": "FIT HUB Gajah Mada",
+      "evidenceUrl": "https://fithub.id/location/jakarta/gajah-mada",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.9000486322284!2d106.81249007381801!3d-6.144125960227589!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f7aded656803%3A0xc789774206945500!2sFIT%20HUB%20Gajah%20Mada!5e0!3m2!1sen!2sid!4v1691565433500!5m2!1sen!2sid",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/gajah-mada",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=14378154410818950400",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-gandaria",
+      "name": "FIT HUB GANDARIA",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2442352%2C106.7814814",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=3724455855292885730",
+      "resolution": "profile",
+      "cid": "3724455855292885730",
+      "featureId": "0x2e69f17146902f99:0x33afecde0c5b2ae2",
+      "matchedName": "FIT HUB Gandaria",
+      "evidenceUrl": "https://fithub.id/location/jakarta/gandaria",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15864.559176792454!2d106.77409998744608!3d-6.245301693631344!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f17146902f99%3A0x33afecde0c5b2ae2!2sFIT%20HUB%20Gandaria!5e0!3m2!1sen!2sid!4v1738834146633!5m2!1sen!2sid",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/gandaria",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=3724455855292885730",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-greenville",
+      "name": "FIT HUB GREENVILLE",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1637497%2C106.7729975",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=14779837283470711283",
+      "resolution": "profile",
+      "cid": "14779837283470711283",
+      "featureId": "0x2e69f7b80cae5c61:0xcd1c87b3cf5899f3",
+      "matchedName": "FIT HUB Greenville",
+      "evidenceUrl": "https://fithub.id/location/jakarta/greenville",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.710831272098!2d106.77076587381843!3d-6.1694617604570015!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f7b80cae5c61%3A0xcd1c87b3cf5899f3!2sFIT%20HUB%20Greenville!5e0!3m2!1sen!2sid!4v1691565569223!5m2!1sen!2sid",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/greenville",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=14779837283470711283",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-grogol",
+      "name": "FIT HUB GROGOL",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1647816%2C106.789537",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=11326213915927908111",
+      "resolution": "profile",
+      "cid": "11326213915927908111",
+      "featureId": "0x2e69f707c5c7e305:0x9d2ecb8c34f80f0f",
+      "matchedName": "FIT HUB Grogol",
+      "evidenceUrl": "https://fithub.id/location/jakarta/grogol",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d7933.455444511176!2d106.77628368657871!3d-6.167204308490215!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f707c5c7e305%3A0x9d2ecb8c34f80f0f!2sFIT%20HUB%20Grogol!5e0!3m2!1sen!2sid!4v1691565678247!5m2!1sen!2sid",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/grogol",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=11326213915927908111",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-itc-kuningan",
+      "name": "FIT HUB ITC KUNINGAN",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2238828%2C106.8266834",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=11846979902265813166",
+      "resolution": "profile",
+      "cid": "11846979902265813166",
+      "featureId": "0x2e69f3d7d1ee301b:0xa468ed73ffbee8ae",
+      "matchedName": "FIT HUB ITC Kuningan",
+      "evidenceUrl": "https://fithub.id/location/jakarta/itc-kuningan",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.300362814216!2d106.8241621738192!3d-6.224069460955034!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f3d7d1ee301b%3A0xa468ed73ffbee8ae!2sFIT%20HUB%20ITC%20Kuningan!5e0!3m2!1sen!2sid!4v1691565805480!5m2!1sen!2sid",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/itc-kuningan",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=11846979902265813166",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-itc-permata-hijau",
+      "name": "FIT HUB ITC PERMATA HIJAU",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2213216%2C106.7840509",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=12249288082222888626",
+      "resolution": "profile",
+      "cid": "12249288082222888626",
+      "featureId": "0x2e69f183f360e60d:0xa9fe369c7c5236b2",
+      "matchedName": "FIT HUB ITC Permata Hijau",
+      "evidenceUrl": "https://fithub.id/location/jakarta/itc-permata-hijau",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.3210798344217!2d106.78143517381919!3d-6.221324760929912!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f183f360e60d%3A0xa9fe369c7c5236b2!2sFIT%20HUB%20ITC%20Permata%20Hijau!5e0!3m2!1sen!2sid!4v1691570996510!5m2!1sen!2sid",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/itc-permata-hijau",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=12249288082222888626",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-jagakarsa",
+      "name": "FIT HUB JAGAKARSA",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.3321438%2C106.8074926",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=18247801396652719417",
+      "resolution": "profile",
+      "cid": "18247801396652719417",
+      "featureId": "0x2e69efb1badba6d1:0xfd3d36b0735cbd39",
+      "matchedName": "FIT HUB Jagakarsa",
+      "evidenceUrl": "https://fithub.id/location/jakarta/jagakarsa",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d5070.43882789239!2d106.8075248!3d-6.3323784!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69efb1badba6d1%3A0xfd3d36b0735cbd39!2sFIT%20HUB%20Jagakarsa!5e1!3m2!1sen!2sid!4v1753414666713!5m2!1sen!2sid",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/jagakarsa",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=18247801396652719417",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-jakarta-garden-city",
+      "name": "FIT HUB Jakarta Garden City (JGC)",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1713298%2C106.9594933",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=7143181484633110233",
+      "resolution": "profile",
+      "cid": "7143181484633110233",
+      "featureId": "0x2e698bc8e179703d:0x6321adb6cdb436d9",
+      "matchedName": "FIT HUB Jakarta Garden City (JGC)",
+      "evidenceUrl": "https://fithub.id/location/jakarta/jakarta-garden-city",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.6952124330196!2d106.95682177381849!3d-6.171548460475946!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e698bc8e179703d%3A0x6321adb6cdb436d9!2sFIT%20HUB%20Jakarta%20Garden%20City%20(JGC)!5e0!3m2!1sen!2sid!4v1691565858682!5m2!1sen!2sid",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/jakarta-garden-city",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=7143181484633110233",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-kalimalang",
+      "name": "FIT HUB KALIMALANG",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2490633%2C106.9406973",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=13371055143142912440",
+      "resolution": "profile",
+      "cid": "13371055143142912440",
+      "featureId": "0x2e698d75869750db:0xb98f87cf4f3171b8",
+      "matchedName": "FIT HUB Kalimalang",
+      "evidenceUrl": "https://fithub.id/location/jakarta/kalimalang",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.1091476995894!2d106.9380901738196!3d-6.249345961187217!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e698d75869750db%3A0xb98f87cf4f3171b8!2sFIT%20HUB%20Kalimalang!5e0!3m2!1sen!2sid!4v1691566104213!5m2!1sen!2sid",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/kalimalang",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=13371055143142912440",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-kemang",
+      "name": "FIT HUB KEMANG",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2630899%2C106.8158171",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=18086143917419094371",
+      "resolution": "profile",
+      "cid": "18086143917419094371",
+      "featureId": "0x2e69f1e0e6a1e4f9:0xfafee411825b6163",
+      "matchedName": "FIT HUB Kemang",
+      "evidenceUrl": "https://fithub.id/location/jakarta/kemang",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1983.0020209437482!2d106.8158359!3d-6.2631964999999985!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f1e0e6a1e4f9%3A0xfafee411825b6163!2sFIT%20HUB%20Kemang!5e0!3m2!1sen!2sid!4v1768206552097!5m2!1sen!2sid",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/kemang",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=18086143917419094371",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-kemanggisan",
+      "name": "FIT HUB KEMANGGISAN",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2104434%2C106.7755624",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=4543861424677177793",
+      "resolution": "profile",
+      "cid": "4543861424677177793",
+      "featureId": "0x2e69f7d3b8b6999d:0x3f0f09e42e7bc9c1",
+      "matchedName": "FIT HUB Kemanggisan",
+      "evidenceUrl": "https://fithub.id/location/jakarta/kemanggisan",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126929.78593689305!2d106.62827695211159!3d-6.190141725330641!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f7d3b8b6999d%3A0x3f0f09e42e7bc9c1!2sFIT%20HUB%20Kemanggisan!5e0!3m2!1sen!2sid!4v1691566539133!5m2!1sen!2sid",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/kemanggisan",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=4543861424677177793",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-mampang",
+      "name": "FIT HUB MAMPANG",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2495298%2C106.8267596",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=13135715944027127047",
+      "resolution": "profile",
+      "cid": "13135715944027127047",
+      "featureId": "0x2e69f37775925763:0xb64b700e1a2bfd07",
+      "matchedName": "FIT HUB Mampang",
+      "evidenceUrl": "https://fithub.id/location/jakarta/mampang",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.10763011824!2d106.82430287381966!3d-6.249546161189057!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f37775925763%3A0xb64b700e1a2bfd07!2sFIT%20HUB%20Mampang!5e0!3m2!1sen!2sid!4v1691570224927!5m2!1sen!2sid",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/mampang",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=13135715944027127047",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-maspion-plaza",
+      "name": "FIT HUB MASPION PLAZA",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1411447%2C106.8338311",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=312802165837802039",
+      "resolution": "profile",
+      "cid": "312802165837802039",
+      "featureId": "0x2e69f5685c0fa90f:0x4574be99bbc2a37",
+      "matchedName": "FIT HUB Maspion Plaza",
+      "evidenceUrl": "https://fithub.id/location/jakarta/maspion-plaza",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d63465.509597648044!2d106.77037610122083!3d-6.185006963364587!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f5685c0fa90f%3A0x4574be99bbc2a37!2sFIT%20HUB%20Maspion%20Plaza!5e0!3m2!1sen!2sid!4v1705982060829!5m2!1sen!2sid",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/maspion-plaza",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=312802165837802039",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-meruya",
+      "name": "FIT HUB MERUYA JAMESON",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1980817%2C106.7455331",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=16098018459745036637",
+      "resolution": "profile",
+      "cid": "16098018459745036637",
+      "featureId": "0x2e69f749e1219fd3:0xdf67a67f88c8a95d",
+      "matchedName": "FIT HUB Meruya Jameson",
+      "evidenceUrl": "https://fithub.id/location/jakarta/meruya",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.4960044411355!2d106.74293517381875!3d-6.198101560717585!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f749e1219fd3%3A0xdf67a67f88c8a95d!2sFIT%20HUB%20Meruya%20Jameson!5e0!3m2!1sen!2sid!4v1691570786576!5m2!1sen!2sid",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/meruya",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=16098018459745036637",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-pasar-minggu",
+      "name": "FIT HUB PASAR MINGGU",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2516112%2C106.8428887",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=17721050205947844530",
+      "resolution": "profile",
+      "cid": "17721050205947844530",
+      "featureId": "0x2e69f32dcb61c899:0xf5edd145ac6257b2",
+      "matchedName": "FIT HUB Pasar Minggu",
+      "evidenceUrl": "https://fithub.id/location/jakarta/pasar-minggu",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d15864.337068859131!2d106.8428433!3d-6.2526274!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f32dcb61c899%3A0xf5edd145ac6257b2!2sFIT%20HUB%20Pasar%20Minggu!5e0!3m2!1sen!2sid!4v1697511865075!5m2!1sen!2sid",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/pasar-minggu",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=17721050205947844530",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-plaza-oleos",
+      "name": "FIT HUB PLAZA OLEOS",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2972511%2C106.8294916",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=4033637631174034879",
+      "resolution": "profile",
+      "cid": "4033637631174034879",
+      "featureId": "0x2e69f3f7c0593315:0x37fa5c0deec6c5bf",
+      "matchedName": "FIT HUB Plaza Oleos",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-selatan/pasar-minggu/fit-hub-plaza-oleos-pasa-imp1",
+      "identityUrl": "https://www.google.com/maps/place/FIT+HUB+Plaza+Oleos/@-6.2982488,106.8296647,17z/data=!3m1!4b1!4m6!3m5!1s0x2e69f3f7c0593315:0x37fa5c0deec6c5bf!8m2!3d-6.2982488!4d106.8296647!16s%2Fg%2F11vdfbjf8f",
+      "matchedAddress": "Jl. TB Simatupang",
+      "catalogDistanceKm": 0.113,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-selatan/pasar-minggu/fit-hub-plaza-oleos-pasa-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=4033637631174034879",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-pluit",
+      "name": "FIT HUB PLUIT",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1180293%2C106.7850065",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=4337491061151512293",
+      "resolution": "profile",
+      "cid": "4337491061151512293",
+      "featureId": "0x2e6a1d5999cac4fd:0x3c31dd239c5e36e5",
+      "matchedName": "FIT HUB PLUIT",
+      "evidenceUrl": "https://fithub.id/location/jakarta/pluit",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3967.0939046852113!2d106.78243287381775!3d-6.118060659992675!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e6a1d5999cac4fd%3A0x3c31dd239c5e36e5!2sFIT%20HUB%20PLUIT!5e0!3m2!1sen!2sid!4v1691571096360!5m2!1sen!2sid",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/pluit",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=4337491061151512293",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-puri-indah",
+      "name": "FIT HUB PURI INDAH",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1878826%2C106.7353694",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=9060825270789600972",
+      "resolution": "profile",
+      "cid": "9060825270789600972",
+      "featureId": "0x2e69f7a7ef239a21:0x7dbe8493d54bf6cc",
+      "matchedName": "FIT HUB Puri Indah",
+      "evidenceUrl": "https://fithub.id/location/jakarta/puri-indah",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.5727272413214!2d106.73278487381877!3d-6.187888360624539!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f7a7ef239a21%3A0x7dbe8493d54bf6cc!2sFIT%20HUB%20Puri%20Indah!5e0!3m2!1sen!2sid!4v1691571130028!5m2!1sen!2sid",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/puri-indah",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=9060825270789600972",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-rawamangun",
+      "name": "FIT HUB RAWAMANGUN",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1939044%2C106.8949267",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=5361158859457381873",
+      "resolution": "profile",
+      "cid": "5361158859457381873",
+      "featureId": "0x2e69f5251ff24ea5:0x4a66a993fa6545f1",
+      "matchedName": "FIT HUB Rawamangun",
+      "evidenceUrl": "https://fithub.id/location/jakarta/rawamangun",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.5274473926324!2d106.89226157381879!3d-6.193917960679448!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f5251ff24ea5%3A0x4a66a993fa6545f1!2sFIT%20HUB%20Rawamangun!5e0!3m2!1sen!2sid!4v1691571182197!5m2!1sen!2sid",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/rawamangun",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=5361158859457381873",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-salemba",
+      "name": "FIT HUB SALEMBA",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1975365%2C106.8522644",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=520456630750933342",
+      "resolution": "profile",
+      "cid": "520456630750933342",
+      "featureId": "0x2e69f588f43fddbd:0x739088c54e7f15e",
+      "matchedName": "FIT HUB Salemba",
+      "evidenceUrl": "https://fithub.id/location/jakarta/salemba",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.501030149185!2d106.84984807381883!3d-6.1974330607115276!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f588f43fddbd%3A0x739088c54e7f15e!2sFIT%20HUB%20Salemba!5e0!3m2!1sen!2sid!4v1691571245402!5m2!1sen!2sid",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/salemba",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=520456630750933342",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-sedayu-city",
+      "name": "FIT HUB SEDAYU CITY KELAPA GADING",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1658119%2C106.9247889",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=9429231536487244838",
+      "resolution": "profile",
+      "cid": "9429231536487244838",
+      "featureId": "0x2e698bc8bdb95551:0x82db5c1fcd3ba426",
+      "matchedName": "FIT HUB Sedayu City Kelapa Gading",
+      "evidenceUrl": "https://fithub.id/location/jakarta/sedayu-city",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d4943.227080831919!2d106.92259235237283!3d-6.165791689200853!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e698bc8bdb95551%3A0x82db5c1fcd3ba426!2sFIT%20HUB%20Sedayu%20City%20Kelapa%20Gading!5e0!3m2!1sen!2sid!4v1691571278367!5m2!1sen!2sid",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/sedayu-city",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=9429231536487244838",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-sintesa-menara-duta",
+      "name": "FIT HUB SINTESA MENARA DUTA",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.208976%2C106.829227",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=7884399157770433644",
+      "resolution": "profile",
+      "cid": "7884399157770433644",
+      "featureId": "0x2e69f5d7667b6ab5:0x6d6b0342ba4bb46c",
+      "matchedName": "FIT HUB Sintesa Menara Duta",
+      "evidenceUrl": "https://fithub.id/location/jakarta/sintesa-menara-duta",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.4142190188436!2d106.82665187381902!3d-6.208970260816846!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f5d7667b6ab5%3A0x6d6b0342ba4bb46c!2sFIT%20HUB%20Sintesa%20Menara%20Duta!5e0!3m2!1sen!2sid!4v1691570442966!5m2!1sen!2sid",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/sintesa-menara-duta",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=7884399157770433644",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-sunter-altira",
+      "name": "FIT HUB SUNTER ALTIRA BUSINESS PARK",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.152046%2C106.88609",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=17538190836396610114",
+      "resolution": "profile",
+      "cid": "17538190836396610114",
+      "featureId": "0x2e69f53ee03602bb:0xf3642ba4f66e5242",
+      "matchedName": "FIT HUB Sunter Altira Business Park",
+      "evidenceUrl": "https://fithub.id/location/jakarta/sunter-altira",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d507755.64571004827!2d106.88609!3d-6.152046!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f53ee03602bb%3A0xf3642ba4f66e5242!2sFIT%20HUB%20Sunter%20Altira%20Business%20Park!5e0!3m2!1sen!2sus!4v1691379044856!5m2!1sen!2sus",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/sunter-altira",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=17538190836396610114",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-taman-palem-lestari",
+      "name": "FIT HUB TAMAN PALEM LESTARI",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1379075%2C106.724676",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=8103257900012820330",
+      "resolution": "profile",
+      "cid": "8103257900012820330",
+      "featureId": "0x2e69f78f2a32af1f:0x70748e208da4576a",
+      "matchedName": "FIT HUB Taman Palem Lestari",
+      "evidenceUrl": "https://fithub.id/location/jakarta/taman-palem-lestari",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d15867.754350607329!2d106.7247618!3d-6.1389529!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f78f2a32af1f%3A0x70748e208da4576a!2sFIT%20HUB%20Taman%20Palem%20Lestari!5e0!3m2!1sen!2sid!4v1705985540852!5m2!1sen!2sid",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/taman-palem-lestari",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=8103257900012820330",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-tamini-square",
+      "name": "FIT HUB TAMINI SQUARE",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2917244%2C106.8815173",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=13574855099649820064",
+      "resolution": "profile",
+      "cid": "13574855099649820064",
+      "featureId": "0x2e69f37303b1bcef:0xbc6392ca5c0705a0",
+      "matchedName": "FIT HUB Tamini Square",
+      "evidenceUrl": "https://fithub.id/location/jakarta/tamini-square",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3965.786780851441!2d106.8789454738203!3d-6.291730261578867!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f37303b1bcef%3A0xbc6392ca5c0705a0!2sFIT%20HUB%20Tamini%20Square!5e0!3m2!1sen!2sid!4v1691572520063!5m2!1sen!2sid",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/tamini-square",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=13574855099649820064",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-tebet",
+      "name": "FIT HUB TEBET",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2330222%2C106.8447124",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=11820843146337996596",
+      "resolution": "profile",
+      "cid": "11820843146337996596",
+      "featureId": "0x2e69f334fce7308f:0xa40c12364b164f34",
+      "matchedName": "FIT HUB Tebet",
+      "evidenceUrl": "https://fithub.id/location/jakarta/tebet",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.2309908403695!2d106.84206237381932!3d-6.23325146103925!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f334fce7308f%3A0xa40c12364b164f34!2sFIT%20HUB%20Tebet!5e0!3m2!1sen!2sid!4v1691572686847!5m2!1sen!2sid",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/tebet",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=11820843146337996596",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fithub-wisma-bni-46",
+      "name": "FIT HUB WISMA 46",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2034773%2C106.8204207",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=3038561570092675302",
+      "resolution": "profile",
+      "cid": "3038561570092675302",
+      "featureId": "0x2e69f1f70b0349f3:0x2a2b23a62586f0e6",
+      "matchedName": "FIT HUB Wisma 46",
+      "evidenceUrl": "https://fithub.id/location/jakarta/wisma-bni-46",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.4536039849345!2d106.8158823686044!3d-6.203738647005734!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f1f70b0349f3%3A0x2a2b23a62586f0e6!2sFIT%20HUB%20Wisma%2046!5e0!3m2!1sen!2sid!4v1691564593896!5m2!1sen!2sid",
+      "sourcesToAdd": [
+        {
+          "url": "https://fithub.id/location/jakarta/wisma-bni-46",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=3038561570092675302",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fitness-first-grand-indonesia",
+      "name": "Fitness First Grand Indonesia",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1966988%2C106.8224847",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=1241475274734468741",
+      "resolution": "profile",
+      "cid": "1241475274734468741",
+      "featureId": "0x2e69f421e658f5a9:0x113a9b2f4bfa7e85",
+      "matchedName": "Fitness First Platinum - Grand Indonesia",
+      "evidenceUrl": "https://maps.app.goo.gl/zLYYsCEo917Jtpru6",
+      "identityUrl": "https://www.google.com/maps/place/Fitness+First+Platinum+-+Grand+Indonesia/@-6.1966988,106.8224847,17z/data=!3m2!4b1!5s0x2e69f421ccf212e3:0xd7f546bd47ee9cf5!4m6!3m5!1s0x2e69f421e658f5a9:0x113a9b2f4bfa7e85!8m2!3d-6.1966988!4d106.8224847!16s%2Fg%2F11b6hn3sy5",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/zLYYsCEo917Jtpru6",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=1241475274734468741",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fitness-first-kemang-village",
+      "name": "Fitness First Kemang Village",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2609819%2C106.8122371",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=15208787968364492895",
+      "resolution": "profile",
+      "cid": "15208787968364492895",
+      "featureId": "0x2e69f18183cbb12f:0xd3107813de99b85f",
+      "matchedName": "Fitness First Lippo Mall Kemang",
+      "evidenceUrl": "https://maps.app.goo.gl/45BF81yhe1QZAJ8M7",
+      "identityUrl": "https://www.google.com/maps/place/Fitness+First+Lippo+Mall+Kemang/@-6.2609819,106.8122371,17z/data=!3m2!4b1!5s0x2e69f18178f71fa5:0x4b3a2055308bf174!4m6!3m5!1s0x2e69f18183cbb12f:0xd3107813de99b85f!8m2!3d-6.2609819!4d106.8122371!16s%2Fg%2F1pyctndk8",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/45BF81yhe1QZAJ8M7",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=15208787968364492895",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fitness-first-lotte-mall-jakarta",
+      "name": "Fitness First Lotte Mall Jakarta",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2242708%2C106.8240493",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=15327589365414719839",
+      "resolution": "profile",
+      "cid": "15327589365414719839",
+      "featureId": "0x2e69f3fb891c0f5f:0xd4b689519c99715f",
+      "matchedName": "Fitness First - Lotte Shopping Avenue",
+      "evidenceUrl": "https://maps.app.goo.gl/JA6qst8jv8JLVLEL7",
+      "identityUrl": "https://www.google.com/maps/place/Fitness+First+-+Lotte+Shopping+Avenue/@-6.2242708,106.8240493,17z/data=!3m2!4b1!5s0x2e69f3fc774c6ee7:0x8d603b95ec321e0d!4m6!3m5!1s0x2e69f3fb891c0f5f:0xd4b689519c99715f!8m2!3d-6.2242708!4d106.8240493!16s%2Fg%2F1yfprvkf9",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/JA6qst8jv8JLVLEL7",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=15327589365414719839",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fitness-first-mall-taman-anggrek",
+      "name": "Fitness First Mall Taman Anggrek",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1788017%2C106.7927627",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=8805375342171880884",
+      "resolution": "profile",
+      "cid": "8805375342171880884",
+      "featureId": "0x2e69f6f53e303519:0x7a32fa3888237db4",
+      "matchedName": "Fitness First - Mall Taman Anggrek",
+      "evidenceUrl": "https://maps.app.goo.gl/DFUYy9qRtPWCFfXE7",
+      "identityUrl": "https://www.google.com/maps/place/Fitness+First+-+Mall+Taman+Anggrek/@-6.1788017,106.7927627,17z/data=!3m1!4b1!4m6!3m5!1s0x2e69f6f53e303519:0x7a32fa3888237db4!8m2!3d-6.1788017!4d106.7927627!16s%2Fg%2F1tg3ddhx",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/DFUYy9qRtPWCFfXE7",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=8805375342171880884",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fitness-first-oakwood-mega-kuningan",
+      "name": "Fitness First Oakwood Mega Kuningan",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2279902%2C106.8256241",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=14431822818413742744",
+      "resolution": "profile",
+      "cid": "14431822818413742744",
+      "featureId": "0x2e69f3e4cc3e28f7:0xc8482263e8ed8a98",
+      "matchedName": "Fitness First - Oakwood",
+      "evidenceUrl": "https://maps.app.goo.gl/N7xoVaLqqtjzN7uE9",
+      "identityUrl": "https://www.google.com/maps/place/Fitness+First+-+Oakwood/@-6.2279902,106.8256241,17z/data=!3m2!4b1!5s0x2e69f3e4fa20221b:0xbfb385887c6ca27b!4m6!3m5!1s0x2e69f3e4cc3e28f7:0xc8482263e8ed8a98!8m2!3d-6.2279902!4d106.8256241!16s%2Fg%2F1tj6lc4f",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/N7xoVaLqqtjzN7uE9",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=14431822818413742744",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fitness-first-pacific-place",
+      "name": "Fitness First Pacific Place",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2245525%2C106.8101396",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=10751768682495323058",
+      "resolution": "profile",
+      "cid": "10751768682495323058",
+      "featureId": "0x2e69f151191fef63:0x9535f4a6c34dabb2",
+      "matchedName": "Fitness First - Pacific Place",
+      "evidenceUrl": "https://maps.app.goo.gl/t8bFBRnG99SFQg8eA",
+      "identityUrl": "https://www.google.com/maps/place/Fitness+First+-+Pacific+Place/@-6.2245525,106.8101396,17z/data=!3m2!4b1!5s0x2e69f15111ebc291:0xdd517b6a7ceaf308!4m6!3m5!1s0x2e69f151191fef63:0x9535f4a6c34dabb2!8m2!3d-6.2245525!4d106.8101396!16s%2Fg%2F1tfy4tn6",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/t8bFBRnG99SFQg8eA",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=10751768682495323058",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fitness-first-pejaten-village",
+      "name": "Fitness First Pejaten Village",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2800683%2C106.8293487",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=11787115661413889952",
+      "resolution": "profile",
+      "cid": "11787115661413889952",
+      "featureId": "0x2e69f2182ea111f5:0xa3943f3e4504b7a0",
+      "matchedName": "Fitness First - Pejaten Village",
+      "evidenceUrl": "https://maps.app.goo.gl/d8dEVyak6UGRSmmT8",
+      "identityUrl": "https://www.google.com/maps/place/Fitness+First+-+Pejaten+Village/@-6.2800683,106.8293487,17z/data=!3m2!4b1!5s0x2e69f2182f02cafb:0xed57fb3f7a98edf4!4m6!3m5!1s0x2e69f2182ea111f5:0xa3943f3e4504b7a0!8m2!3d-6.2800683!4d106.8293487!16s%2Fg%2F1jkvyrxzm",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/d8dEVyak6UGRSmmT8",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=11787115661413889952",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fitness-first-senayan-city",
+      "name": "Fitness First Senayan City",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2276752%2C106.7974284",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=9370032165462217596",
+      "resolution": "profile",
+      "cid": "9370032165462217596",
+      "featureId": "0x2e69f1485fbc4bd3:0x82090a9c245c137c",
+      "matchedName": "Fitness First",
+      "evidenceUrl": "https://maps.app.goo.gl/2cT75sJwCTCVE6eEA",
+      "identityUrl": "https://www.google.com/maps/place/Fitness+First/@-6.2276752,106.7974284,17z/data=!3m2!4b1!5s0x2e69f148610ee4a3:0xaa9043c35bae3b83!4m6!3m5!1s0x2e69f1485fbc4bd3:0x82090a9c245c137c!8m2!3d-6.2276752!4d106.7974284!16s%2Fg%2F1tg7j77_",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/2cT75sJwCTCVE6eEA",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=9370032165462217596",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-fitness-first-st-moritz",
+      "name": "Fitness First St. Moritz",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1884767%2C106.7386365",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=8289883060604298198",
+      "resolution": "profile",
+      "cid": "8289883060604298198",
+      "featureId": "0x2e69f771c93c8257:0x730b94b8d0d8e3d6",
+      "matchedName": "Fitness First Platinum St Moritz",
+      "evidenceUrl": "https://maps.app.goo.gl/FffPQy2WLrv3RcHb9",
+      "identityUrl": "https://www.google.com/maps/place/Fitness+First+Platinum+St+Moritz/@-6.1884767,106.7386365,17z/data=!3m2!4b1!5s0x2e69f771da240dc7:0x3333a5701c8a1a74!4m6!3m5!1s0x2e69f771c93c8257:0x730b94b8d0d8e3d6!8m2!3d-6.1884767!4d106.7386365!16s%2Fg%2F11bwp1szfp",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/FffPQy2WLrv3RcHb9",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=8289883060604298198",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-ftl-agora",
+      "name": "FTL Gym Agora",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1987901%2C106.8218375",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=3030743146221522694",
+      "resolution": "profile",
+      "cid": "3030743146221522694",
+      "featureId": "0x2e69f5897688deff:0x2a0f5cd57bfbcf06",
+      "matchedName": "FTL Gym Agora",
+      "evidenceUrl": "https://maps.app.goo.gl/xgXemArBwNK6Qz4SA",
+      "identityUrl": "https://www.google.com/maps/place/FTL+Gym+Agora/@-6.1987848,106.8192626,17z/data=!3m1!4b1!4m6!3m5!1s0x2e69f5897688deff:0x2a0f5cd57bfbcf06!8m2!3d-6.1987901!4d106.8218375!16s%2Fg%2F11x_qf7rr3",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/xgXemArBwNK6Qz4SA",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=3030743146221522694",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-ftl-arjuna-utara",
+      "name": "FTL Gym Arjuna Utara",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1849145%2C106.7834866",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=16308151668487287231",
+      "resolution": "profile",
+      "cid": "16308151668487287231",
+      "featureId": "0x2e69f7e32d19b6b5:0xe2523189c760f1bf",
+      "matchedName": "FTL Gym Arjuna",
+      "evidenceUrl": "https://maps.app.goo.gl/Wh6XPvNWr9S1Dfc46",
+      "identityUrl": "https://www.google.com/maps/place/FTL+Gym+Arjuna/@-6.1849092,106.7809117,17z/data=!3m1!4b1!4m6!3m5!1s0x2e69f7e32d19b6b5:0xe2523189c760f1bf!8m2!3d-6.1849145!4d106.7834866!16s%2Fg%2F11ms1sgk_x",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/Wh6XPvNWr9S1Dfc46",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=16308151668487287231",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-ftl-bendungan-hilir",
+      "name": "FTL Gym Bendungan Hilir",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2086843%2C106.8120209",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=11057573911163973610",
+      "resolution": "profile",
+      "cid": "11057573911163973610",
+      "featureId": "0x2e69f7d1400b2d87:0x997464e2fc8e2fea",
+      "matchedName": "FTL Gym Bendungan Hilir",
+      "evidenceUrl": "https://maps.app.goo.gl/uBG3jbwyGzijQmfE9",
+      "identityUrl": "https://www.google.com/maps/place/FTL+Gym+Bendungan+Hilir/@-6.208679,106.809446,17z/data=!3m1!4b1!4m6!3m5!1s0x2e69f7d1400b2d87:0x997464e2fc8e2fea!8m2!3d-6.2086843!4d106.8120209!16s%2Fg%2F11l203rnby",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/uBG3jbwyGzijQmfE9",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=11057573911163973610",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-ftl-blok-m",
+      "name": "FTL Gym Blok M",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2426794%2C106.7994013",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=9509634878855256086",
+      "resolution": "profile",
+      "cid": "9509634878855256086",
+      "featureId": "0x2e69f1418732193b:0x83f90289c1d51816",
+      "matchedName": "FTL Gym Blok M",
+      "evidenceUrl": "https://maps.app.goo.gl/Vq77aiZLscDmWwkr7",
+      "identityUrl": "https://www.google.com/maps/place/FTL+Gym+Blok+M/@-6.2426794,106.7968264,17z/data=!3m1!4b1!4m6!3m5!1s0x2e69f1418732193b:0x83f90289c1d51816!8m2!3d-6.2426794!4d106.7994013!16s%2Fg%2F11x88v3k1t",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/Vq77aiZLscDmWwkr7",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=9509634878855256086",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-ftl-citra-garden",
+      "name": "FTL Gym Citra Garden",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1434078%2C106.6982775",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=14469601825532629572",
+      "resolution": "profile",
+      "cid": "14469601825532629572",
+      "featureId": "0x2e6a034cccff8787:0xc8ce5a3274375244",
+      "matchedName": "FTL Gym Citra Garden",
+      "evidenceUrl": "https://maps.app.goo.gl/ehmuhGyQjEzRyQpE8",
+      "identityUrl": "https://www.google.com/maps/place/FTL+Gym+Citra+Garden/@-6.1434025,106.6957026,17z/data=!3m1!4b1!4m6!3m5!1s0x2e6a034cccff8787:0xc8ce5a3274375244!8m2!3d-6.1434078!4d106.6982775!16s%2Fg%2F11vs_y74y8",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/ehmuhGyQjEzRyQpE8",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=14469601825532629572",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-ftl-gading-sunter",
+      "name": "FTL Gym Gading Sunter",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1535582%2C106.8864547",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=4908737303233342459",
+      "resolution": "profile",
+      "cid": "4908737303233342459",
+      "featureId": "0x2e69f510d564b07d:0x441f5691d6eeabfb",
+      "matchedName": "FTL Gym Gading Sunter",
+      "evidenceUrl": "https://maps.app.goo.gl/nfkBNb5gncFqvLNZ8",
+      "identityUrl": "https://www.google.com/maps/place/FTL+Gym+Gading+Sunter/@-6.1535529,106.8838798,17z/data=!3m1!4b1!4m6!3m5!1s0x2e69f510d564b07d:0x441f5691d6eeabfb!8m2!3d-6.1535582!4d106.8864547!16s%2Fg%2F11w3s_hldr",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/nfkBNb5gncFqvLNZ8",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=4908737303233342459",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-ftl-gandaria",
+      "name": "FTL Gym Gandaria",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2430088%2C106.7877195",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=1961879421056967450",
+      "resolution": "profile",
+      "cid": "1961879421056967450",
+      "featureId": "0x2e69f1a54b7db7f1:0x1b39fef0603fe31a",
+      "matchedName": "FTL Gym Gandaria",
+      "evidenceUrl": "https://maps.app.goo.gl/7KDa6pSWGUnUsZNF9",
+      "identityUrl": "https://www.google.com/maps/place/FTL+Gym+Gandaria/@-6.2430035,106.7851446,17z/data=!3m1!4b1!4m6!3m5!1s0x2e69f1a54b7db7f1:0x1b39fef0603fe31a!8m2!3d-6.2430088!4d106.7877195!16s%2Fg%2F11jyk5p6d5",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/7KDa6pSWGUnUsZNF9",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=1961879421056967450",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-ftl-green-garden",
+      "name": "FTL Gym Green Garden",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1652307%2C106.7626968",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=7763136767854369464",
+      "resolution": "profile",
+      "cid": "7763136767854369464",
+      "featureId": "0x2e69f728112460a5:0x6bbc33c26ebbdab8",
+      "matchedName": "FTL Gym Green Garden",
+      "evidenceUrl": "https://maps.app.goo.gl/mh7CkkKaG3yE7mwH9",
+      "identityUrl": "https://www.google.com/maps/place/FTL+Gym+Green+Garden/@-6.1652323,106.7246327,14z/data=!4m6!3m5!1s0x2e69f728112460a5:0x6bbc33c26ebbdab8!8m2!3d-6.1652307!4d106.7626968!16s%2Fg%2F11v3xjnx09",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/mh7CkkKaG3yE7mwH9",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=7763136767854369464",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-ftl-gunung-sahari",
+      "name": "FTL Gym Gunung Sahari",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.14007%2C106.83336",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=3974129975162623615",
+      "resolution": "profile",
+      "cid": "3974129975162623615",
+      "featureId": "0x2e69f52182675bdd:0x3726f22814ccd67f",
+      "matchedName": "FTL Gym Gunung Sahari",
+      "evidenceUrl": "https://maps.app.goo.gl/6Z7QXn6knU5JfUvP6",
+      "identityUrl": "https://www.google.com/maps/place/FTL+Gym+Gunung+Sahari/@-6.1400647,106.8307851,17z/data=!3m1!4b1!4m6!3m5!1s0x2e69f52182675bdd:0x3726f22814ccd67f!8m2!3d-6.14007!4d106.83336!16s%2Fg%2F11y1zr2gyb",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/6Z7QXn6knU5JfUvP6",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=3974129975162623615",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-ftl-kebon-sirih",
+      "name": "FTL Gym Kebon Sirih",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.183565%2C106.82814",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=16158140256737146041",
+      "resolution": "profile",
+      "cid": "16158140256737146041",
+      "featureId": "0x2e6a050013b45b9b:0xe03d3ef439c1b4b9",
+      "matchedName": "FTL Gym Kebon Sirih",
+      "evidenceUrl": "https://maps.app.goo.gl/oYDHU5jFZSdZrisN8",
+      "identityUrl": "https://www.google.com/maps/place/FTL+Gym+Kebon+Sirih/@-6.183565,106.82814,17z/data=!3m1!4b1!4m6!3m5!1s0x2e6a050013b45b9b:0xe03d3ef439c1b4b9!8m2!3d-6.183565!4d106.82814!16s%2Fg%2F11ms6m08_w",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/oYDHU5jFZSdZrisN8",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=16158140256737146041",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-ftl-kemanggisan",
+      "name": "FTL Gym Kemanggisan",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1986931%2C106.7820129",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=3232248401408014089",
+      "resolution": "profile",
+      "cid": "3232248401408014089",
+      "featureId": "0x2e69f7e34e89615b:0x2cdb40cbbfbfb709",
+      "matchedName": "FTL Gym Kemanggisan",
+      "evidenceUrl": "https://maps.app.goo.gl/vAE3NEanA2f8Depy8",
+      "identityUrl": "https://www.google.com/maps/place/FTL+Gym+Kemanggisan/@-6.1986878,106.779438,17z/data=!3m1!4b1!4m6!3m5!1s0x2e69f7e34e89615b:0x2cdb40cbbfbfb709!8m2!3d-6.1986931!4d106.7820129!16s%2Fg%2F11wvbbxqzd",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/vAE3NEanA2f8Depy8",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=3232248401408014089",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-ftl-mampang",
+      "name": "FTL Gym Mampang",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2495171%2C106.8260697",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=16806278859894474600",
+      "resolution": "profile",
+      "cid": "16806278859894474600",
+      "featureId": "0x2e69f3350e3fe5d9:0xe93be594602ac768",
+      "matchedName": "FTL Gym Mampang",
+      "evidenceUrl": "https://maps.app.goo.gl/yseGTHPa17ZFyttWA",
+      "identityUrl": "https://www.google.com/maps/place/FTL+Gym+Mampang/@-6.2495171,106.8234948,17z/data=!3m1!4b1!4m6!3m5!1s0x2e69f3350e3fe5d9:0xe93be594602ac768!8m2!3d-6.2495171!4d106.8260697!16s%2Fg%2F11x8yv66dt",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/yseGTHPa17ZFyttWA",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=16806278859894474600",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-ftl-menteng",
+      "name": "FTL Gym Menteng",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1877917%2C106.8252638",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=16220656802020427403",
+      "resolution": "profile",
+      "cid": "16220656802020427403",
+      "featureId": "0x2e69f5a7b06de54d:0xe11b596bb3f3868b",
+      "matchedName": "FTL Gym Menteng",
+      "evidenceUrl": "https://maps.app.goo.gl/X3NM4vy3KvpUTzrS9",
+      "identityUrl": "https://www.google.com/maps/place/FTL+Gym+Menteng/@-6.1877864,106.8226889,17z/data=!3m1!4b1!4m6!3m5!1s0x2e69f5a7b06de54d:0xe11b596bb3f3868b!8m2!3d-6.1877917!4d106.8252638!16s%2Fg%2F11v01s1tv1",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/X3NM4vy3KvpUTzrS9",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=16220656802020427403",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-ftl-pasar-minggu",
+      "name": "FTL Gym Pasar Minggu",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2865943%2C106.8435514",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=12404937338800650393",
+      "resolution": "profile",
+      "cid": "12404937338800650393",
+      "featureId": "0x2e69f314fe4a0eb9:0xac2730c914313899",
+      "matchedName": "FTL Gym Pasar Minggu",
+      "evidenceUrl": "https://maps.app.goo.gl/ujrifzRVdY4CXgQo8",
+      "identityUrl": "https://www.google.com/maps/place/FTL+Gym+Pasar+Minggu/@-6.286589,106.8409765,17z/data=!3m1!4b1!4m6!3m5!1s0x2e69f314fe4a0eb9:0xac2730c914313899!8m2!3d-6.2865943!4d106.8435514!16s%2Fg%2F11lp7hvfp2",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/ujrifzRVdY4CXgQo8",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=12404937338800650393",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-ftl-permata-hijau",
+      "name": "FTL Gym Permata Hijau",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.21285%2C106.7726149",
+      "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=FTL%20Gym%20Permata%20Hijau%20Jl.%20Panjang%20Raya%2C%20Desa%2FKelurahan%20Sukabumi%20Utara%2C%20Kec.%20Kebon%20Jeruk%2C%20Kota%20Adm.%20Jakarta%20Barat%2C%20Provinsi%20DKI%20Jakarta%2C%2011540",
+      "resolution": "name_address_search",
+      "reason": "No branch/spot-specific Google Maps identity could be verified; use the catalog name and address instead of a coordinate-only pin.",
+      "evidenceUrl": "https://ftlgym.com/outlet/permata-hijau",
+      "sourcesToAdd": []
+    },
+    {
+      "id": "jakarta-ftl-pondok-bambu",
+      "name": "FTL Gym Pondok Bambu",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2183871%2C106.9000718",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=16259299078234283063",
+      "resolution": "profile",
+      "cid": "16259299078234283063",
+      "featureId": "0x2e69f398bd592691:0xe1a4a25dbefd9c37",
+      "matchedName": "FTL Gym Pondok Bambu Klender",
+      "evidenceUrl": "https://maps.app.goo.gl/HpDVwfzYQ7zAvDj49",
+      "identityUrl": "https://www.google.com/maps/place/FTL+Gym+Pondok+Bambu+Klender/@-6.2183818,106.8974969,17z/data=!3m1!4b1!4m6!3m5!1s0x2e69f398bd592691:0xe1a4a25dbefd9c37!8m2!3d-6.2183871!4d106.9000718!16s%2Fg%2F11ss4_z1gc",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/HpDVwfzYQ7zAvDj49",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=16259299078234283063",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-ftl-pondok-indah",
+      "name": "FTL Gym Pondok Indah",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2701568%2C106.7749136",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=4558131960973002719",
+      "resolution": "profile",
+      "cid": "4558131960973002719",
+      "featureId": "0x2e69f1f589291a9b:0x3f41bcde552687df",
+      "matchedName": "FTL Gym Pondok Indah",
+      "evidenceUrl": "https://maps.app.goo.gl/3YG1u81A3t4eYP2G8",
+      "identityUrl": "https://www.google.com/maps/place/FTL+Gym+Pondok+Indah/@-6.2701568,106.7749136,17z/data=!3m1!4b1!4m6!3m5!1s0x2e69f1f589291a9b:0x3f41bcde552687df!8m2!3d-6.2701568!4d106.7749136!16s%2Fg%2F11xh29rnbj",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/3YG1u81A3t4eYP2G8",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=4558131960973002719",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-ftl-puri",
+      "name": "FTL Gym Puri",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1887766%2C106.7415967",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=15346188080624796424",
+      "resolution": "profile",
+      "cid": "15346188080624796424",
+      "featureId": "0x2e69f759c6877a7b:0xd4f89cc071f98308",
+      "matchedName": "FTL Gym Puri",
+      "evidenceUrl": "https://maps.app.goo.gl/tVmgU3sj1GuQ5mxj6",
+      "identityUrl": "https://www.google.com/maps/place/FTL+Gym+Puri/@-6.1887713,106.7390218,17z/data=!3m1!4b1!4m6!3m5!1s0x2e69f759c6877a7b:0xd4f89cc071f98308!8m2!3d-6.1887766!4d106.7415967!16s%2Fg%2F11ldrd6h_8",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/tVmgU3sj1GuQ5mxj6",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=15346188080624796424",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-ftl-rawamangun",
+      "name": "FTL Gym Rawamangun",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1932086%2C106.8959759",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=7065184072223275908",
+      "resolution": "profile",
+      "cid": "7065184072223275908",
+      "featureId": "0x2e69f51383adce2b:0x620c937b119dbb84",
+      "matchedName": "FTL Gym Rawamangun",
+      "evidenceUrl": "https://maps.app.goo.gl/bMkC9FK81K5niYau5",
+      "identityUrl": "https://www.google.com/maps/place/FTL+Gym+Rawamangun/@-6.1932086,106.8959759,17z/data=!3m1!4b1!4m6!3m5!1s0x2e69f51383adce2b:0x620c937b119dbb84!8m2!3d-6.1932086!4d106.8959759!16s%2Fg%2F11p0vct0__",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/bMkC9FK81K5niYau5",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=7065184072223275908",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-ftl-satrio",
+      "name": "FTL Gym Satrio",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2184726%2C106.8197403",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=15964596636279567281",
+      "resolution": "profile",
+      "cid": "15964596636279567281",
+      "featureId": "0x2e69f30050f921d1:0xdd8da40e7fd6f3b1",
+      "matchedName": "FTL Gym Satrio",
+      "evidenceUrl": "https://maps.app.goo.gl/yscZLrdTH55mthD67",
+      "identityUrl": "https://www.google.com/maps/place/FTL+Gym+Satrio/@-6.2184673,106.8171654,17z/data=!3m1!4b1!4m6!3m5!1s0x2e69f30050f921d1:0xdd8da40e7fd6f3b1!8m2!3d-6.2184726!4d106.8197403!16s%2Fg%2F11m5_j2h9z",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/yscZLrdTH55mthD67",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=15964596636279567281",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-ftl-scbd",
+      "name": "FTL Gym SCBD",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2262888%2C106.8071618",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=5255653692121146596",
+      "resolution": "profile",
+      "cid": "5255653692121146596",
+      "featureId": "0x2e69f1152c9c62e5:0x48efd52ff559e4e4",
+      "matchedName": "FTL Gym SCBD",
+      "evidenceUrl": "https://maps.app.goo.gl/oJc7fvVgWAe2uYHF6",
+      "identityUrl": "https://www.google.com/maps/place/FTL+Gym+SCBD/@-6.2262888,106.8045869,17z/data=!3m1!4b1!4m6!3m5!1s0x2e69f1152c9c62e5:0x48efd52ff559e4e4!8m2!3d-6.2262888!4d106.8071618!16s%2Fg%2F11xmdqg07m",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/oJc7fvVgWAe2uYHF6",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=5255653692121146596",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-ftl-tanjung-duren",
+      "name": "FTL Gym Tanjung Duren",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1739627%2C106.7855181",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=7671605880709219589",
+      "resolution": "profile",
+      "cid": "7671605880709219589",
+      "featureId": "0x2e69f7eb8ba9edf7:0x6a7704e710788505",
+      "matchedName": "FTL Gym Tanjung Duren",
+      "evidenceUrl": "https://maps.app.goo.gl/2z5j1enfSavTyzsF7",
+      "identityUrl": "https://www.google.com/maps/place/FTL+Gym+Tanjung+Duren/@-6.1739574,106.7829432,17z/data=!3m1!4b1!4m6!3m5!1s0x2e69f7eb8ba9edf7:0x6a7704e710788505!8m2!3d-6.1739627!4d106.7855181!16s%2Fg%2F11mtj31_nh",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/2z5j1enfSavTyzsF7",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=7671605880709219589",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-ftl-tebet",
+      "name": "FTL Gym Tebet",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.226542%2C106.8546583",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=12876543904099726228",
+      "resolution": "profile",
+      "cid": "12876543904099726228",
+      "featureId": "0x2e69f31c0aa6e5c7:0xb2b2ac753a95f394",
+      "matchedName": "FTL Gym Tebet",
+      "evidenceUrl": "https://maps.app.goo.gl/AYT7WczFsNPgK34a8",
+      "identityUrl": "https://www.google.com/maps/place/FTL+Gym+Tebet/@-6.2265367,106.8520834,17z/data=!3m1!4b1!4m6!3m5!1s0x2e69f31c0aa6e5c7:0xb2b2ac753a95f394!8m2!3d-6.226542!4d106.8546583!16s%2Fg%2F11rr2m5jzr",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/AYT7WczFsNPgK34a8",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=12876543904099726228",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-ftl-tomang",
+      "name": "FTL Gym Tomang",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.1765367%2C106.8012897",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=10025764562831685207",
+      "resolution": "profile",
+      "cid": "10025764562831685207",
+      "featureId": "0x2e69f78166f20ef1:0x8b22abc049483657",
+      "matchedName": "FTL Gym Tomang",
+      "evidenceUrl": "https://maps.app.goo.gl/frxEcngyXmYiR9vFA",
+      "identityUrl": "https://www.google.com/maps/place/FTL+Gym+Tomang/@-6.1765367,106.8012897,17z/data=!3m1!4b1!4m6!3m5!1s0x2e69f78166f20ef1:0x8b22abc049483657!8m2!3d-6.1765367!4d106.8012897!16s%2Fg%2F11ymkf_vwd",
+      "sourcesToAdd": [
+        {
+          "url": "https://maps.app.goo.gl/frxEcngyXmYiR9vFA",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=10025764562831685207",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-gbk-gate-vii",
+      "name": "GBK Gate VII — Calisthenics",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.21728%2C106.803549",
+      "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=GBK%20Gate%20VII%20%E2%80%94%20Calisthenics%20Area%20Stadion%20Utama%20Gelora%20Bung%20Karno%2C%20Jl.%20Lingkar%20Stadion%2C%20RW.01%2C%20Gelora%2C%20Kec.%20Tanah%20Abang%2C%20Jakarta%20Pusat%2010270",
+      "resolution": "name_address_search",
+      "reason": "No branch/spot-specific Google Maps identity could be verified; use the catalog name and address instead of a coordinate-only pin.",
+      "evidenceUrl": "https://howtocalisthenics.com/en/spots/jakarta-calisthenics-gym-gate-vii-gelora-bung-karno-indonesia-spot-1/",
+      "sourcesToAdd": []
+    },
+    {
+      "id": "jakarta-gbk-monkey-bar",
+      "name": "GBK Jalan Lingkar Stadion — Monkey Bar",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2170589%2C106.802196",
+      "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=GBK%20Jalan%20Lingkar%20Stadion%20%E2%80%94%20Monkey%20Bar%20Area%20Stadion%20Utama%20Gelora%20Bung%20Karno%2C%20Jl.%20Lingkar%20Stadion%2C%20RW.01%2C%20Gelora%2C%20Kec.%20Tanah%20Abang%2C%20Jakarta%20Pusat%2010270",
+      "resolution": "name_address_search",
+      "reason": "No branch/spot-specific Google Maps identity could be verified; use the catalog name and address instead of a coordinate-only pin.",
+      "evidenceUrl": "https://howtocalisthenics.com/en/spots/jakarta-monkey-bar-jalan-lingkar-stadion-indonesia-spot-1/",
+      "sourcesToAdd": []
+    },
+    {
+      "id": "jakarta-hm-fitness-ulujami",
+      "name": "HM Fitness Jakarta (H&M Fitness Center)",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2452376%2C106.7672024",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=16374828486325887479",
+      "resolution": "profile",
+      "cid": "16374828486325887479",
+      "featureId": "0x2e69f0e3d1fc7f97:0xe33f13c03166e1f7",
+      "matchedName": "H&M Fitness Center",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-selatan/pesanggrahan/h-m-fitness-center-pesa-imp1",
+      "identityUrl": "https://www.google.com/maps/place/H%26M+Fitness+Center/data=!4m7!3m6!1s0x2e69f0e3d1fc7f97:0xe33f13c03166e1f7!8m2!3d-6.2452376!4d106.7672024!16s%2Fg%2F11d__jfkpf!19sChIJl3_80ePwaS4R9-FmMcATP-M",
+      "matchedAddress": "Perumahan Ulujami Indah Blok D5",
+      "catalogDistanceKm": 0.0,
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-selatan/pesanggrahan/h-m-fitness-center-pesa-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=16374828486325887479",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-new-friendly-gym-lubang-buaya",
+      "name": "New Friendly Gym Lubang Buaya",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2860267%2C106.9046032",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=18309300188584580394",
+      "resolution": "profile",
+      "cid": "18309300188584580394",
+      "featureId": "0x2e69f2ae798a64fb:0xfe17b383c293952a",
+      "matchedName": "New Friendly Gym",
+      "evidenceUrl": "https://caribisnis.id/gym-fitness/jakarta-timur/cipayung/new-friendly-gym-cipa-imp1",
+      "identityUrl": "https://www.google.com/maps/place/New+Friendly+Gym/data=!4m7!3m6!1s0x2e69f2ae798a64fb:0xfe17b383c293952a!8m2!3d-6.2860267!4d106.9046032!16s%2Fg%2F11bw6b_6g_!19sChIJ-2SKea7yaS4RKpWTwoOzF_4",
+      "sourcesToAdd": [
+        {
+          "url": "https://caribisnis.id/gym-fitness/jakarta-timur/cipayung/new-friendly-gym-cipa-imp1",
+          "kind": "publisher",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=18309300188584580394",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jakarta-tebet-eco-park",
+      "name": "Tebet Eco Park — Outdoor Fitness",
+      "previousGoogleMapsUrl": "https://www.google.com/maps/search/?api=1&query=-6.2372018%2C106.8528973",
+      "googleMapsUrl": "https://www.google.com/maps/?cid=9472035101936366172",
+      "resolution": "profile",
+      "cid": "9472035101936366172",
+      "featureId": "0x2e69f36d922448d5:0x83736dbd7ef2b25c",
+      "matchedName": "Tebet Eco Park",
+      "evidenceUrl": "https://tebetecopark.jakarta.go.id/v144/t101/informasi",
+      "identityUrl": "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d63459.111957205634!2d106.81775637910157!3d-6.2380763!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69f36d922448d5%3A0x83736dbd7ef2b25c!2sTebet%20Eco%20Park!5e0!3m2!1sen!2sid!4v1650246765157!5m2!1sen!2sid",
+      "sourcesToAdd": [
+        {
+          "url": "https://tebetecopark.jakarta.go.id/v144/t101/informasi",
+          "kind": "operator",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        },
+        {
+          "url": "https://www.google.com/maps/?cid=9472035101936366172",
+          "kind": "map",
+          "fields": [
+            "identity",
+            "location"
+          ]
+        }
+      ]
+    }
+  ]
+}

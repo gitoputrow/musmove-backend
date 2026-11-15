@@ -253,10 +253,29 @@ seperti Jakarta Selatan. `area` saat ini dipakai oleh filter query API.
 `checkedAt` adalah tanggal pengecekan sumber; `updatedAt` adalah waktu perubahan
 record database. Tidak ada klaim buka 24 jam untuk semua taman.
 
-`googleMapsUrl` disimpan sebagai universal Maps URL dengan koordinat dan
-`api=1`. [Format resmi Maps URLs](https://developers.google.com/maps/documentation/urls/get-started)
-dapat membuka aplikasi Maps atau browser, tanpa API key. Tautan koordinat
-tidak menjamin profil bisnis Google tersedia.
+`googleMapsUrl` memakai tautan CID untuk identitas Google Maps yang sudah
+diverifikasi. Migrasi `0037_place_google_maps_profiles` mengganti 101 tautan
+koordinat menjadi CID, mempertahankan CID Musclebound, dan mengganti tiga
+tautan lainnya menjadi pencarian nama/alamat. Tidak ada lagi tautan yang hanya
+mencari koordinat. Client cukup membuka URL yang dikembalikan API.
+
+Tiga pengecualian yang belum mempunyai CID/Place ID spesifik terverifikasi adalah
+FTL Permata Hijau, GBK Gate VII — Calisthenics, dan GBK Jalan Lingkar Stadion —
+Monkey Bar. Pencarian nama/alamat tidak menjamin profil tertentu akan terbuka;
+jangan menganggapnya sebagai profil terverifikasi.
+
+Data tautan terbaru dan bukti identitas tersedia di
+[`place-google-maps-2026-11-14.json`](../src/db/data/place-google-maps-2026-11-14.json).
+File katalog 0034/0035 dan migrasi terdahulu tetap menjadi snapshot historis.
+CID diturunkan secara utuh dari bagian hexadecimal identitas Maps pada tautan
+atau embed sumber. Nama cabang dan konteks alamat dicocokkan; koordinat tersimpan
+tidak diganti dalam pembaruan tautan ini. Bukti tambahan disimpan di `sources`.
+Migrasi mempertahankan ID, atribut tempat, dan favorit; versi katalog dan
+record yang berubah meningkat. Menjalankan SQL migrasi ulang tidak mengubah
+tautan baru atau menimpa tautan yang sudah diperbaiki secara terpisah.
+
+[Format resmi Maps URLs](https://developers.google.com/maps/documentation/urls/get-started)
+juga mendukung `query_place_id` untuk mengarah ke profil spesifik tanpa API key.
 
 ## Daftar brand gym
 
@@ -301,6 +320,7 @@ Parameter kedua endpoint sama:
 
 | Parameter | Fungsi |
 | --- | --- |
+| `q` | Pencarian sebagian nama atau alamat, case-insensitive, 1–160 karakter setelah trim; diproses sebelum pagination dan digabung dengan filter lain |
 | `area`, `city` | Filter persis, case-insensitive; area awal `Jakarta`, city misalnya `Jakarta Selatan` |
 | `mode`, `gymCategory`, `brand` | Mode, kategori gym dan brand key; brand case-insensitive |
 | `accessModel` | Filter model akses persis; bukan filter semua tempat yang bisa per-visit |
@@ -312,6 +332,7 @@ Parameter kedua endpoint sama:
 Contoh:
 
 ```http
+GET /api/v1/catalog/places?q=tebet&brand=ftl&limit=20&offset=0
 GET /api/v1/catalog/places?area=Jakarta&mode=gym&gymCategory=conventional&dayPassAvailable=true
 GET /api/v1/catalog/places?mode=gym&gymCategory=brand&brand=ftl
 GET /api/v1/catalog/places?brand=fitness_first

@@ -9,6 +9,13 @@ test("place query defaults and explicit booleans", () => {
   assert.throws(() => placesQuerySchema.parse({ dayPassAvailable: "1" }));
 });
 
+test("place search trims keywords and rejects empty, oversized or duplicate queries", () => {
+  assert.equal(parsePlacesQuery("https://example.com?q=%20Tebet%20").q, "Tebet");
+  assert.equal(placesQuerySchema.parse({ q: "a".repeat(160) }).q?.length, 160);
+  for (const q of ["", "   ", "a".repeat(161)]) assert.throws(() => placesQuerySchema.parse({ q }));
+  assert.throws(() => parsePlacesQuery("https://example.com?q=tebet&q=ftl"));
+});
+
 test("place query supports each category, access model and origin", () => {
   const query = parsePlacesQuery("https://example.com/api/v1/catalog/places?mode=gym&gymCategory=conventional&dayPassAvailable=true&area=Jakarta&latitude=-6.2&longitude=106.8&radiusKm=5&limit=2&offset=1");
   assert.equal(query.latitude, -6.2);

@@ -54,7 +54,7 @@ must never send a `userId` to select ownership. Current endpoints are:
 - `GET /catalog/programs` (public template catalog)
 - `GET /programs/recommendations` (private selection using saved preferences)
 - `GET /catalog/places/brands` (public unique active gym brands with display names and place counts)
-- `GET /catalog/places` (105 Jakarta places, including 36 FIT HUB, 24 FTL, 30 Anytime Fitness and 9 Fitness First; category/access filters and optional distance)
+- `GET /catalog/places` (105 Jakarta places, including 36 FIT HUB, 24 FTL, 30 Anytime Fitness and 9 Fitness First; name/address search via `q`, pagination, category/access filters and optional distance)
 - `GET /places` (private `isFavorite` and `favoriteVersion`); `PUT/DELETE /places/{id}/favorite`
 - `GET /nutrition/targets` (private, stored profile-versioned estimates)
 - `GET/POST /social/drafts`; `GET/PATCH/DELETE /social/drafts/{id}` (private, never auto-published)
