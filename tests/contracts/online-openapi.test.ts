@@ -58,9 +58,26 @@ test("Online OpenAPI artifact matches current DTO generator and all path items a
   assert.deepEqual(spec.components.schemas.WorkoutResultMetrics.oneOf, [
     { $ref: "#/components/schemas/CurrentWorkoutResultMetrics" }, { $ref: "#/components/schemas/LegacyWorkoutResultMetrics" },
   ]);
-  assert.equal(spec.components.schemas.CompletedWorkoutInput.properties.setLog.items.properties.durationSeconds.anyOf.find((s: { type: string }) => s.type === "integer").maximum, 3600);
+  const inputLogs = spec.components.schemas.CompletedWorkoutInput.properties.setLog.anyOf;
+  assert.equal(inputLogs[0].maxItems, 120);
+  assert.equal(inputLogs[1].maxItems, 12);
+  assert.equal(inputLogs[1].items.properties.sets.maxItems, 10);
+  assert.equal(inputLogs[1].items.properties.sets.items.properties.exerciseId, undefined);
+  assert.equal(inputLogs[1].items.properties.sets.items.properties.exerciseMode, undefined);
+  assert.equal(spec.components.schemas.WorkoutSetResult.properties.durationSeconds.anyOf.find((s: { type: string }) => s.type === "integer").maximum, 3600);
+  assert.deepEqual(spec.components.schemas.Workout.properties.setLog.items.required, ["exerciseId", "exerciseMode", "sets"]);
+  assert.ok(spec.components.schemas.LegacyWorkout.properties.setLog.items.properties.exerciseId);
   assert.deepEqual(spec.components.schemas.Statistics.properties.totals.properties.reportedExternalVolumeKg.type, ["number", "null"]);
   assert.equal(spec.components.schemas.CompletedWorkoutResponse.properties.exercises.items.$ref, "#/components/schemas/CustomExercise");
+  assert.equal(spec.components.schemas.WorkoutResponse.properties.comparison.$ref, "#/components/schemas/WorkoutComparison");
+  assert.equal(spec.components.schemas.CompletedWorkoutResponse.properties.comparison.$ref, "#/components/schemas/WorkoutComparison");
+  assert.equal(spec.components.schemas.WorkoutComparison.readOnly, true);
+  assert.equal(spec.components.schemas.WorkoutComparison.properties.version.const, "1");
+  const setCount = spec.components.schemas.WorkoutComparison.properties.exercises.items.properties.setCount;
+  assert.equal(setCount.properties.current.maximum, 10);
+  assert.deepEqual(setCount.required, ["current", "previous", "delta"]);
+  assert.equal(spec.components.schemas.CompletedWorkoutInput.properties.comparison, undefined);
+  assert.equal(spec.components.schemas.Workout.properties.comparison, undefined);
   assert.equal(spec.components.schemas.Dashboard.properties.activeWorkout, undefined);
   assert.equal(spec.components.schemas.Dashboard.properties.meals, undefined);
   assert.equal(spec.components.schemas.Statistics.properties.mealDays, undefined);

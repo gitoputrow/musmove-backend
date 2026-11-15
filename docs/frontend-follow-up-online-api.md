@@ -1,5 +1,16 @@
 # Follow-up frontend lengkap: seluruh perubahan API backend
 
+Pembaruan15 November2026: [`setLog` API dikelompokkan per exercise](frontend-follow-up-workout-grouped-set-log.md).
+Request grup baru dan flat lama diterima; fresh POST, GET detail dan list
+mengembalikan grup berisi `exerciseId`, `exerciseMode`, dan `sets`. Contoh flat
+di bagian historis dokumen ini tetap format input kompatibilitas. Receipt lama
+direplay persis. Tidak ada migrasi database; frontend perlu membaca bentuk grup.
+
+Pembaruan15 November2026: respons POST workout dan GET detail menambahkan
+[`comparison` per set dengan latihan terakhir](frontend-follow-up-workout-comparison.md),
+termasuk actual sebelumnya dan delta beban/repetisi/durasi. Tidak membutuhkan
+migrasi; field terpisah dari snapshot workout dan tidak ditambahkan ke list.
+
 Pembaruan27 Oktober2026: [estimasi kalori workout dihapus](frontend-follow-up-workout-without-calories.md).
 Durasi total tetap dipertahankan. Submit baru menghasilkan metrics2 tanpa energy;
 hapus input energyActivityCode/workoutBodyweightKg. Nutrisi tidak berubah.

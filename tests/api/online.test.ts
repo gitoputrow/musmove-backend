@@ -19,6 +19,13 @@ const exercise = { mode: "gym", name: "Synthetic exercise", defaultSets: 2, defa
 const prescription = (id: string) => ({ id, idLabel: "forged", enLabel: "forged", requirements: [["forged"]], sets: 2, reps: 8, targetWeightKg: null });
 const program = (exerciseId: string, weekday: number | null = null) => ({ mode: "gym", name: "Synthetic program", durationMinutes: 30, weekday, exercisePrescriptions: [prescription(exerciseId)] });
 const onboarding = () => ({ baseVersions: { profile: "0", trainingPreferences: "0" }, profile: { ageYears: 25, goal: "bulk", dailyActivity: "light", trainingFrequency: 3, sessionMinutes: 60, programSource: "app", focus: "full", motivationEnabled: false, motivationReason: "health", gender: "non_binary", weightKg: 70, heightCm: 175, formulaSex: "male", trainingContext: { painAreas: ["knee"], recoveryStatus: "recovered" } }, trainingPreferences: { mode: "gym", equipment: ["dumbbell", "bench"], noEquipment: false } });
+function assertGroupedResults(groups: { exerciseId: string; exerciseMode: string; sets: Record<string, unknown>[] }[], flat: { exerciseId: string; exerciseMode?: string }[]) {
+  const explicit = flat.some(set => set.exerciseMode !== undefined);
+  const actual = groups.flatMap(group => group.sets.map(set => ({
+    ...set, exerciseId: group.exerciseId, ...(explicit ? { exerciseMode: group.exerciseMode } : {}),
+  })));
+  assert.deepEqual(actual, flat);
+}
 const startedAt = "2026-10-20T00:00:00Z", finishedAt = "2026-10-20T00:30:00Z", date = "2026-10-20";
 const manualWithNewExercises = (ids = [`user-exercise-${randomUUID()}`]) => ({
   id: `workout-${randomUUID()}`, source: "manual", mode: "gym", startedAt, finishedAt, recordedOn: date,
@@ -93,6 +100,85 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
       if (setup) assert.equal((await call("onboarding/complete", jwt, "POST", onboarding())).status, 200);
       return { jwt, id: first.body.user.id as string };
     }
+    await t.test("Grouped workout results round-trip across POST/detail/list, preserve flat history and drive comparisons/statistics", async () => {
+      const a = await account(), b = await account();
+      const input = { id: "grouped-before", source: "manual", startedAt: "2020-02-01T10:00:00Z", finishedAt: "2020-02-01T11:00:00Z", recordedOn: "2020-02-01",
+        exerciseSnapshot: [{ ...prescription("squat"), mode: "gym" }, { ...prescription("squat"), mode: "calisthenics", sets: 1 },
+          { ...prescription("plank"), mode: "gym", sets: 1, trackingType: "duration", reps: null, targetDurationSeconds: 30 }],
+        setLog: [
+          { exerciseId: "squat", exerciseMode: "gym", sets: [
+            { setNumber: 1, completed: true, reps: 8, weightKg: 25 }, { setNumber: 2, completed: false, reps: 6, weightKg: 30 },
+          ] },
+          { exerciseId: "squat", exerciseMode: "calisthenics", sets: [{ setNumber: 1, completed: true, reps: 10, weightKg: 0 }] },
+          { exerciseId: "plank", exerciseMode: "gym", sets: [{ setNumber: 1, completed: true, reps: null, weightKg: 0, durationSeconds: 20 }] },
+        ] };
+      const first = await call("workouts", a.jwt, "POST", input);
+      assert.equal(first.status, 201, JSON.stringify(first.body));
+      assert.deepEqual(first.body.item.setLog, input.setLog);
+      const now = { ...input, id: "grouped-now", startedAt: "2020-02-02T10:00:00Z", finishedAt: "2020-02-02T11:00:00Z", recordedOn: "2020-02-02",
+        setLog: input.setLog.map(group => group.exerciseMode === "gym" && group.exerciseId === "squat"
+          ? { ...group, sets: group.sets.map(set => ({ ...set, completed: true, weightKg: 30 })) } : group) };
+      const key = randomUUID(), saved = await call("workouts", a.jwt, "POST", now, key);
+      assert.equal(saved.status, 201, JSON.stringify(saved.body));
+      assert.deepEqual(saved.body.item.setLog, now.setLog);
+      assert.deepEqual((await call("workouts/grouped-now", a.jwt)).body.item, saved.body.item);
+      assert.deepEqual((await call("workouts?from=2020-02-02&to=2020-02-02", a.jwt)).body.items[0], saved.body.item);
+      assert.deepEqual(saved.body.comparison.exercises[0].setCount, { current: 2, previous: 1, delta: 1 });
+      assert.equal(saved.body.comparison.exercises[0].sets[0].delta.weightKg, 5);
+      assert.equal(saved.body.comparison.exercises[0].sets[1].delta.weightKg, null);
+      const totals = (await call("statistics?from=2020-02-02&to=2020-02-02", a.jwt)).body.totals;
+      assert.equal(totals.completedSets, 4); assert.equal(totals.totalHoldSeconds, 20);
+      assert.equal(totals.reportedReps, 24); assert.equal(totals.reportedExternalVolumeKg, 420);
+      const stored = (await local.query<{ set_log: Record<string, unknown>[] }>("SELECT set_log FROM workout_sessions WHERE user_id=$1 AND id='grouped-now'", [a.id])).rows[0].set_log;
+      assert.equal(stored.length, 4); assert.ok(stored.every(set => "exerciseId" in set && !("sets" in set)));
+      assert.deepEqual((await call("workouts", a.jwt, "POST", now, key)).body, saved.body);
+      assert.equal((await call("workouts/grouped-now", b.jwt)).status, 404);
+
+      const legacy = { id: "legacy-flat-receipt", source: "manual", mode: "gym", startedAt, finishedAt, recordedOn: date,
+        exerciseSnapshot: [prescription("bench_press")], setLog: [{ exerciseId: "bench_press", setNumber: 1, completed: true, weightKg: 25, reps: 7 }] };
+      const legacyKey = randomUUID(), legacySaved = await call("workouts", a.jwt, "POST", legacy, legacyKey);
+      assert.equal(legacySaved.status, 201);
+      const [receipt] = await db.select().from(schema.operationReceipts).where(eq(schema.operationReceipts.operationId, legacyKey));
+      const oldResponse = { item: { ...legacySaved.body.item, setLog: legacy.setLog } };
+      await db.update(schema.operationReceipts).set({ result: { ...receipt.result, response: oldResponse } }).where(eq(schema.operationReceipts.operationId, legacyKey));
+      assert.deepEqual((await call("workouts", a.jwt, "POST", legacy, legacyKey)).body, oldResponse);
+      const detail = await call("workouts/legacy-flat-receipt", a.jwt);
+      assert.deepEqual(detail.body.item.setLog, [{ exerciseId: "bench_press", exerciseMode: "gym", sets: [{ setNumber: 1, completed: true, weightKg: 25, reps: 7 }] }]);
+      const [unchanged] = await db.select().from(schema.operationReceipts).where(eq(schema.operationReceipts.operationId, legacyKey));
+      assert.deepEqual(unchanged.result.response, oldResponse);
+    });
+    await t.test("Workout summary compares actual sets, isolates accounts, and replays the original comparison receipt", async () => {
+      const a = await account(), b = await account();
+      const input = (id: string, day: string, weightKg: number, reps = 7) => ({
+        id, source: "manual", mode: "gym", startedAt: `${day}T10:00:00Z`, finishedAt: `${day}T10:30:00Z`, recordedOn: day,
+        exerciseSnapshot: [{ ...prescription("bench_press"), sets: 2 }],
+        setLog: [{ exerciseId: "bench_press", setNumber: 1, completed: true, weightKg, reps }],
+      });
+      const first = await call("workouts", a.jwt, "POST", input("previous-comparison", "2020-01-01", 25, 8));
+      assert.equal(first.status, 201, JSON.stringify(first.body));
+      assert.equal(first.body.comparison.exercises[0].previousWorkout, null);
+      assert.equal((await call("workouts", b.jwt, "POST", input("foreign-comparison", "2020-01-02", 100))).status, 201);
+      const body = input("current-comparison", "2020-01-03", 30), key = randomUUID();
+      const saved = await call("workouts", a.jwt, "POST", body, key);
+      assert.equal(saved.status, 201, JSON.stringify(saved.body));
+      const comparison = saved.body.comparison.exercises[0];
+      assert.equal(comparison.previousWorkout.id, "previous-comparison");
+      assert.deepEqual(comparison.sets[0].delta, { weightKg: 5, reps: -1, durationSeconds: null });
+      assert.equal(comparison.sets[0].previous.weightKg, 25);
+      assert.equal(comparison.sets[0].current.weightKg, 30);
+      assert.equal(comparison.sets[1].previous, null);
+      assert.deepEqual(comparison.setCount, { current: 1, previous: 1, delta: 0 });
+      assert.deepEqual((await call("workouts/current-comparison", a.jwt)).body.comparison, saved.body.comparison);
+      assert.equal((await call("workouts/current-comparison", b.jwt)).status, 404);
+      assert.equal((await call("workouts", a.jwt, "POST", { ...input("forged-comparison", "2020-01-04", 40), comparison: saved.body.comparison })).status, 400);
+      assert.equal((await call("workouts", a.jwt, "POST", input("backfilled-comparison", "2020-01-02", 20))).status, 201);
+      assert.equal((await call("workouts/current-comparison", a.jwt)).body.comparison.exercises[0].sets[0].delta.weightKg, 10);
+      assert.deepEqual((await call("workouts", a.jwt, "POST", body, key)).body, saved.body);
+      const removed = await call("workouts/backfilled-comparison", a.jwt, "DELETE", { baseVersion: "1" });
+      assert.equal(removed.status, 200);
+      assert.equal((await call("workouts/current-comparison", a.jwt)).body.comparison.exercises[0].sets[0].delta.weightKg, 5);
+      assert.deepEqual((await call("workouts/current-comparison", a.jwt)).body.item, saved.body.item);
+    });
     await t.test("Activity routine onboarding and edits estimate nutrition independently of program frequency", async () => {
       const a = await account();
       const setup = onboarding();
@@ -480,7 +566,7 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
       const key = randomUUID(), saved = await call("workouts", a.jwt, "POST", input, key);
       assert.equal(saved.status, 201, JSON.stringify(saved.body)); assert.equal(saved.body.item.mode, "mixed");
       assert.equal(saved.body.item.status, "completed"); assert.deepEqual(saved.body.exercises, []);
-      assert.deepEqual(saved.body.item.setLog, input.setLog);
+      assertGroupedResults(saved.body.item.setLog, input.setLog);
       for (const snapshot of saved.body.item.exerciseSnapshot) {
         const canonical = catalog.body.exercises.find((e: { id: string; mode: string }) => e.id === snapshot.id && e.mode === snapshot.mode);
         assert.equal(snapshot.idLabel, canonical.idLabel); assert.equal(snapshot.enLabel, canonical.enLabel);
@@ -535,7 +621,7 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
       for (const input of invalid) assert.equal((await call("workouts", a.jwt, "POST", input)).status, 400);
       for (const table of ["workout_sessions", "sync_changes", "operation_receipts"]) assert.equal(await count(table, a.id), 0);
       const saved = await call("workouts", a.jwt, "POST", base); assert.equal(saved.status, 201, JSON.stringify(saved.body));
-      assert.equal(saved.body.item.exerciseSnapshot.length, 2); assert.deepEqual(saved.body.item.setLog, base.setLog);
+      assert.equal(saved.body.item.exerciseSnapshot.length, 2); assertGroupedResults(saved.body.item.setLog, base.setLog);
       assert.notDeepEqual(saved.body.item.exerciseSnapshot[0].requirements, saved.body.item.exerciseSnapshot[1].requirements);
       // Reject the new shape on legacy write paths; upgraded reads stay lossless.
       const { id: _id, version: _version, updatedAt: _at, ...payload } = saved.body.item; void _id; void _version; void _at;
@@ -620,7 +706,7 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
           { exerciseId: "plank", exerciseMode: "calisthenics", setNumber: 1, completed: true, reps: null, weightKg: 0, durationSeconds: 30 },
           { exerciseId: "plank", exerciseMode: "calisthenics", setNumber: 2, completed: true, reps: null, weightKg: null, durationSeconds: 45 }] };
       const saved = await call("workouts", a.jwt, "POST", input, key); assert.equal(saved.status, 201, JSON.stringify(saved.body));
-      assert.deepEqual(saved.body.item.setLog, input.setLog); assert.equal(saved.body.item.mode, "mixed");
+      assertGroupedResults(saved.body.item.setLog, input.setLog); assert.equal(saved.body.item.mode, "mixed");
       const metrics = saved.body.item.resultMetrics; assert.equal(metrics.duration.seconds, 1800); assert.equal(metrics.version, "2");
       assert.equal("energy" in metrics, false); assert.deepEqual(Object.keys(metrics).sort(), ["duration", "muscles", "version"]);
       assert.equal(metrics.muscles.coverage, "complete"); assert.ok(metrics.muscles.primary.includes("abs")); assert.ok(metrics.muscles.primary.includes("chest"));

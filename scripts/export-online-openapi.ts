@@ -3,6 +3,8 @@
 import { z } from "zod";
 import { entityPayloadSchemas, exerciseSchema } from "../src/modules/sync/dto";
 import { currentResultMetricsSchema, legacyResultMetricsSchema, muscleTargetsSchema } from "../src/modules/workouts/measurement";
+import { workoutComparisonSchema } from "../src/modules/workouts/comparison-schema";
+import { workoutSetLogGroupSchema, workoutSetLogOutputSchema, workoutSetResultSchema } from "../src/modules/workouts/set-log";
 import { accountPatchSchema, completedWorkoutSchema, dashboardQuerySchema, deleteSchema, idSchema, keySchema,
   newExercisesSchema, resourceSchemas, summaryQuerySchema, versionSchema } from "../src/modules/online/dto";
 
@@ -21,11 +23,14 @@ function fromZod(schema: z.ZodType): ObjectSchema {
 const schemas: Record<string, ObjectSchema> = {
   Version: fromZod(versionSchema), Id: fromZod(idSchema), DeleteInput: fromZod(deleteSchema), AccountPatchInput: fromZod(accountPatchSchema),
   CompletedWorkoutInput: fromZod(completedWorkoutSchema),
+  WorkoutSetResult: fromZod(workoutSetResultSchema),
+  WorkoutSetLogGroup: fromZod(workoutSetLogGroupSchema),
   ExercisePrescription: fromZod(exerciseSchema),
   MuscleTargets: fromZod(muscleTargetsSchema),
   CurrentWorkoutResultMetrics: { ...fromZod(currentResultMetricsSchema), description: "Version2: elapsed session duration and canonical muscle coverage only. No calorie/MET estimate or bodyweight snapshot." },
   LegacyWorkoutResultMetrics: { ...fromZod(legacyResultMetricsSchema), deprecated: true, description: "Version1 immutable historical snapshot only. Ignore retired energy in the UI. Original reads/receipts are preserved, never recalculated." },
   WorkoutResultMetrics: { oneOf: [ref("CurrentWorkoutResultMetrics"), ref("LegacyWorkoutResultMetrics")], discriminator: { propertyName: "version" } },
+  WorkoutComparison: { ...fromZod(workoutComparisonSchema), readOnly: true, description: "Per-exercise comparison with the account's latest completed, non-deleted session containing a completed matching (mode,id) set. Previous session must start earlier and finish no later than the current start and server time. Pair equal set numbers; never targets or another account. Deltas are current minus previous, null when actuals/sets are missing, incomplete, or tracking differs. Load rounded to six decimals. POST saves the comparison in its idempotency receipt; GET detail computes against currently available history, so deletion/backfill can change the comparison without changing the workout. Not added to list or legacy sync payloads." },
   UserPreferences: fromZod(entityPayloadSchemas.user_preferences.extend({ version: versionSchema, updatedAt: z.iso.datetime({ offset: true }) })),
   Setup: object({ setupCompleted: { type: "boolean" }, profile: nullable(original("SetupProfile")),
     trainingPreferences: nullable(original("SetupTrainingPreferences")), userPreferences: nullable(ref("UserPreferences")), versions: original("SetupVersions") }),
@@ -45,12 +50,14 @@ const meta = { id: idSchema, version: versionSchema, updatedAt: z.iso.datetime({
 const resourceNames = { custom_program: "CustomProgram", user_exercise: "CustomExercise", social_draft: "SocialDraft" } as const;
 schemas.Workout = fromZod(z.object(entityPayloadSchemas.workout_session.shape).extend(meta));
 (schemas.Workout.properties as Record<string, unknown>).resultMetrics = { ...nullable(ref("WorkoutResultMetrics")), readOnly: true, description: "Persisted at final submit only; null for old history. Never regenerated from today's profile/catalog." };
-schemas.CompletedWorkoutInput.description = "Measurement defaults to legacy repetitions when trackingType is absent. duration requires null target reps and targetDurationSeconds1–3600; actual setLog durationSeconds1–3600 or null/omitted unknown, null actual reps. Zero hold seconds is invalid, zero repetition count/extra load is valid. Completed may have unknown actuals; not proof all target sets were done. Session timing is retained: manual sessionTiming user_reported requires1–43200 seconds including rest; timer derives positive elapsed seconds from timestamps and forbids supplied seconds. Program timing may only use timer. No timing means unknown duration, never sum holds. Workout calorie estimation has been removed. energyActivityCode and workoutBodyweightKg are no longer accepted (400, even if null). New resultMetrics version2 contains duration and muscles only, without energy; historical version1 reads/receipts are preserved. No profile weight/age is needed to calculate workout metrics. Snapshot muscleTargets supplied by client are not authoritative and are replaced by canonical data or null. resultMetrics is server-only and rejected as input. See frontend-follow-up-workout-without-calories.md and frontend-follow-up-workout-result-metrics.md; migration0024 remains required for result_metrics storage and nullable readers.";
-schemas.WorkoutResponse = object({ item: ref("Workout") });
-schemas.CompletedWorkoutResponse = object({ item: ref("Workout"), exercises: {
+schemas.LegacyWorkout = { ...structuredClone(schemas.Workout), deprecated: true, description: "Historical idempotency receipts may replay this flat setLog unchanged. GET detail/list always project stored history into grouped setLog without rewriting rows or receipts." };
+(schemas.Workout.properties as Record<string, unknown>).setLog = { ...fromZod(workoutSetLogOutputSchema), description: "Results grouped by (exerciseMode,exerciseId), with set values inside sets. Group order follows first logged appearance; set order is preserved. Mode is inferred from single-mode legacy sessions; null only for an unresolved malformed legacy mixed reference. Empty log returns []." };
+schemas.CompletedWorkoutInput.description = "Prefer grouped setLog with at most12 unique exerciseId/exerciseMode groups and at most10 nested sets each; do not repeat identity inside sets. Single-mode groups may omit mode or specify the matching workout mode. Free manual groups require exerciseMode matching their snapshot item. Unknown references, mixed flat/grouped arrays, duplicate groups/sets and out-of-range set numbers reject400. Empty groups normalize away. Legacy flat log bodies remain accepted. Measurement defaults to legacy repetitions when trackingType is absent. duration requires null target reps and targetDurationSeconds1–3600; actual setLog durationSeconds1–3600 or null/omitted unknown, null actual reps. Zero hold seconds is invalid, zero repetition count/extra load is valid. Completed may have unknown actuals; not proof all target sets were done. Session timing is retained: manual sessionTiming user_reported requires1–43200 seconds including rest; timer derives positive elapsed seconds from timestamps and forbids supplied seconds. Program timing may only use timer. No timing means unknown duration, never sum holds. Workout calorie estimation has been removed. energyActivityCode and workoutBodyweightKg are no longer accepted (400, even if null). New resultMetrics version2 contains duration and muscles only, without energy; historical version1 reads/receipts are preserved. No profile weight/age is needed to calculate workout metrics. Snapshot muscleTargets supplied by client are not authoritative and are replaced by canonical data or null. resultMetrics is server-only and rejected as input. See frontend-follow-up-workout-without-calories.md and frontend-follow-up-workout-result-metrics.md; migration0024 remains required for result_metrics storage and nullable readers.";
+schemas.WorkoutResponse = object({ item: ref("Workout"), comparison: ref("WorkoutComparison") });
+schemas.CompletedWorkoutResponse = object({ item: { anyOf: [ref("Workout"), ref("LegacyWorkout")] }, exercises: {
   ...array(ref("CustomExercise")),
   description: "Canonical newly created exercises in request order, with string versions; empty for fresh submissions without newExercises. Optional only because pre-upgrade saved receipts replay the original item-only response unchanged.",
-} }, ["item"]);
+}, comparison: { ...ref("WorkoutComparison"), description: "Present for fresh successful submissions; optional because historical idempotency receipts replay their original response unchanged." } }, ["item"]);
 schemas.CompletedWorkoutInput.allOf = [{ if: { required: ["newExercises"] }, then: { properties: { source: { enum: ["manual", "record"] } } } }];
 // Zod superRefine is runtime-only: express the structural branches explicitly.
 (schemas.CompletedWorkoutInput.allOf as unknown[]).push({
@@ -60,13 +67,13 @@ schemas.CompletedWorkoutInput.allOf = [{ if: { required: ["newExercises"] }, the
 schemas.CompletedWorkoutInput.oneOf = [
   { required: ["mode"], properties: {
     exerciseSnapshot: { items: { not: { required: ["mode"] } } },
-    setLog: { items: { not: { required: ["exerciseMode"] } } },
+    setLog: { items: { anyOf: [{ required: ["sets"] }, { not: { required: ["exerciseMode"] } }] } },
   } },
   { properties: { source: { enum: ["manual", "record"] },
     exerciseSnapshot: { items: { required: ["mode"] } }, setLog: { items: { required: ["exerciseMode"] } },
   }, not: { required: ["mode"] } },
 ];
-schemas.Workout.description = "Legacy/program snapshots retain their original shape. New free manual snapshots carry exercise.mode and setLog.exerciseMode throughout; their session mode is derived, mixed only when both modes occur. mixed is completed manual only. Identity is the (mode,id) pair, including each log reference and duplicate-set check. Read-only compatibility streams preserve this shape; legacy sync/demo writes cannot create it. Older two-value enum readers must be upgraded before mixed data is enabled.";
+schemas.Workout.description = "POST fresh responses and GET detail/list expose setLog grouped by exerciseId/exerciseMode with nested sets; flat request bodies remain accepted for compatibility. Database and legacy sync logs remain flat. Legacy/program snapshots retain their original shape. New free manual snapshots carry exercise.mode and setLog.exerciseMode throughout; their session mode is derived, mixed only when both modes occur. mixed is completed manual only. Identity is the (mode,id) pair, including each log reference and duplicate-set check. Read-only compatibility streams preserve this shape; legacy sync/demo writes cannot create it. Older two-value enum readers must be upgraded before mixed data is enabled.";
 schemas.WorkoutList = object({ items: array(ref("Workout")), nextCursor: { type: ["string", "null"] } });
 schemas.Schedule = object({ from: { type: "string", format: "date" }, to: { type: "string", format: "date" }, weekdayConvention: { const: "ISO_MONDAY_1_SUNDAY_7" },
   weeklyPrograms: array(ref("ScheduledProgram")), workoutDays: array(ref("WorkoutDay")) });

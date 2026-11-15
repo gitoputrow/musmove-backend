@@ -8,6 +8,8 @@ import { addExercises, assertWorkoutTimes, canonicalExercises } from "./resource
 import { mutateOnline, publicItem, readItem, readOnline, requireLive } from "./store";
 import { canonicalManualExercises } from "./manual-exercises";
 import { buildResultMetrics } from "@/src/modules/workouts/result-metrics";
+import { getWorkoutComparison, type ComparisonWorkout } from "@/src/modules/workouts/comparison";
+import { groupWorkoutSetLog } from "@/src/modules/workouts/set-log";
 
 // One final submission, never a start/active/set-progress write. Mobile keeps
 // the performed prescription and complete set log in memory until finish.
@@ -45,10 +47,16 @@ export function recordCompletedWorkout(userId: string, key: string, input: z.inf
       legacyMetadata: { source: input.source, ...(input.note === undefined ? {} : { note: input.note }) },
     });
     const item = await ctx.put("workout_session", input.id, "0", data);
-    return { item: publicItem(item), exercises: createdExercises.map(publicItem) };
+    const comparison = await getWorkoutComparison(ctx.tx, userId, { ...data, id: input.id });
+    return { item: { ...publicItem(item), setLog: groupWorkoutSetLog(data.setLog, mode) }, exercises: createdExercises.map(publicItem), comparison };
   });
 }
 
 export function workoutDetail(userId: string, id: string) {
-  return readOnline(userId, async tx => ({ item: publicItem(requireLive(await readItem(tx, userId, "workout_session", id))) }));
+  return readOnline(userId, async tx => {
+    const item = requireLive(await readItem(tx, userId, "workout_session", id));
+    const workout = item as unknown as ComparisonWorkout;
+    return { item: { ...publicItem(item), setLog: groupWorkoutSetLog(workout.setLog, workout.mode) },
+      comparison: await getWorkoutComparison(tx, userId, workout) };
+  });
 }

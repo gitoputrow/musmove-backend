@@ -42,9 +42,9 @@ must never send a `userId` to select ownership. Current endpoints are:
 - `GET /sync/pull?cursor=...&limit=...`
 - `POST /imports/demo`
 - `GET /workouts?from=YYYY-MM-DD&to=YYYY-MM-DD`
-- `POST /workouts` (save once after finishing, including full performed snapshot and all set results; custom/recommended/manual)
+- `POST /workouts` (save once after finishing, including full performed snapshot and [set results grouped per exercise](docs/frontend-follow-up-workout-grouped-set-log.md); custom/recommended/manual)
 - Manual workout may include `newExercises` (up to12, all referenced with matching exercise modes) in the same atomic submit; fresh responses return `{item, exercises}`. New free manual format omits top-level mode and sends exercise.mode / setLog.exerciseMode; the backend derives gym/calisthenics/mixed independently of profile. Program workouts stay single-mode. Requires migration0023 and upgraded readers; see [frontend contract](docs/frontend-follow-up-record-workout-free-mode.md). No separate exercise registration or progress API.
-- `GET/DELETE /workouts/{id}` (history; no start/resume, per-set save or abort API)
+- `GET/DELETE /workouts/{id}` (history; GET detail and fresh POST include previous-session comparisons per set; see [workout comparison](docs/frontend-follow-up-workout-comparison.md))
 - `GET/POST /programs/custom`; `GET/PATCH/DELETE /programs/custom/{id}`
 - `GET/POST /exercises/custom`; `GET/PATCH/DELETE /exercises/custom/{id}`
 - `GET /catalog/exercises?equipment=plate` (public and versioned; optional equipment, mode, bodyPart and muscle filters; see `docs/frontend-filter-otot-exercise.md`)

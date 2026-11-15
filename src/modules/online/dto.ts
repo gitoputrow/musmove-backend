@@ -2,6 +2,7 @@ import { z } from "zod";
 import { entityPayloadSchemas } from "@/src/modules/sync/dto";
 import { focusSchema, validateFocusPair } from "@/src/modules/programs/focus";
 import { sessionTimingSchema } from "@/src/modules/workouts/measurement";
+import { flattenWorkoutSetLog, workoutSetLogInputSchema } from "@/src/modules/workouts/set-log";
 
 export const versionSchema = z.string().max(19).regex(/^(0|[1-9][0-9]*)$/)
   .pipe(z.string().refine(v => BigInt(v) <= BigInt("9223372036854775807"), "Version exceeds the supported range"));
@@ -51,14 +52,15 @@ export const completedWorkoutSchema = z.object({
   programId: idSchema.optional(),
   mode: z.enum(["gym", "calisthenics"]).optional(),
   exerciseSnapshot: entityPayloadSchemas.workout_session.shape.exerciseSnapshot,
-  setLog: entityPayloadSchemas.workout_session.shape.setLog,
+  setLog: workoutSetLogInputSchema,
   startedAt: z.iso.datetime({ offset: true }), finishedAt: z.iso.datetime({ offset: true }), recordedOn: workoutDate,
   note: z.string().max(2000).nullable().optional(),
   newExercises: newExercisesSchema.optional(),
   sessionTiming: sessionTimingSchema.optional(),
 }).strict().superRefine((value, context) => {
   const isManual = value.source === "manual" || value.source === "record";
-  const explicit = value.exerciseSnapshot.some(e => e.mode !== undefined) || value.setLog.some(e => e.exerciseMode !== undefined);
+  const grouped = value.setLog.some(e => "sets" in e);
+  const explicit = value.exerciseSnapshot.some(e => e.mode !== undefined) || (!grouped && value.setLog.some(e => e.exerciseMode !== undefined));
   if (isManual && value.mode === undefined) {
     if (value.exerciseSnapshot.some(e => e.mode === undefined) || value.setLog.some(e => e.exerciseMode === undefined)) context.addIssue({ code: "custom", message: "Manual workouts without top-level mode require mode on every exercise and exerciseMode on every set log" });
   } else {
@@ -72,9 +74,35 @@ export const completedWorkoutSchema = z.object({
     code: "custom", path: ["newExercises"], message: "newExercises is supported only for manual workouts",
   });
   const referenced = new Set(value.exerciseSnapshot.map(exercise => JSON.stringify([exercise.mode ?? value.mode, exercise.id])));
+  const groups = new Set<string>();
+  for (const [index, entry] of value.setLog.entries()) {
+    if (!("sets" in entry)) continue;
+    const reference = JSON.stringify([entry.exerciseMode ?? value.mode, entry.exerciseId]);
+    if (groups.has(reference)) context.addIssue({ code: "custom", path: ["setLog", index], message: "Duplicate exercise group" });
+    groups.add(reference);
+    if (!referenced.has(reference)) context.addIssue({ code: "custom", path: ["setLog", index], message: "Set group must reference an exerciseSnapshot item of the same mode" });
+    if (value.mode !== undefined && entry.exerciseMode !== undefined && entry.exerciseMode !== value.mode) context.addIssue({ code: "custom", path: ["setLog", index, "exerciseMode"], message: "Group mode must match the workout mode" });
+    const snapshot = value.exerciseSnapshot.find(e => JSON.stringify([e.mode ?? value.mode, e.id]) === reference);
+    const numbers = new Set<number>();
+    for (const [setIndex, set] of entry.sets.entries()) {
+      if (numbers.has(set.setNumber) || (snapshot && set.setNumber > snapshot.sets)) context.addIssue({
+        code: "custom", path: ["setLog", index, "sets", setIndex, "setNumber"], message: "Set numbers must be unique and within the snapshot set count",
+      });
+      numbers.add(set.setNumber);
+    }
+  }
   for (const [index, exercise] of (value.newExercises ?? []).entries()) {
     if (!referenced.has(JSON.stringify([exercise.data.mode, exercise.id]))) context.addIssue({ code: "custom", path: ["newExercises", index, "id"], message: "Every new exercise must be referenced with its declared mode in exerciseSnapshot" });
   }
+}).transform(value => {
+  const grouped = value.setLog.some(e => "sets" in e);
+  const setLog = flattenWorkoutSetLog(value.setLog).map(log => {
+    // Keep the normalized legacy body/hash byte-shape compatible for old retries.
+    // Single-mode programs store implicit modes; explicit manual logs retain them.
+    if (!grouped || value.mode === undefined) return log;
+    const { exerciseMode: _mode, ...set } = log; void _mode; return set;
+  });
+  return { ...value, setLog };
 });
 export const summaryQuerySchema = z.object({ from: z.iso.date(), to: z.iso.date() }).strict().refine(v => {
   const span = Date.parse(v.to) - Date.parse(v.from); return span >= 0 && span <= 366 * 86400000;

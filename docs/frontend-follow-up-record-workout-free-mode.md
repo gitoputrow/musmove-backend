@@ -1,5 +1,11 @@
 # Follow-up frontend: Record Workout bebas mode profil
 
+Pembaruan15 November2026: gunakan
+[`setLog` grup per exercise](frontend-follow-up-workout-grouped-set-log.md)
+untuk kontrak request/respons terbaru. Contoh flat pada dokumen historis ini
+tetap diterima sebagai input kompatibilitas; respons fresh/detail/list memakai
+grup, sedangkan replay receipt lama mempertahankan bentuk aslinya.
+
 Pembaruan26 Oktober2026: [hasil workout dan durasi per set](frontend-follow-up-workout-result-metrics.md)
 memperluas pengukuran repetitions/duration untuk kedua mode. Angka119 katalog,
 nullable reps, resultMetrics dan statistik nullable memerlukan0024; belum

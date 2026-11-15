@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getDatabase } from "@/src/db/client";
 import { workoutSessions } from "@/src/db/schema";
 import { badRequest } from "@/src/lib/api-error";
+import { groupWorkoutSetLog } from "./set-log";
 
 export const workoutQuerySchema = z
   .object({
@@ -81,7 +82,7 @@ export async function listWorkouts(
       finishedAt: row.finishedAt?.toISOString() ?? null,
       recordedOn: row.recordedOn,
       exerciseSnapshot: row.exerciseSnapshot,
-      setLog: row.setLog,
+      setLog: groupWorkoutSetLog(row.setLog, row.mode),
       legacyMetadata: row.legacyMetadata,
       resultMetrics: row.resultMetrics,
       updatedAt: row.updatedAt.toISOString(),
