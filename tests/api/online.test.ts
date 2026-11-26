@@ -246,12 +246,16 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
       const first = (await call("programs/recommendations", a.jwt)).body;
       const plan = first.programs.find((p: { id: string }) => p.id === first.weeklyPlan[0].programId);
       assert.equal(first.weeklyPlan[0].focus, "leg");
+      // Keep rotation history inside the production 30-day window as time passes.
+      const rotationFinishedAt = new Date(Date.now() - 86400000).toISOString();
+      const rotationStartedAt = new Date(Date.parse(rotationFinishedAt) - 1800000).toISOString();
+      const rotationOn = rotationStartedAt.slice(0, 10);
       // An identically named custom plan cannot count as public-program credit.
       await db.insert(schema.workoutSessions).values({ userId: a.id, id: "custom-provenance", planId: plan.id, mode: "gym", status: "completed",
-        startedAt: new Date(startedAt), finishedAt: new Date(finishedAt), recordedOn: date, exerciseSnapshot: plan.exercises, setLog: [], legacyMetadata: { source: "custom" } });
+        startedAt: new Date(rotationStartedAt), finishedAt: new Date(rotationFinishedAt), recordedOn: rotationOn, exerciseSnapshot: plan.exercises, setLog: [], legacyMetadata: { source: "custom" } });
       assert.equal((await call("programs/recommendations", a.jwt)).body.weeklyPlan[0].focus, "leg");
       const saved = await call("workouts", a.jwt, "POST", { id: "rotation-completed", source: "recommended", programId: plan.id, mode: "gym",
-        exerciseSnapshot: plan.exercises, setLog: [], startedAt, finishedAt, recordedOn: date });
+        exerciseSnapshot: plan.exercises, setLog: [], startedAt: rotationStartedAt, finishedAt: rotationFinishedAt, recordedOn: rotationOn });
       assert.equal(saved.status, 201);
       assert.equal((await call("programs/recommendations", a.jwt)).body.weeklyPlan[0].focus, "chest");
       await db.update(schema.workoutProgramCatalog).set({ active: false }).where(eq(schema.workoutProgramCatalog.id, plan.id));
@@ -905,7 +909,7 @@ test("Online feature APIs are isolated from production DB/Auth and email", async
         manualWithNewExercises(Array.from({ length: 13 }, () => `user-exercise-${randomUUID()}`)),
       ];
       for (const invalid of cases) assert.equal((await call("workouts", a.jwt, "POST", invalid)).status, 400);
-      assert.equal((await call("workouts", a.jwt, "POST", { ...input, note: "x".repeat(66000) })).status, 413);
+      assert.equal((await call("workouts", a.jwt, "POST", { ...input, note: "x".repeat(263000) })).status, 413);
       for (const name of ["user_exercises", "workout_sessions", "operation_receipts", "sync_changes"]) assert.equal(await count(name, a.id), 0);
     });
 

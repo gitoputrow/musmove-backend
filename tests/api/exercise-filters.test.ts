@@ -18,6 +18,11 @@ test("equipment category checks alternatives and matches mobile categories", () 
   assert.equal(matchesEquipmentCategory([["lat_pulldown_standard_machine"]], "machine"), true);
   assert.equal(matchesEquipmentCategory([["lat_pulldown_plate_loaded_machine"]], "plate"), true);
   assert.equal(matchesEquipmentCategory([["lat_pulldown_plate_loaded_machine"]], "machine"), false);
+  assert.equal(matchesEquipmentCategory([["barbell", "bench"]], "barbell"), true);
+  assert.equal(matchesEquipmentCategory([["barbell", "landmine"]], "barbell"), true);
+  for (const requirements of [[["dumbbell"]], [["smith_machine"]], [["plate_loaded_chest_press_machine"]], [[]]]) {
+    assert.equal(matchesEquipmentCategory(requirements, "barbell"), false);
+  }
 });
 
 test("muscle grouping is exhaustive and filtering respects primary and secondary targets", () => {
@@ -63,7 +68,7 @@ test("exercise endpoint filters category, mode and equipment IDs, validates quer
     assert.equal(all.response.status, 200);
     assert.equal(all.body.exercises.length, 141);
     assert.deepEqual((await get("?equipment=all")).body, all.body);
-    for (const [category, id] of [["dumbbell", "flat_dumbbell_bench_press"], ["cable", "lat_pulldown_cable_machine"], ["machine", "lat_pulldown_machine"], ["plate", "lat_pulldown_plate_loaded"], ["no_equipment", "pushup"]]) {
+    for (const [category, id] of [["dumbbell", "flat_dumbbell_bench_press"], ["barbell", "bench_press"], ["cable", "lat_pulldown_cable_machine"], ["machine", "lat_pulldown_machine"], ["plate", "lat_pulldown_plate_loaded"], ["no_equipment", "pushup"]]) {
       const result = await get(`?equipment=${category}`);
       assert.equal(result.response.status, 200);
       assert.ok(result.body.exercises.some((item: { id: string }) => item.id === id), `${category} ${id}`);
@@ -71,6 +76,11 @@ test("exercise endpoint filters category, mode and equipment IDs, validates quer
     }
     const combined = await get("?equipment=plate&mode=gym&equipmentIds=lat_pulldown_plate_loaded_machine");
     assert.deepEqual(combined.body.exercises.map((item: { id: string }) => item.id), ["lat_pulldown_plate_loaded"]);
+    const barbell = await get("?equipment=barbell&mode=gym&bodyPart=upper_body&muscle=chest");
+    assert.equal(barbell.response.status, 200);
+    assert.ok(barbell.body.exercises.some((item: { id: string; enLabel: string }) => item.id === "bench_press" && item.enLabel === "Bench Press (Barbell)"));
+    assert.ok(barbell.body.exercises.every((item: { mode: string; requirements: string[][] }) => item.mode === "gym" && item.requirements.some(group => group.includes("barbell"))));
+    assert.deepEqual((await get("?equipment=barbell&equipmentIds=dumbbell")).body.exercises, []);
     const cable = await get("?equipment=cable");
     assert.ok(!cable.body.exercises.some((item: { id: string }) => item.id === "lat_pulldown_machine"));
     for (const part of ["upper_body", "lower_body"] as const) {
@@ -94,7 +104,7 @@ test("exercise endpoint filters category, mode and equipment IDs, validates quer
     assert.ok(multi.body.exercises.some((item: { id: string }) => item.id === "flat_dumbbell_bench_press"));
     assert.ok((await get("?bodyPart=upper_body&muscles=chest,triceps&equipment=dumbbell")).body.exercises.length > 0);
     assert.deepEqual((await get("?muscles=chest")).body, (await get("?muscle=chest")).body);
-    for (const query of ["?equipment=barbell", "?equipment=", "?mode=bad", "?equipment=plate&equipment=cable", "?other=x", "?equipmentIds=dumbbell,dumbbell", "?equipmentIds=unknown", "?bodyPart=upper", "?muscle=unknown", "?muscleRole=all", "?bodyPart=upper_body&muscle=calves", "?muscle=chest&muscle=triceps", "?muscles=", "?muscles=chest,chest", "?muscles=chest,unknown", "?muscle=chest&muscles=chest", "?bodyPart=upper_body&muscles=chest,calves"]) {
+    for (const query of ["?equipment=barbel", "?equipment=", "?mode=bad", "?equipment=plate&equipment=cable", "?other=x", "?equipmentIds=dumbbell,dumbbell", "?equipmentIds=unknown", "?bodyPart=upper", "?muscle=unknown", "?muscleRole=all", "?bodyPart=upper_body&muscle=calves", "?muscle=chest&muscle=triceps", "?muscles=", "?muscles=chest,chest", "?muscles=chest,unknown", "?muscle=chest&muscles=chest", "?bodyPart=upper_body&muscles=chest,calves"]) {
       assert.equal((await get(query)).response.status, 400, query);
     }
   } finally { globals.musmoveDatabase = previous; await local.close(); }

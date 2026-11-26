@@ -22,6 +22,16 @@ export const workoutComparisonSchema = z.object({
       delta: z.object({ weightKg: z.number().nullable(), reps: z.number().int().nullable(), durationSeconds: z.number().int().nullable() }).strict(),
     }).strict()).max(10),
   }).strict()).max(12),
+  run: z.object({
+    previousWorkout: z.object({
+      id: z.string(), startedAt: z.iso.datetime({ offset: true }), finishedAt: z.iso.datetime({ offset: true }),
+      recordedOn: z.iso.date().nullable(),
+    }).strict().nullable(),
+    distanceMeters: z.object({ current: z.number(), previous: z.number().nullable(), delta: z.number().nullable() }).strict(),
+    avgPaceSecondsPerKm: z.object({ current: z.number().int(), previous: z.number().int().nullable(), delta: z.number().int().nullable() }).strict()
+      .describe("Negative delta means faster than the previous run."),
+    durationSeconds: z.object({ current: z.number().int(), previous: z.number().int().nullable(), delta: z.number().int().nullable() }).strict(),
+  }).strict().optional().describe("Running sessions only: comparison with the latest earlier completed, non-deleted run of the account."),
 }).strict();
 
 export type WorkoutComparison = z.infer<typeof workoutComparisonSchema>;

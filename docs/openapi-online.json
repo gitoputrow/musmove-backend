@@ -3,7 +3,7 @@
   "info": {
     "title": "MusMove direct online APIs",
     "version": "1.1.0",
-    "description": "Source contract, not proof of deployment. Primary spec is openapi.yaml, which references these path items. Every mutation requires a UUID Idempotency-Key plus resource versions for updates/deletes. Scope/hash/receipt and domain writes commit atomically; same account/key/normalized body replays the original successful JSON/status, different content/path rejects409. Failed transactions save no receipt. No TTL cleanup/discovery endpoint, no skip endpoint, no new SETUP_REQUIRED recommendation guard. All ownership from Bearer JWT. JSON <=64KiB, depth32; mutation responses <=256KiB, reads <=3MiB. Account120/min and writes30/min;429 honors Retry-After; errors sanitized with requestId. Legacy writes/receipts/history shapes retained; new free manual snapshots require upgraded readers, cannot be created via legacy sync/demo imports. Migration0023 changes workout-only mode type, not training mode. No new tables, cloud deployment, production personal writes or deletion of legacy device data."
+    "description": "Source contract, not proof of deployment. Primary spec is openapi.yaml, which references these path items. Every mutation requires a UUID Idempotency-Key plus resource versions for updates/deletes. Scope/hash/receipt and domain writes commit atomically; same account/key/normalized body replays the original successful JSON/status, different content/path rejects409. Failed transactions save no receipt. No TTL cleanup/discovery endpoint, no skip endpoint, no new SETUP_REQUIRED recommendation guard. All ownership from Bearer JWT. JSON <=64KiB (POST /workouts <=256KiB for run routes), depth32; mutation responses <=256KiB, reads <=3MiB. Account120/min and writes30/min;429 honors Retry-After; errors sanitized with requestId. Legacy writes/receipts/history shapes retained; new free manual snapshots require upgraded readers, cannot be created via legacy sync/demo imports. Migration0023 changes workout-only mode type, not training mode. No new tables, cloud deployment, production personal writes or deletion of legacy device data."
   },
   "servers": [
     {
@@ -162,7 +162,8 @@
               "enum": [
                 "gym",
                 "calisthenics",
-                "mixed"
+                "mixed",
+                "running"
               ]
             }
           },
@@ -230,7 +231,7 @@
       },
       "post": {
         "operationId": "recordCompletedWorkout",
-        "description": "Submit once after finishing; never start/resume or per-set writes. custom/recommended require programId plus one gym/calisthenics mode and retain strict single-mode references. manual must omit programId. New free manual format omits top-level mode and requires mode per exerciseSnapshot item and exerciseMode per setLog entry; backend derives gym/calisthenics/mixed from verified references, independently of profile/setup. Legacy manual format with top-level mode and no per-exercise modes remains accepted; do not mix formats. Identity is (mode,id), never ID alone; two mode-qualified public IDs can coexist, but duplicate same-mode IDs or duplicate (mode,id,setNumber) reject400. Local/catalog shadow in the same mode rejects400 AMBIGUOUS_EXERCISE_REFERENCE rather than guessing. Canonicalize labels/requirements and verify ownership; historical owned/catalog references may be deleted/inactive. Keep actual reps/load per set unchanged. Manual-only optional newExercises: <=12 unique account-local IDs, explicit gym/calisthenics classification per new exercise matching its snapshot reference; no inference from profile/name. Existing own/tombstone/catalog ID conflicts409; foreign IDs never provide references, but a separately declared new local ID is independently owned. All exercises/workout/events/receipt commit or roll back together. <=12 exercises, <=120 logs, <=10 sets per exercise; frontend starts new selections at1 set, backend accepts1–10 and does not overwrite it with defaults. Fresh responses return item plus canonical created exercises; exact retry replays saved response, including legacy item-only receipts, with no duplicate writes. Changed body/key reuse409. completed only; full performed snapshots are immutable, not rebuilt from a program. finishedAt>=startedAt, recordedOn>=1900-01-01 and within1 day of UTC start day. New mixed shape requires migration0023 and upgraded readers before activation; see frontend-follow-up-record-workout-free-mode.md.",
+        "description": "Submit once after finishing; never start/resume or per-set writes. custom/recommended require programId plus one gym/calisthenics mode and retain strict single-mode references. manual must omit programId. New free manual format omits top-level mode and requires mode per exerciseSnapshot item and exerciseMode per setLog entry; backend derives gym/calisthenics/mixed from verified references, independently of profile/setup. Legacy manual format with top-level mode and no per-exercise modes remains accepted; do not mix formats. Identity is (mode,id), never ID alone; two mode-qualified public IDs can coexist, but duplicate same-mode IDs or duplicate (mode,id,setNumber) reject400. Local/catalog shadow in the same mode rejects400 AMBIGUOUS_EXERCISE_REFERENCE rather than guessing. Canonicalize labels/requirements and verify ownership; historical owned/catalog references may be deleted/inactive. Keep actual reps/load per set unchanged. Manual-only optional newExercises: <=12 unique account-local IDs, explicit gym/calisthenics classification per new exercise matching its snapshot reference; no inference from profile/name. Existing own/tombstone/catalog ID conflicts409; foreign IDs never provide references, but a separately declared new local ID is independently owned. All exercises/workout/events/receipt commit or roll back together. <=12 exercises, <=120 logs, <=10 sets per exercise; frontend starts new selections at1 set, backend accepts1–10 and does not overwrite it with defaults. Fresh responses return item plus canonical created exercises; exact retry replays saved response, including legacy item-only receipts, with no duplicate writes. Changed body/key reuse409. completed only; full performed snapshots are immutable, not rebuilt from a program. finishedAt>=startedAt, recordedOn>=1900-01-01 and within1 day of UTC start day. New mixed shape requires migration0023 and upgraded readers before activation; see frontend-follow-up-record-workout-free-mode.md. Running: source run + mode running, empty exerciseSnapshot/setLog, no programId/newExercises, plus run. Current (live) run: run.distanceSource gps with movingSeconds, route (polyline5, 2–20000 points, <=200000 chars) and optional consecutive splits, sessionTiming timer. Past run: distanceSource manual without route/splits/movingSeconds, sessionTiming user_reported. Distance 1–200000 m, duration 1–43200 s; decoded route length must be within 25% (+50 m) of distanceMeters. Body limit for this endpoint is 256KiB. The idempotency receipt stores the run without the polyline and an exact retry restores it from the stored workout. Requires migration0039; see frontend-follow-up-running-workout.md.",
         "parameters": [
           {
             "in": "header",
@@ -2494,7 +2495,8 @@
               "custom",
               "recommended",
               "manual",
-              "record"
+              "record",
+              "run"
             ]
           },
           "programId": {
@@ -2507,11 +2509,11 @@
             "type": "string",
             "enum": [
               "gym",
-              "calisthenics"
+              "calisthenics",
+              "running"
             ]
           },
           "exerciseSnapshot": {
-            "minItems": 1,
             "maxItems": 12,
             "type": "array",
             "items": {
@@ -3054,6 +3056,99 @@
               "source"
             ],
             "additionalProperties": false
+          },
+          "run": {
+            "type": "object",
+            "properties": {
+              "version": {
+                "type": "string",
+                "const": "1"
+              },
+              "distanceSource": {
+                "type": "string",
+                "enum": [
+                  "gps",
+                  "manual"
+                ],
+                "description": "gps: live tracked run (current); manual: user-entered past run."
+              },
+              "distanceMeters": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 200000
+              },
+              "movingSeconds": {
+                "description": "gps only: active time excluding pauses.",
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 43200
+              },
+              "splits": {
+                "description": "gps only: consecutive splits, usually per kilometre; the last may be shorter.",
+                "maxItems": 200,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "index": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 200
+                    },
+                    "distanceMeters": {
+                      "type": "number",
+                      "minimum": 1,
+                      "maximum": 200000
+                    },
+                    "seconds": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 43200
+                    }
+                  },
+                  "required": [
+                    "index",
+                    "distanceMeters",
+                    "seconds"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "route": {
+                "description": "Required for gps, forbidden for manual.",
+                "type": "object",
+                "properties": {
+                  "encoding": {
+                    "type": "string",
+                    "const": "polyline5",
+                    "description": "Google encoded polyline algorithm, precision 1e5, latitude/longitude order."
+                  },
+                  "polyline": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 200000,
+                    "pattern": "^[\\x3f-\\x7e]+$"
+                  },
+                  "pointCount": {
+                    "type": "integer",
+                    "minimum": 2,
+                    "maximum": 20000
+                  }
+                },
+                "required": [
+                  "encoding",
+                  "polyline",
+                  "pointCount"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "version",
+              "distanceSource",
+              "distanceMeters"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
@@ -3091,7 +3186,8 @@
                 "source": {
                   "enum": [
                     "manual",
-                    "record"
+                    "record",
+                    "run"
                   ]
                 }
               },
@@ -3111,6 +3207,59 @@
                 "programId",
                 "mode"
               ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "source": {
+                  "const": "run"
+                }
+              },
+              "required": [
+                "source"
+              ]
+            },
+            "then": {
+              "required": [
+                "mode",
+                "run",
+                "sessionTiming"
+              ],
+              "properties": {
+                "mode": {
+                  "const": "running"
+                },
+                "exerciseSnapshot": {
+                  "maxItems": 0
+                },
+                "setLog": {
+                  "maxItems": 0
+                }
+              },
+              "not": {
+                "required": [
+                  "newExercises"
+                ]
+              }
+            },
+            "else": {
+              "not": {
+                "required": [
+                  "run"
+                ]
+              },
+              "properties": {
+                "mode": {
+                  "enum": [
+                    "gym",
+                    "calisthenics"
+                  ]
+                },
+                "exerciseSnapshot": {
+                  "minItems": 1
+                }
+              }
             }
           }
         ],
@@ -3946,6 +4095,139 @@
         "deprecated": true,
         "description": "Version1 immutable historical snapshot only. Ignore retired energy in the UI. Original reads/receipts are preserved, never recalculated."
       },
+      "RunWorkoutResultMetrics": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string",
+            "const": "3"
+          },
+          "kind": {
+            "type": "string",
+            "const": "running"
+          },
+          "duration": {
+            "type": "object",
+            "properties": {
+              "seconds": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 43200
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "source": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "timer",
+                      "user_reported"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "reason": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "const": "NOT_RECORDED"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "meaning": {
+                "type": "string",
+                "const": "elapsed_including_rest"
+              },
+              "verification": {
+                "type": "string",
+                "const": "client_reported"
+              }
+            },
+            "required": [
+              "seconds",
+              "source",
+              "reason",
+              "meaning",
+              "verification"
+            ],
+            "additionalProperties": false
+          },
+          "run": {
+            "type": "object",
+            "properties": {
+              "distanceMeters": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 200000
+              },
+              "distanceSource": {
+                "type": "string",
+                "enum": [
+                  "gps",
+                  "manual"
+                ]
+              },
+              "movingSeconds": {
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 43200
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "paceBasis": {
+                "type": "string",
+                "enum": [
+                  "moving_seconds",
+                  "duration_seconds"
+                ]
+              },
+              "avgPaceSecondsPerKm": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "avgSpeedKmh": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "distanceMeters",
+              "distanceSource",
+              "movingSeconds",
+              "paceBasis",
+              "avgPaceSecondsPerKm",
+              "avgSpeedKmh"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "version",
+          "kind",
+          "duration",
+          "run"
+        ],
+        "additionalProperties": false,
+        "description": "Version3: running sessions only. duration.seconds is elapsed (timer) or user-reported (past run). Pace/speed are server-computed from distanceMeters and movingSeconds (gps) or duration seconds (manual); clients never send them."
+      },
       "WorkoutResultMetrics": {
         "oneOf": [
           {
@@ -3953,6 +4235,9 @@
           },
           {
             "$ref": "#/components/schemas/LegacyWorkoutResultMetrics"
+          },
+          {
+            "$ref": "#/components/schemas/RunWorkoutResultMetrics"
           }
         ],
         "discriminator": {
@@ -4265,6 +4550,170 @@
               ],
               "additionalProperties": false
             }
+          },
+          "run": {
+            "description": "Running sessions only: comparison with the latest earlier completed, non-deleted run of the account.",
+            "type": "object",
+            "properties": {
+              "previousWorkout": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "startedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                      },
+                      "finishedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                      },
+                      "recordedOn": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "startedAt",
+                      "finishedAt",
+                      "recordedOn"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "distanceMeters": {
+                "type": "object",
+                "properties": {
+                  "current": {
+                    "type": "number"
+                  },
+                  "previous": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "delta": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "current",
+                  "previous",
+                  "delta"
+                ],
+                "additionalProperties": false
+              },
+              "avgPaceSecondsPerKm": {
+                "type": "object",
+                "properties": {
+                  "current": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "previous": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "delta": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "current",
+                  "previous",
+                  "delta"
+                ],
+                "additionalProperties": false,
+                "description": "Negative delta means faster than the previous run."
+              },
+              "durationSeconds": {
+                "type": "object",
+                "properties": {
+                  "current": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "previous": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "delta": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "current",
+                  "previous",
+                  "delta"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "previousWorkout",
+              "distanceMeters",
+              "avgPaceSecondsPerKm",
+              "durationSeconds"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
@@ -4274,7 +4723,7 @@
         ],
         "additionalProperties": false,
         "readOnly": true,
-        "description": "Per-exercise comparison with the account's latest completed, non-deleted session containing a completed matching (mode,id) set. Previous session must start earlier and finish no later than the current start and server time. Pair equal set numbers; never targets or another account. Deltas are current minus previous, null when actuals/sets are missing, incomplete, or tracking differs. Load rounded to six decimals. POST saves the comparison in its idempotency receipt; GET detail computes against currently available history, so deletion/backfill can change the comparison without changing the workout. Not added to list or legacy sync payloads."
+        "description": "Per-exercise comparison with the account's latest completed, non-deleted session containing a completed matching (mode,id) set. Previous session must start earlier and finish no later than the current start and server time. Pair equal set numbers; never targets or another account. Deltas are current minus previous, null when actuals/sets are missing, incomplete, or tracking differs. Load rounded to six decimals. POST saves the comparison in its idempotency receipt; GET detail computes against currently available history, so deletion/backfill can change the comparison without changing the workout. Not added to list or legacy sync payloads. Running sessions return exercises [] plus run: distance, pace and duration against the latest earlier completed run."
       },
       "UserPreferences": {
         "type": "object",
@@ -4560,7 +5009,6 @@
         "type": "object",
         "properties": {
           "exerciseSnapshot": {
-            "minItems": 1,
             "maxItems": 12,
             "type": "array",
             "items": {
@@ -4816,7 +5264,177 @@
             "enum": [
               "gym",
               "calisthenics",
-              "mixed"
+              "mixed",
+              "running"
+            ]
+          },
+          "runLog": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "string",
+                    "const": "1"
+                  },
+                  "distanceSource": {
+                    "type": "string",
+                    "enum": [
+                      "gps",
+                      "manual"
+                    ]
+                  },
+                  "distanceMeters": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 200000
+                  },
+                  "movingSeconds": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 43200
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "splits": {
+                    "maxItems": 200,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "index": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 200
+                        },
+                        "distanceMeters": {
+                          "type": "number",
+                          "minimum": 1,
+                          "maximum": 200000
+                        },
+                        "seconds": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 43200
+                        }
+                      },
+                      "required": [
+                        "index",
+                        "distanceMeters",
+                        "seconds"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "hasRoute": {
+                    "type": "boolean"
+                  },
+                  "route": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "encoding": {
+                            "type": "string",
+                            "const": "polyline5",
+                            "description": "Google encoded polyline algorithm, precision 1e5, latitude/longitude order."
+                          },
+                          "polyline": {
+                            "type": "string",
+                            "minLength": 2,
+                            "maxLength": 200000,
+                            "pattern": "^[\\x3f-\\x7e]+$"
+                          },
+                          "pointCount": {
+                            "type": "integer",
+                            "minimum": 2,
+                            "maximum": 20000
+                          }
+                        },
+                        "required": [
+                          "encoding",
+                          "polyline",
+                          "pointCount"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "routeBounds": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "south": {
+                            "type": "number",
+                            "minimum": -90,
+                            "maximum": 90
+                          },
+                          "west": {
+                            "type": "number",
+                            "minimum": -180,
+                            "maximum": 180
+                          },
+                          "north": {
+                            "type": "number",
+                            "minimum": -90,
+                            "maximum": 90
+                          },
+                          "east": {
+                            "type": "number",
+                            "minimum": -180,
+                            "maximum": 180
+                          }
+                        },
+                        "required": [
+                          "south",
+                          "west",
+                          "north",
+                          "east"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "routeDistanceMeters": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Server-computed haversine length of the decoded route."
+                  }
+                },
+                "required": [
+                  "version",
+                  "distanceSource",
+                  "distanceMeters",
+                  "movingSeconds",
+                  "splits",
+                  "hasRoute",
+                  "routeBounds",
+                  "routeDistanceMeters"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
             ]
           },
           "planId": {
@@ -4974,13 +5592,12 @@
           "version",
           "updatedAt"
         ],
-        "description": "POST fresh responses and GET detail/list expose setLog grouped by exerciseId/exerciseMode with nested sets; flat request bodies remain accepted for compatibility. Database and legacy sync logs remain flat. Legacy/program snapshots retain their original shape. New free manual snapshots carry exercise.mode and setLog.exerciseMode throughout; their session mode is derived, mixed only when both modes occur. mixed is completed manual only. Identity is the (mode,id) pair, including each log reference and duplicate-set check. Read-only compatibility streams preserve this shape; legacy sync/demo writes cannot create it. Older two-value enum readers must be upgraded before mixed data is enabled."
+        "description": "POST fresh responses and GET detail/list expose setLog grouped by exerciseId/exerciseMode with nested sets; flat request bodies remain accepted for compatibility. Database and legacy sync logs remain flat. Legacy/program snapshots retain their original shape. New free manual snapshots carry exercise.mode and setLog.exerciseMode throughout; their session mode is derived, mixed only when both modes occur. mixed is completed manual only. Identity is the (mode,id) pair, including each log reference and duplicate-set check. Read-only compatibility streams preserve this shape; legacy sync/demo writes cannot create it. Older two-value enum readers must be upgraded before mixed data is enabled. running is a completed run (source run) with empty exerciseSnapshot/setLog and a runLog; runLog is null for every other mode. Detail/POST include runLog.route (encoded polyline) and routeBounds; GET /workouts list omits runLog.route but keeps hasRoute. Legacy sync bootstrap/pull/snapshots never include running sessions."
       },
       "LegacyWorkout": {
         "type": "object",
         "properties": {
           "exerciseSnapshot": {
-            "minItems": 1,
             "maxItems": 12,
             "type": "array",
             "items": {
@@ -5195,7 +5812,177 @@
             "enum": [
               "gym",
               "calisthenics",
-              "mixed"
+              "mixed",
+              "running"
+            ]
+          },
+          "runLog": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "string",
+                    "const": "1"
+                  },
+                  "distanceSource": {
+                    "type": "string",
+                    "enum": [
+                      "gps",
+                      "manual"
+                    ]
+                  },
+                  "distanceMeters": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 200000
+                  },
+                  "movingSeconds": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 43200
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "splits": {
+                    "maxItems": 200,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "index": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 200
+                        },
+                        "distanceMeters": {
+                          "type": "number",
+                          "minimum": 1,
+                          "maximum": 200000
+                        },
+                        "seconds": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 43200
+                        }
+                      },
+                      "required": [
+                        "index",
+                        "distanceMeters",
+                        "seconds"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "hasRoute": {
+                    "type": "boolean"
+                  },
+                  "route": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "encoding": {
+                            "type": "string",
+                            "const": "polyline5",
+                            "description": "Google encoded polyline algorithm, precision 1e5, latitude/longitude order."
+                          },
+                          "polyline": {
+                            "type": "string",
+                            "minLength": 2,
+                            "maxLength": 200000,
+                            "pattern": "^[\\x3f-\\x7e]+$"
+                          },
+                          "pointCount": {
+                            "type": "integer",
+                            "minimum": 2,
+                            "maximum": 20000
+                          }
+                        },
+                        "required": [
+                          "encoding",
+                          "polyline",
+                          "pointCount"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "routeBounds": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "south": {
+                            "type": "number",
+                            "minimum": -90,
+                            "maximum": 90
+                          },
+                          "west": {
+                            "type": "number",
+                            "minimum": -180,
+                            "maximum": 180
+                          },
+                          "north": {
+                            "type": "number",
+                            "minimum": -90,
+                            "maximum": 90
+                          },
+                          "east": {
+                            "type": "number",
+                            "minimum": -180,
+                            "maximum": 180
+                          }
+                        },
+                        "required": [
+                          "south",
+                          "west",
+                          "north",
+                          "east"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "routeDistanceMeters": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Server-computed haversine length of the decoded route."
+                  }
+                },
+                "required": [
+                  "version",
+                  "distanceSource",
+                  "distanceMeters",
+                  "movingSeconds",
+                  "splits",
+                  "hasRoute",
+                  "routeBounds",
+                  "routeDistanceMeters"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
             ]
           },
           "planId": {
@@ -5476,7 +6263,9 @@
               "setsMissingDuration",
               "unmatchedCompletedSets",
               "repetitionSets",
-              "durationSets"
+              "durationSets",
+              "runningWorkouts",
+              "runningDistanceMeters"
             ],
             "properties": {
               "completedWorkouts": {
@@ -5535,6 +6324,14 @@
               },
               "durationSets": {
                 "type": "integer"
+              },
+              "runningWorkouts": {
+                "type": "integer",
+                "description": "Completed running sessions in range; also counted in completedWorkouts."
+              },
+              "runningDistanceMeters": {
+                "type": "number",
+                "description": "Sum of reported run distances, rounded to 0.1 m."
               }
             }
           },

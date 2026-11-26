@@ -7,6 +7,35 @@ import type { WorkoutComparison } from "./comparison-schema";
 export interface ComparisonWorkout {
   id: string; mode: string; status: string; startedAt: string | Date;
   exerciseSnapshot: WorkoutExercisePrescription[]; setLog: WorkoutSetLog[];
+  resultMetrics?: unknown;
+}
+type RunMetrics = { duration: { seconds: number }; run: { distanceMeters: number; avgPaceSecondsPerKm: number } };
+const isRunMetrics = (value: unknown): value is RunMetrics => {
+  const v = value as { version?: unknown; run?: unknown } | null;
+  return !!v && v.version === "3" && !!v.run;
+};
+const isoDate = (value: Date | string | null) => value === null ? null : (value instanceof Date ? value.toISOString() : value).slice(0, 10);
+
+async function runComparison(tx: DatabaseTransaction, userId: string, workout: ComparisonWorkout): Promise<WorkoutComparison["run"]> {
+  if (!isRunMetrics(workout.resultMetrics)) return undefined;
+  const current = workout.resultMetrics, startedAt = new Date(workout.startedAt).toISOString();
+  const result = await tx.execute<{ id: string; startedAt: Date | string; finishedAt: Date | string; recordedOn: Date | string | null; resultMetrics: unknown }>(sql`
+    SELECT id, started_at AS "startedAt", finished_at AS "finishedAt", recorded_on AS "recordedOn", result_metrics AS "resultMetrics"
+    FROM workout_sessions
+    WHERE user_id = ${userId} AND id <> ${workout.id} AND mode::text = 'running'
+      AND status = 'completed' AND deleted_at IS NULL
+      AND started_at < ${startedAt}::timestamptz
+      AND finished_at <= ${startedAt}::timestamptz AND finished_at <= now()
+    ORDER BY finished_at DESC, started_at DESC, id DESC LIMIT 1`);
+  const prior = result.rows[0];
+  const previous = prior && isRunMetrics(prior.resultMetrics) ? prior.resultMetrics : null;
+  const pair = (now: number, before: number | null) => ({ current: now, previous: before, delta: difference(now, before) });
+  return {
+    previousWorkout: prior ? { id: prior.id, startedAt: new Date(prior.startedAt).toISOString(), finishedAt: new Date(prior.finishedAt).toISOString(), recordedOn: isoDate(prior.recordedOn) } : null,
+    distanceMeters: pair(current.run.distanceMeters, previous?.run.distanceMeters ?? null),
+    avgPaceSecondsPerKm: pair(current.run.avgPaceSecondsPerKm, previous?.run.avgPaceSecondsPerKm ?? null),
+    durationSeconds: pair(current.duration.seconds, previous?.duration.seconds ?? null),
+  };
 }
 type Previous = {
   exerciseId: string; exerciseMode: string; id: string | null; startedAt: Date | string | null;
@@ -34,6 +63,7 @@ function completedSetCount(mode: string, exercise: WorkoutExercisePrescription, 
 export async function getWorkoutComparison(tx: DatabaseTransaction, userId: string, workout: ComparisonWorkout): Promise<WorkoutComparison> {
   const result: WorkoutComparison = { version: "1", basis: "previous_completed_workout", exercises: [] };
   if (workout.status !== "completed") return result;
+  if (workout.mode === "running") return { ...result, run: await runComparison(tx, userId, workout) };
   const references = workout.exerciseSnapshot.map(e => ({ id: e.id, mode: e.mode ?? workout.mode }))
     .filter((e): e is { id: string; mode: "gym" | "calisthenics" } => e.mode === "gym" || e.mode === "calisthenics");
   if (!references.length) return result;

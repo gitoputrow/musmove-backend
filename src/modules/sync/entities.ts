@@ -317,6 +317,7 @@ export async function upsertEntity(
         setLog,
         legacyMetadata,
         resultMetrics: (payload.resultMetrics ?? null) as JsonObject | null,
+        runLog: (payload.runLog ?? null) as JsonObject | null,
       };
       await transaction
         .insert(workoutSessions)

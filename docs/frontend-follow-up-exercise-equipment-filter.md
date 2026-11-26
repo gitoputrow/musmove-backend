@@ -1,5 +1,10 @@
 # Katalog plate-loaded dan filter alat pada pemilihan exercise
 
+Pembaruan 25 November 2026:
+[nama exercise diseragamkan dan filter Barbell ditambahkan](frontend-follow-up-exercise-labels-barbell.md).
+Nama dan status filter pada bagian historis di bawah mengikuti implementasi
+sebelumnya. Gunakan follow-up terbaru untuk kontrak yang diperbarui.
+
 > Catatan: laporan historis ini mendeskripsikan filter lokal. Kontrak backend terbaru dan rencana migrasi frontend ada di [panduan filter exercise](panduan-frontend-filter-exercise.md).
 
 Pembaruan: 29 Oktober 2026.

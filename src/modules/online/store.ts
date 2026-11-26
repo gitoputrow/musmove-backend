@@ -85,8 +85,16 @@ export async function readOnline<T>(userId: string, action: (tx: DatabaseTransac
   }, { isolationLevel: "repeatable read" });
 }
 
+export interface ReceiptCodec {
+  compact(response: JsonObject): JsonObject;
+  restore(tx: DatabaseTransaction, userId: string, response: JsonObject): Promise<JsonObject>;
+}
+// Running sessions exist only in the online API. Legacy sync readers know only
+// gym/calisthenics/mixed, so these writes emit no sync change feed entries.
+const legacyHidden = (type: OnlineEntity, item: Item) => type === "workout_session" && item.mode === "running";
+
 export async function mutateOnline(userId: string, operationId: string, scope: string, input: unknown,
-  action: (context: Mutation) => Promise<unknown>) {
+  action: (context: Mutation) => Promise<unknown>, receiptCodec?: ReceiptCodec) {
   const kind = `online.v1:${scope}`, requestHash = canonicalRequestHash({ kind, input });
   try {
     return await getDatabase().transaction(async tx => {
@@ -94,7 +102,8 @@ export async function mutateOnline(userId: string, operationId: string, scope: s
       const [receipt] = await tx.select().from(operationReceipts).where(and(eq(operationReceipts.userId, userId), eq(operationReceipts.operationId, operationId)));
       if (receipt) {
         if (receipt.requestHash !== requestHash || receipt.result.kind !== kind) throw conflict("IDEMPOTENCY_KEY_REUSE", "Key already used for a different request");
-        return receipt.result.response as JsonObject;
+        const response = receipt.result.response as JsonObject;
+        return receiptCodec ? receiptCodec.restore(tx, userId, response) : response;
       }
       let sequence = state.nextSequence;
       const write = async (type: OnlineEntity, id: string, base: string, payload: unknown, remove: boolean) => {
@@ -112,6 +121,7 @@ export async function mutateOnline(userId: string, operationId: string, scope: s
         }
         const stored = await readItem(tx, userId, type, id);
         if (!stored) throw new Error("Mutation did not persist");
+        if (legacyHidden(type, stored)) return stored;
         await tx.insert(syncChanges).values({ userId, sequence, entityType: type, entityId: id, entityVersion: next,
           operation: remove ? "delete" : "upsert", payload: remove ? null : payloadOf(stored) as JsonValue });
         sequence += BigInt(1); return stored;
@@ -123,7 +133,7 @@ export async function mutateOnline(userId: string, operationId: string, scope: s
       const json = JSON.parse(JSON.stringify(response)) as JsonObject;
       if (Buffer.byteLength(JSON.stringify(json)) > 256 * 1024) throw new ApiError(413, "RESPONSE_TOO_LARGE", "Mutation response exceeds the supported size");
       if (sequence !== state.nextSequence) await tx.update(syncState).set({ nextSequence: sequence, updatedAt: new Date() }).where(eq(syncState.userId, userId));
-      await tx.insert(operationReceipts).values({ userId, operationId, requestHash, result: { kind, response: json } });
+      await tx.insert(operationReceipts).values({ userId, operationId, requestHash, result: { kind, response: receiptCodec ? receiptCodec.compact(json) : json } });
       return json;
     });
   } catch (error) {

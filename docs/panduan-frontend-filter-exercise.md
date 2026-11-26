@@ -12,6 +12,7 @@ Gunakan `GET /api/v1/catalog/exercises` (publik):
 GET /api/v1/catalog/exercises
 GET /api/v1/catalog/exercises?equipment=all
 GET /api/v1/catalog/exercises?equipment=dumbbell
+GET /api/v1/catalog/exercises?equipment=barbell
 GET /api/v1/catalog/exercises?equipment=cable
 GET /api/v1/catalog/exercises?equipment=machine
 GET /api/v1/catalog/exercises?equipment=plate
@@ -29,12 +30,17 @@ Backend menerapkan kategori pada ID alat di semua alternatif `requirements`:
 | --- | --- |
 | `all` | Semua exercise aktif sesuai filter lainnya. |
 | `dumbbell` | Mengandung ID `dumbbell`. |
+| `barbell` | Mengandung ID `barbell`, termasuk kombinasi dengan bench, rack, atau landmine. |
 | `cable` | Mengandung `cable_machine` atau `lat_pulldown_machine`. |
 | `machine` | ID berakhiran `_machine`, kecuali cable dan plate-loaded. |
 | `plate` | ID mengandung `plate_loaded`. |
 | `no_equipment` | Ada alternatif kebutuhan alat kosong, misalnya `[[]]`. |
 
-Satu exercise dapat masuk lebih dari satu filter jika memakai beberapa alat atau memiliki alternatif. Exercise dengan alat lain seperti barbell tetap muncul di All. Exercise custom tidak disertakan dalam katalog publik; frontend tetap bertanggung jawab menampilkan exercise custom user sesuai kebutuhannya. Filter mode, pilihan dan search di frontend tetap perlu disesuaikan dengan alur halaman.
+Satu exercise dapat masuk lebih dari satu filter jika memakai beberapa alat atau memiliki alternatif. Exercise dengan alat lain yang belum mempunyai kategori khusus tetap muncul di All. Exercise custom tidak disertakan dalam katalog publik; frontend tetap bertanggung jawab menampilkan exercise custom user sesuai kebutuhannya. Filter mode, pilihan dan search di frontend tetap perlu disesuaikan dengan alur halaman.
+
+Pembaruan 25 November 2026: label katalog memakai format Nama Latihan (Alat) dan
+Barbell menjadi filter tersendiri. Detail migrasi, cache dan contoh respons ada di
+[follow-up nama exercise dan barbell](frontend-follow-up-exercise-labels-barbell.md).
 
 ## Cari berdasarkan ID alat tertentu
 

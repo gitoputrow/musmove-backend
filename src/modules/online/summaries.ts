@@ -56,11 +56,17 @@ export function statistics(userId: string, query: z.infer<typeof summaryQuerySch
         count(*) FILTER (WHERE exercise IS NULL)::integer AS "unmatchedCompletedSets",
         count(*) FILTER (WHERE exercise IS NOT NULL AND kind='repetitions')::integer AS "repetitionSets",
         count(*) FILTER (WHERE exercise IS NOT NULL AND kind='duration')::integer AS "durationSets" FROM logs`);
+    const runs = await tx.execute<{ runningWorkouts: number; runningDistanceMeters: number }>(sql`
+      SELECT count(*)::integer AS "runningWorkouts",
+        coalesce(sum((run_log->>'distanceMeters')::numeric), 0)::double precision AS "runningDistanceMeters"
+      FROM workout_sessions WHERE user_id=${userId} AND deleted_at IS NULL AND status='completed' AND mode::text='running'
+        AND recorded_on BETWEEN ${query.from}::date AND ${query.to}::date`);
     return { ...query, workoutDays: days,
       totals: { completedWorkouts: days.reduce((n, d) => n + d.completed, 0), abortedWorkouts: days.reduce((n, d) => n + d.aborted, 0),
         durationMinutes: days.some(d => d.durationMinutes === null) ? null : Math.round(days.reduce((n, d) => n + (d.durationMinutes ?? 0), 0) * 100) / 100,
         knownDurationMinutes: Math.round(days.reduce((n, d) => n + d.knownDurationMinutes, 0) * 100) / 100,
-        workoutsMissingDuration: days.reduce((n, d) => n + d.workoutsMissingDuration, 0), ...sets.rows[0] },
+        workoutsMissingDuration: days.reduce((n, d) => n + d.workoutsMissingDuration, 0), ...sets.rows[0],
+        runningWorkouts: runs.rows[0].runningWorkouts, runningDistanceMeters: Math.round(runs.rows[0].runningDistanceMeters * 10) / 10 },
       warnings: ["USER_REPORTED_NOT_INDEPENDENTLY_VERIFIED", "UNDATED_LEGACY_RECORDS_EXCLUDED", "VOLUME_COUNTS_REPORTED_EXTERNAL_LOAD_ONLY", "UNKNOWN_RESULTS_ARE_NOT_ZERO", "HOLD_TIME_IS_NOT_SESSION_DURATION"] };
   });
 }

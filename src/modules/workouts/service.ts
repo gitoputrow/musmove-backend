@@ -5,13 +5,14 @@ import { getDatabase } from "@/src/db/client";
 import { workoutSessions } from "@/src/db/schema";
 import { badRequest } from "@/src/lib/api-error";
 import { groupWorkoutSetLog } from "./set-log";
+import { listRunLog } from "./run";
 
 export const workoutQuerySchema = z
   .object({
     cursor: z.string().max(256).optional(),
     from: z.iso.date().optional(),
     limit: z.coerce.number().int().min(1).max(100).default(25),
-    mode: z.enum(["gym", "calisthenics", "mixed"]).optional(),
+    mode: z.enum(["gym", "calisthenics", "mixed", "running"]).optional(),
     to: z.iso.date().optional(),
   })
   .strict()
@@ -85,6 +86,8 @@ export async function listWorkouts(
       setLog: groupWorkoutSetLog(row.setLog, row.mode),
       legacyMetadata: row.legacyMetadata,
       resultMetrics: row.resultMetrics,
+      // List stays light: run summary and hasRoute, never the polyline.
+      runLog: listRunLog(row.runLog),
       updatedAt: row.updatedAt.toISOString(),
     })),
     nextCursor: hasMore ? encodeOffset(offset + query.limit) : null,

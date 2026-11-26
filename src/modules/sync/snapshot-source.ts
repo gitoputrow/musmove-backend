@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import type { EntityType } from "./dto";
 
 // Explicit projection: never copy internal ownership/derived/private columns.
+// Running sessions (online-API only) are excluded from legacy snapshots.
 const sources: { type: EntityType; table: string; id: string; fields: string[] }[] = [
   { type: "profile", table: "profiles", id: "'profile'", fields: ["display_name", "age_years", "weight_kg", "height_cm", "formula_sex", "gender", "training_context", "goal", "motivation_reason", "motivation_enabled", "daily_activity", "activity_routine", "training_frequency", "focus", "focus_areas", "program_source", "session_minutes", "setup_completed", "training_level", "exercise_capabilities", "excluded_exercise_ids"] },
   { type: "training_preferences", table: "training_preferences", id: "'training_preferences'", fields: ["mode", "equipment", "no_equipment"] },
@@ -23,6 +24,7 @@ export function snapshotSource(userId: string) {
     const payload = pairs.length ? sql`jsonb_build_object(${sql.join(pairs, sql`, `)})` : sql`'{}'::jsonb`;
     return sql`SELECT ${source.type}::text AS entity_type, ${sql.raw(source.id)}::text AS entity_id,
       version, updated_at, ${payload} AS payload FROM ${sql.identifier(source.table)}
-      WHERE user_id=${userId} AND deleted_at IS NULL`;
+      WHERE user_id=${userId} AND deleted_at IS NULL
+      ${source.type === "workout_session" ? sql`AND mode::text <> 'running'` : sql``}`;
   }), sql` UNION ALL `);
 }

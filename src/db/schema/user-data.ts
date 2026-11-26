@@ -219,6 +219,7 @@ export const workoutSessions = pgTable(
     setLog: jsonb("set_log").$type<WorkoutSetLog[]>().notNull(),
     legacyMetadata: jsonb("legacy_metadata").$type<JsonObject>(),
     resultMetrics: jsonb("result_metrics").$type<JsonObject>(),
+    runLog: jsonb("run_log").$type<JsonObject>(),
     ...mutableColumns(),
   },
   (table) => [
@@ -247,8 +248,14 @@ export const workoutSessions = pgTable(
     check(
       "workout_sessions_exercise_count",
       sql`jsonb_typeof(${table.exerciseSnapshot}) = 'array'
-        and jsonb_array_length(${table.exerciseSnapshot}) between 1 and 12`,
+        and ((${table.mode}::text = 'running' and jsonb_array_length(${table.exerciseSnapshot}) = 0)
+          or (${table.mode}::text <> 'running' and jsonb_array_length(${table.exerciseSnapshot}) between 1 and 12))`,
     ),
+    check("workout_sessions_running_shape", sql`(${table.mode}::text <> 'running' and ${table.runLog} is null)
+      or (${table.mode}::text = 'running' and ${table.status} = 'completed'
+        and coalesce(${table.legacyMetadata}->>'source' = 'run', false)
+        and ${table.runLog} is not null and jsonb_typeof(${table.runLog}) = 'object' and jsonb_array_length(${table.setLog}) = 0
+        and octet_length(${table.runLog}::text) <= 262144)`),
     check("workout_sessions_set_log_array", sql`jsonb_typeof(${table.setLog}) = 'array'`),
     check("workout_sessions_metrics_object", sql`${table.resultMetrics} is null or jsonb_typeof(${table.resultMetrics}) = 'object'`),
     check("workout_sessions_mixed_manual", sql`${table.mode} <> 'mixed' or (${table.status} = 'completed' and coalesce(${table.legacyMetadata}->>'source' in ('manual', 'record'), false))`),

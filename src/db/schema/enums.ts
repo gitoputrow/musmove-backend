@@ -29,7 +29,8 @@ export const workoutStatusEnum = pgEnum("workout_status", [
 ]);
 
 // Never widen training_mode: profiles, equipment and programs remain single-mode.
-export const workoutModeEnum = pgEnum("workout_mode", ["gym", "calisthenics", "mixed"]);
+// running is a workout-only session kind (GPS/manual run, no exercises).
+export const workoutModeEnum = pgEnum("workout_mode", ["gym", "calisthenics", "mixed", "running"]);
 
 export const syncOperationEnum = pgEnum("sync_operation", [
   "upsert",

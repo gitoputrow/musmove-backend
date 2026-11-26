@@ -708,7 +708,7 @@ paths:
       security: []
       description: Active exercises. Filters combine with AND; equipmentIds matches any specified tool in any requirement alternative, not necessarily a complete set of tools.
       parameters:
-        - { in: query, name: equipment, schema: { type: string, enum: [all, dumbbell, cable, machine, plate, no_equipment] } }
+        - { in: query, name: equipment, schema: { type: string, enum: [all, dumbbell, barbell, cable, machine, plate, no_equipment] } }
         - { in: query, name: mode, schema: { type: string, enum: [gym, calisthenics] } }
         - { in: query, name: equipmentIds, description: Comma-separated active equipment IDs (1–32, unique)., schema: { type: string, example: 'dumbbell,bench' } }
         - { in: query, name: bodyPart, description: Muscle group for UI filtering; abs, obliques and lowerBack are grouped in upper_body., schema: { type: string, enum: [upper_body, lower_body] } }

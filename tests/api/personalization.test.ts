@@ -145,7 +145,7 @@ test("equipment, age and excluded exercises gate selection, but duration does no
 test("workout performance reuses load without automatic increases", () => {
   const history: WorkoutSession = {
     userId: "test", id: "session", planId: "test", mode: "gym", status: "completed",
-    startedAt: new Date(), finishedAt: new Date(), recordedOn: null,
+    startedAt: new Date(), finishedAt: new Date(), recordedOn: null, runLog: null,
     exerciseSnapshot: gymTemplate.exercises,
     setLog: [1, 2, 3].map((setNumber) => ({ exerciseId: "press", setNumber, completed: true, reps: 7, weightKg: 6 })),
     legacyMetadata: null, resultMetrics: null, version: BigInt(1), updatedAt: new Date(), deletedAt: null,

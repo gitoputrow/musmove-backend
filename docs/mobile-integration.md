@@ -4,6 +4,13 @@ Panduan implementasi untuk Android/iOS, termasuk Flutter. Disusun berdasarkan
 schema, validator, dan handler di repository ini pada 18 Oktober 2026.
 Kontrak field lengkap tersedia di [OpenAPI](openapi.yaml).
 
+Pembaruan 26 November 2026: record workout punya mode **lari** (`source: "run"`,
+`mode: "running"`), untuk lari live dengan GPS dan rute, maupun lari lampau yang
+diinput manual. Respons history dan `GET /workouts?mode=running` bisa berisi
+`mode: "running"` dengan `runLog` dan tanpa exercise. Lihat
+[handoff mode lari](frontend-follow-up-running-workout.md). Migrasi 0039 sudah
+diterapkan dan backend sudah di-deploy. Sesi lari tidak muncul di sync legacy.
+
 **Alur mobile terbaru (20 Oktober 2026):** gunakan
 [handoff API langsung per fitur](frontend-follow-up-online-api.md) untuk mode
 online, PATCH profil/preferensi gabungan, CRUD resource, hasil workout selesai,
@@ -110,7 +117,7 @@ gerak, bukan daftar otot target atau jaminan keamanan medis.
 | `training_preferences` | Mode gym/calisthenics dan alat tersedia; `training_preferences` |
 | `custom_programs` | Program buatan pengguna dan jadwal; `custom_program` |
 | `user_exercises` | Exercise buatan pengguna; `user_exercise` |
-| `workout_sessions` | Sesi latihan, snapshot exercise, log set, status; `workout_session`. Migrasi0023 memberi enum workout_mode tersendiri, termasuk mixed untuk completed manual; mode profil/program tetap gym/calisthenics. |
+| `workout_sessions` | Sesi latihan, snapshot exercise, log set, status; `workout_session`. Migrasi0023 memberi enum workout_mode tersendiri, termasuk mixed untuk completed manual; mode profil/program tetap gym/calisthenics. Migrasi0039 menambah `running` (lari, tanpa exercise) dan kolom `run_log`; sesi lari hanya lewat API online, tidak lewat sync legacy. |
 | `user_preferences` | Preferensi area tempat; `user_preferences` |
 | `place_favorites` | Tempat favorit per akun; `place_favorite` |
 | `social_drafts` | Draft privat, bukan posting publik; `social_draft` |

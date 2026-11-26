@@ -267,6 +267,20 @@
       "when": 1791657682458,
       "tag": "0037_place_google_maps_profiles",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1791657682459,
+      "tag": "0038_standardize_exercise_labels",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1791657682460,
+      "tag": "0039_running_workouts",
+      "breakpoints": true
     }
   ]
 }

@@ -40,8 +40,17 @@ test("Online OpenAPI artifact matches current DTO generator and all path items a
   assert.ok(!spec.components.schemas.CompletedWorkoutInput.required.includes("mode"));
   assert.equal(spec.components.schemas.CompletedWorkoutInput.oneOf.length, 2);
   assert.deepEqual(spec.components.schemas.CompletedWorkoutInput.oneOf[1].properties.exerciseSnapshot.items.required, ["mode"]);
-  assert.deepEqual(spec.components.schemas.Workout.properties.mode.enum, ["gym", "calisthenics", "mixed"]);
-  assert.deepEqual(spec.paths["/workouts"].get.parameters.find((p: { name: string }) => p.name === "mode").schema.enum, ["gym", "calisthenics", "mixed"]);
+  assert.deepEqual(spec.components.schemas.Workout.properties.mode.enum, ["gym", "calisthenics", "mixed", "running"]);
+  assert.deepEqual(spec.paths["/workouts"].get.parameters.find((p: { name: string }) => p.name === "mode").schema.enum, ["gym", "calisthenics", "mixed", "running"]);
+  assert.ok(spec.components.schemas.Workout.properties.runLog);
+  assert.deepEqual(spec.components.schemas.CompletedWorkoutInput.properties.source.enum, ["custom", "recommended", "manual", "record", "run"]);
+  assert.deepEqual(spec.components.schemas.CompletedWorkoutInput.properties.run.properties.distanceSource.enum, ["gps", "manual"]);
+  assert.equal(spec.components.schemas.CompletedWorkoutInput.properties.run.properties.avgPaceSecondsPerKm, undefined);
+  assert.equal(spec.components.schemas.CompletedWorkoutInput.properties.run.properties.route.properties.pointCount.maximum, 20000);
+  assert.equal(spec.components.schemas.CompletedWorkoutInput.allOf[2].then.properties.mode.const, "running");
+  assert.equal(spec.components.schemas.RunWorkoutResultMetrics.properties.version.const, "3");
+  assert.ok(spec.components.schemas.WorkoutComparison.properties.run);
+  assert.equal(spec.components.schemas.Statistics.properties.totals.properties.runningDistanceMeters.type, "number");
   assert.equal(spec.components.schemas.ExercisePrescription.properties.mode, undefined);
   assert.deepEqual(spec.components.schemas.ExercisePrescription.properties.trackingType.enum, ["repetitions", "duration"]);
   assert.equal(spec.components.schemas.ExercisePrescription.allOf[0].then.properties.reps.type, "null");
@@ -57,6 +66,7 @@ test("Online OpenAPI artifact matches current DTO generator and all path items a
   assert.equal(spec.components.schemas.LegacyWorkoutResultMetrics.deprecated, true);
   assert.deepEqual(spec.components.schemas.WorkoutResultMetrics.oneOf, [
     { $ref: "#/components/schemas/CurrentWorkoutResultMetrics" }, { $ref: "#/components/schemas/LegacyWorkoutResultMetrics" },
+    { $ref: "#/components/schemas/RunWorkoutResultMetrics" },
   ]);
   const inputLogs = spec.components.schemas.CompletedWorkoutInput.properties.setLog.anyOf;
   assert.equal(inputLogs[0].maxItems, 120);

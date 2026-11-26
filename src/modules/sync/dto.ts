@@ -3,6 +3,7 @@ import { activityRoutineSchema } from "@/src/modules/nutrition/activity";
 import { focusAreasSchema, validateFocusPair } from "@/src/modules/programs/focus";
 import { assertSafeJson } from "@/src/lib/body";
 import { holdSecondsSchema, muscleTargetsSchema, resultMetricsSchema, trackingTypeSchema, validPrescription } from "@/src/modules/workouts/measurement";
+import { runLogSchema } from "@/src/modules/workouts/run";
 
 export const boundedJsonPayload = z.unknown().superRefine((value, context) => {
   try { assertSafeJson(value); }
@@ -153,11 +154,13 @@ export const entityPayloadSchemas = {
     .strict().refine(v => validPrescription({ trackingType: v.trackingType, reps: v.defaultReps, targetDurationSeconds: v.defaultDurationSeconds }), "Default must match trackingType"),
   workout_session: z
     .object({
-      exerciseSnapshot: z.array(workoutExerciseSchema).min(1).max(12),
+      // Empty only for running sessions (refined below); otherwise 1–12.
+      exerciseSnapshot: z.array(workoutExerciseSchema).max(12),
       finishedAt: z.iso.datetime({ offset: true }).nullable(),
       legacyMetadata: z.record(z.string(), z.unknown()).nullable(),
       resultMetrics: resultMetricsSchema.nullable().optional(),
-      mode: z.enum(["gym", "calisthenics", "mixed"]),
+      mode: z.enum(["gym", "calisthenics", "mixed", "running"]),
+      runLog: runLogSchema.nullable().optional(),
       planId: z.string().trim().min(1).max(255),
       recordedOn: z.iso.date().nullable(),
       setLog: z.array(explicitWorkoutSetLogSchema).max(120),
@@ -171,6 +174,18 @@ export const entityPayloadSchemas = {
         (value.status !== "active" && value.finishedAt !== null),
       { message: "Active sessions cannot have finishedAt; final sessions require it" },
     )
+    .superRefine((value, ctx) => {
+      if (value.mode !== "running") {
+        if (value.runLog != null) ctx.addIssue({ code: "custom", path: ["runLog"], message: "runLog is only for running sessions" });
+        if (value.exerciseSnapshot.length < 1) ctx.addIssue({ code: "custom", path: ["exerciseSnapshot"], message: "A workout requires 1–12 exercises" });
+        return;
+      }
+      // Running sessions are completed GPS/manual runs created only by POST /workouts.
+      if (value.runLog == null) ctx.addIssue({ code: "custom", path: ["runLog"], message: "A running session requires runLog" });
+      if (value.status !== "completed") ctx.addIssue({ code: "custom", path: ["status"], message: "A running session must be completed" });
+      if (value.legacyMetadata?.source !== "run") ctx.addIssue({ code: "custom", path: ["legacyMetadata"], message: "A running session must have source run" });
+      if (value.exerciseSnapshot.length || value.setLog.length) ctx.addIssue({ code: "custom", message: "A running session has no exercises or set logs" });
+    })
     .refine(
       (value) =>
         new Set(value.exerciseSnapshot.map((exercise) => JSON.stringify([exercise.mode ?? value.mode, exercise.id]))).size ===
@@ -276,7 +291,7 @@ export function parseEntityPayload(entityType: EntityType, payload: unknown) {
   // final-submit API, never via unchecked legacy sync or demo imports. Reads of
   // new snapshots/changes remain lossless for upgraded clients.
   if (entityType === "workout_session") return entityPayloadSchemas.workout_session.superRefine((workout, ctx) => {
-    if (workout.resultMetrics != null || workout.mode === "mixed" || workout.exerciseSnapshot.some(e => e.mode !== undefined || e.trackingType === "duration" || e.muscleTargets !== undefined) || workout.setLog.some(e => e.exerciseMode !== undefined || e.durationSeconds !== undefined)) {
+    if (workout.resultMetrics != null || workout.mode === "mixed" || workout.mode === "running" || workout.runLog != null || workout.exerciseSnapshot.some(e => e.mode !== undefined || e.trackingType === "duration" || e.muscleTargets !== undefined) || workout.setLog.some(e => e.exerciseMode !== undefined || e.durationSeconds !== undefined)) {
       ctx.addIssue({ code: "custom", message: "Explicit manual workouts must be submitted through POST /api/v1/workouts" });
     }
   }).parse(payload);

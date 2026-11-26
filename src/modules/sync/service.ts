@@ -309,7 +309,8 @@ export async function bootstrap(userId: string) {
         "user_preferences", "place_favorites", "social_drafts", "legacy_user_metadata"];
       const budget = await transaction.execute<{ records: number; bytes: string }>(sql.join(tables.map((table) => sql`
         SELECT count(*)::integer AS records, coalesce(sum(octet_length(row_to_json(s)::text)), 0)::text AS bytes
-        FROM (SELECT * FROM ${sql.identifier(table)} WHERE user_id = ${userId} AND deleted_at IS NULL LIMIT 501) s
+        FROM (SELECT * FROM ${sql.identifier(table)} WHERE user_id = ${userId} AND deleted_at IS NULL
+          ${table === "workout_sessions" ? sql`AND mode::text <> 'running'` : sql``} LIMIT 501) s
       `), sql` UNION ALL `));
       if (budget.rows.some((row) => row.records > 500) || budget.rows.reduce((total, row) => total + Number(row.bytes), 0) > 1500000) {
         throw new ApiError(413, "BOOTSTRAP_LIMIT", "This account exceeds the single-response bootstrap limit; use paginated history or contact support");
@@ -344,7 +345,8 @@ export async function bootstrap(userId: string) {
       const workoutRows = await transaction
         .select()
         .from(workoutSessions)
-        .where(and(eq(workoutSessions.userId, userId), isNull(workoutSessions.deletedAt)));
+        // Running sessions are online-API only; legacy readers know three modes.
+        .where(and(eq(workoutSessions.userId, userId), isNull(workoutSessions.deletedAt), sql`${workoutSessions.mode}::text <> 'running'`));
       const preferenceRows = await transaction
         .select()
         .from(userPreferences)

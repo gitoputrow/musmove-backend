@@ -1,5 +1,12 @@
 # Follow-up frontend lengkap: seluruh perubahan API backend
 
+Pembaruan 26 November 2026: record workout punya mode **lari** (`source: "run"`,
+`mode: "running"`), untuk lari live dengan GPS dan rute, maupun lari lampau yang
+diinput manual. Respons history dan `GET /workouts?mode=running` bisa berisi
+`mode: "running"` dengan `runLog` dan tanpa exercise. Lihat
+[handoff mode lari](frontend-follow-up-running-workout.md). Migrasi 0039 sudah
+diterapkan dan backend sudah di-deploy. Sesi lari tidak muncul di sync legacy.
+
 Pembaruan15 November2026: [`setLog` API dikelompokkan per exercise](frontend-follow-up-workout-grouped-set-log.md).
 Request grup baru dan flat lama diterima; fresh POST, GET detail dan list
 mengembalikan grup berisi `exerciseId`, `exerciseMode`, dan `sets`. Contoh flat

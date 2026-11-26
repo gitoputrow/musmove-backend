@@ -14,6 +14,6 @@ export const GET = privateHandler(async ({ identity, request }) => {
 
 export const POST = privateHandler(async ({ identity, request }) => {
   noQuery(request); const key = mutationKey(request);
-  return apiJson(await recordCompletedWorkout(identity.internalUserId, key, completedWorkoutSchema.parse(await readJson(request, 65536))), { status: 201 });
+  return apiJson(await recordCompletedWorkout(identity.internalUserId, key, completedWorkoutSchema.parse(await readJson(request, 262144))), { status: 201 });
 });
 export const OPTIONS = optionsHandler(["GET", "POST"]);

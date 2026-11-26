@@ -9,7 +9,7 @@ export const musclesByBodyPart = {
 } as const;
 
 export const exerciseQuerySchema = z.object({
-  equipment: z.enum(["all", "dumbbell", "cable", "machine", "plate", "no_equipment"]).optional(),
+  equipment: z.enum(["all", "dumbbell", "barbell", "cable", "machine", "plate", "no_equipment"]).optional(),
   mode: z.enum(["gym", "calisthenics"]).optional(),
   bodyPart: z.enum(["upper_body", "lower_body"]).optional(),
   muscle: z.enum(muscleAreas).optional(),
@@ -53,6 +53,7 @@ export function matchesEquipmentCategory(requirements: string[][], category: Exe
     const plate = id.includes("plate_loaded");
     const cable = id === "cable_machine" || id === "lat_pulldown_machine";
     if (category === "dumbbell") return id === "dumbbell";
+    if (category === "barbell") return id === "barbell";
     if (category === "cable") return cable;
     if (category === "plate") return plate;
     return id.endsWith("_machine") && !plate && !cable;

@@ -1,0 +1,2026 @@
+{
+  "reviewedAt": "2026-11-25",
+  "counts": {
+    "total": 143,
+    "active": 141,
+    "inactive": 2,
+    "equipmentTypes": {
+      "pull_up_bar_band": 1,
+      "no_equipment": 22,
+      "chair": 4,
+      "pull_up_bar": 2,
+      "bench": 3,
+      "parallel_bars": 1,
+      "low_bar": 1,
+      "rings": 1,
+      "dumbbell": 28,
+      "machine": 16,
+      "barbell": 19,
+      "cable": 29,
+      "plate": 13,
+      "smith_machine": 3
+    }
+  },
+  "notes": [
+    "Reviewed catalog label mapping; migration 0038 changes only id_label, en_label and updated_at.",
+    "Keep mode/id, requirements, defaults, tracking, muscles, movement tags, active flags, user exercises, saved programs, workout snapshots and operation receipts unchanged.",
+    "Equipment classification comes from canonical requirements, not fuzzy name matching. Bench, rack and landmine attachments remain in requirements even when the primary implement appears in the suffix.",
+    "English equipment suffixes: Dumbbell, Barbell, Cable, Machine, Plate-Loaded, Smith Machine, No Equipment; calisthenics tools retain their specific identity.",
+    "Existing aliases may retain identical display labels: lat_pulldown and lat_pulldown_cable_machine both require the cable lat-pulldown machine. Stable IDs distinguish them; do not merge history."
+  ],
+  "exercises": [
+    {
+      "mode": "calisthenics",
+      "id": "band_assisted_pullup",
+      "equipmentType": "pull_up_bar_band",
+      "requirements": [
+        [
+          "pull_up_bar",
+          "resistance_band"
+        ]
+      ],
+      "previousIdLabel": "Pull-up dibantu resistance band",
+      "previousEnLabel": "Band-assisted pull-up",
+      "idLabel": "Pull-Up Berbantuan (Palang Pull-Up + Resistance Band)",
+      "enLabel": "Assisted Pull-Up (Pull-Up Bar + Resistance Band)"
+    },
+    {
+      "mode": "calisthenics",
+      "id": "bird_dog",
+      "equipmentType": "no_equipment",
+      "requirements": [
+        []
+      ],
+      "previousIdLabel": "Bird dog",
+      "previousEnLabel": "Bird dog",
+      "idLabel": "Bird Dog (Tanpa Alat)",
+      "enLabel": "Bird Dog (No Equipment)"
+    },
+    {
+      "mode": "calisthenics",
+      "id": "bodyweight_calf_raise",
+      "equipmentType": "no_equipment",
+      "requirements": [
+        []
+      ],
+      "previousIdLabel": "Angkat tumit tanpa beban",
+      "previousEnLabel": "Bodyweight calf raise",
+      "idLabel": "Angkat Tumit (Tanpa Alat)",
+      "enLabel": "Calf Raise (No Equipment)"
+    },
+    {
+      "mode": "calisthenics",
+      "id": "bridge",
+      "equipmentType": "no_equipment",
+      "requirements": [
+        []
+      ],
+      "previousIdLabel": "Glute bridge",
+      "previousEnLabel": "Glute bridge",
+      "idLabel": "Glute Bridge (Tanpa Alat)",
+      "enLabel": "Glute Bridge (No Equipment)"
+    },
+    {
+      "mode": "calisthenics",
+      "id": "chair_sit_to_stand",
+      "equipmentType": "chair",
+      "requirements": [
+        [
+          "chair"
+        ]
+      ],
+      "previousIdLabel": "Duduk-berdiri dari kursi",
+      "previousEnLabel": "Chair sit-to-stand",
+      "idLabel": "Duduk-Berdiri (Kursi)",
+      "enLabel": "Sit-to-Stand (Chair)"
+    },
+    {
+      "mode": "calisthenics",
+      "id": "chinup",
+      "equipmentType": "pull_up_bar",
+      "requirements": [
+        [
+          "pull_up_bar"
+        ]
+      ],
+      "previousIdLabel": "Chin-up",
+      "previousEnLabel": "Chin-up",
+      "idLabel": "Chin-Up (Palang Pull-Up)",
+      "enLabel": "Chin-Up (Pull-Up Bar)"
+    },
+    {
+      "mode": "calisthenics",
+      "id": "crunch",
+      "equipmentType": "no_equipment",
+      "requirements": [
+        []
+      ],
+      "previousIdLabel": "Crunch",
+      "previousEnLabel": "Crunch",
+      "idLabel": "Crunch (Tanpa Alat)",
+      "enLabel": "Crunch (No Equipment)"
+    },
+    {
+      "mode": "calisthenics",
+      "id": "dead_bug",
+      "equipmentType": "no_equipment",
+      "requirements": [
+        []
+      ],
+      "previousIdLabel": "Dead bug",
+      "previousEnLabel": "Dead bug",
+      "idLabel": "Dead Bug (Tanpa Alat)",
+      "enLabel": "Dead Bug (No Equipment)"
+    },
+    {
+      "mode": "calisthenics",
+      "id": "decline_pushup",
+      "equipmentType": "bench",
+      "requirements": [
+        [
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Push-up decline",
+      "previousEnLabel": "Decline push-up",
+      "idLabel": "Push-Up Decline (Bangku)",
+      "enLabel": "Decline Push-Up (Bench)"
+    },
+    {
+      "mode": "calisthenics",
+      "id": "diamond",
+      "equipmentType": "no_equipment",
+      "requirements": [
+        []
+      ],
+      "previousIdLabel": "Diamond push-up",
+      "previousEnLabel": "Diamond push-up",
+      "idLabel": "Diamond Push-Up (Tanpa Alat)",
+      "enLabel": "Diamond Push-Up (No Equipment)"
+    },
+    {
+      "mode": "calisthenics",
+      "id": "dips",
+      "equipmentType": "parallel_bars",
+      "requirements": [
+        [
+          "parallel_bars"
+        ]
+      ],
+      "previousIdLabel": "Dip palang paralel",
+      "previousEnLabel": "Parallel bar dip",
+      "idLabel": "Dip (Palang Paralel)",
+      "enLabel": "Dip (Parallel Bars)"
+    },
+    {
+      "mode": "calisthenics",
+      "id": "incline_pushup",
+      "equipmentType": "bench",
+      "requirements": [
+        [
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Push-up incline",
+      "previousEnLabel": "Incline push-up",
+      "idLabel": "Push-Up Incline (Bangku)",
+      "enLabel": "Incline Push-Up (Bench)"
+    },
+    {
+      "mode": "calisthenics",
+      "id": "inverted_row",
+      "equipmentType": "low_bar",
+      "requirements": [
+        [
+          "low_bar"
+        ]
+      ],
+      "previousIdLabel": "Row terbalik",
+      "previousEnLabel": "Inverted row",
+      "idLabel": "Row Terbalik (Palang Rendah)",
+      "enLabel": "Inverted Row (Low Bar)"
+    },
+    {
+      "mode": "calisthenics",
+      "id": "knee_pushup",
+      "equipmentType": "no_equipment",
+      "requirements": [
+        []
+      ],
+      "previousIdLabel": "Push-up lutut",
+      "previousEnLabel": "Knee push-up",
+      "idLabel": "Push-Up Lutut (Tanpa Alat)",
+      "enLabel": "Knee Push-Up (No Equipment)"
+    },
+    {
+      "mode": "calisthenics",
+      "id": "lunge",
+      "equipmentType": "no_equipment",
+      "requirements": [
+        []
+      ],
+      "previousIdLabel": "Reverse lunge",
+      "previousEnLabel": "Reverse lunge",
+      "idLabel": "Reverse Lunge (Tanpa Alat)",
+      "enLabel": "Reverse Lunge (No Equipment)"
+    },
+    {
+      "mode": "calisthenics",
+      "id": "lying_leg_raise",
+      "equipmentType": "no_equipment",
+      "requirements": [
+        []
+      ],
+      "previousIdLabel": "Angkat kaki berbaring",
+      "previousEnLabel": "Lying leg raise",
+      "idLabel": "Angkat Kaki Berbaring (Tanpa Alat)",
+      "enLabel": "Lying Leg Raise (No Equipment)"
+    },
+    {
+      "mode": "calisthenics",
+      "id": "mountain_climber",
+      "equipmentType": "no_equipment",
+      "requirements": [
+        []
+      ],
+      "previousIdLabel": "Mountain climber",
+      "previousEnLabel": "Mountain climber",
+      "idLabel": "Mountain Climber (Tanpa Alat)",
+      "enLabel": "Mountain Climber (No Equipment)"
+    },
+    {
+      "mode": "calisthenics",
+      "id": "pike_pushup",
+      "equipmentType": "no_equipment",
+      "requirements": [
+        []
+      ],
+      "previousIdLabel": "Pike push-up",
+      "previousEnLabel": "Pike push-up",
+      "idLabel": "Pike Push-Up (Tanpa Alat)",
+      "enLabel": "Pike Push-Up (No Equipment)"
+    },
+    {
+      "mode": "calisthenics",
+      "id": "plank",
+      "equipmentType": "no_equipment",
+      "requirements": [
+        []
+      ],
+      "previousIdLabel": "Plank lengan bawah",
+      "previousEnLabel": "Forearm plank",
+      "idLabel": "Plank Lengan Bawah (Tanpa Alat)",
+      "enLabel": "Forearm Plank (No Equipment)"
+    },
+    {
+      "mode": "calisthenics",
+      "id": "pullup",
+      "equipmentType": "pull_up_bar",
+      "requirements": [
+        [
+          "pull_up_bar"
+        ]
+      ],
+      "previousIdLabel": "Pull-up",
+      "previousEnLabel": "Pull-up",
+      "idLabel": "Pull-Up (Palang Pull-Up)",
+      "enLabel": "Pull-Up (Pull-Up Bar)"
+    },
+    {
+      "mode": "calisthenics",
+      "id": "pushup",
+      "equipmentType": "no_equipment",
+      "requirements": [
+        []
+      ],
+      "previousIdLabel": "Push-up",
+      "previousEnLabel": "Push-up",
+      "idLabel": "Push-Up (Tanpa Alat)",
+      "enLabel": "Push-Up (No Equipment)"
+    },
+    {
+      "mode": "calisthenics",
+      "id": "reverse_crunch",
+      "equipmentType": "no_equipment",
+      "requirements": [
+        []
+      ],
+      "previousIdLabel": "Crunch terbalik",
+      "previousEnLabel": "Reverse crunch",
+      "idLabel": "Crunch Terbalik (Tanpa Alat)",
+      "enLabel": "Reverse Crunch (No Equipment)"
+    },
+    {
+      "mode": "calisthenics",
+      "id": "ring_row",
+      "equipmentType": "rings",
+      "requirements": [
+        [
+          "rings"
+        ]
+      ],
+      "previousIdLabel": "Row ring",
+      "previousEnLabel": "Ring row",
+      "idLabel": "Row (Ring)",
+      "enLabel": "Row (Rings)"
+    },
+    {
+      "mode": "calisthenics",
+      "id": "single_leg_bridge",
+      "equipmentType": "no_equipment",
+      "requirements": [
+        []
+      ],
+      "previousIdLabel": "Bridge satu kaki",
+      "previousEnLabel": "Single-leg glute bridge",
+      "idLabel": "Bridge Satu Kaki (Tanpa Alat)",
+      "enLabel": "Single-Leg Glute Bridge (No Equipment)"
+    },
+    {
+      "mode": "calisthenics",
+      "id": "split_squat",
+      "equipmentType": "no_equipment",
+      "requirements": [
+        []
+      ],
+      "previousIdLabel": "Split squat",
+      "previousEnLabel": "Split squat",
+      "idLabel": "Split Squat (Tanpa Alat)",
+      "enLabel": "Split Squat (No Equipment)"
+    },
+    {
+      "mode": "calisthenics",
+      "id": "squat",
+      "equipmentType": "no_equipment",
+      "requirements": [
+        []
+      ],
+      "previousIdLabel": "Bodyweight squat",
+      "previousEnLabel": "Bodyweight squat",
+      "idLabel": "Squat (Tanpa Alat)",
+      "enLabel": "Squat (No Equipment)"
+    },
+    {
+      "mode": "calisthenics",
+      "id": "step_up",
+      "equipmentType": "bench",
+      "requirements": [
+        [
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Naik bangku",
+      "previousEnLabel": "Step-up",
+      "idLabel": "Step-Up (Bangku)",
+      "enLabel": "Step-Up (Bench)"
+    },
+    {
+      "mode": "calisthenics",
+      "id": "supported_reverse_lunge",
+      "equipmentType": "chair",
+      "requirements": [
+        [
+          "chair"
+        ]
+      ],
+      "previousIdLabel": "Reverse lunge dengan pegangan",
+      "previousEnLabel": "Supported reverse lunge",
+      "idLabel": "Reverse Lunge Dengan Pegangan (Kursi)",
+      "enLabel": "Supported Reverse Lunge (Chair)"
+    },
+    {
+      "mode": "calisthenics",
+      "id": "wall_pushup",
+      "equipmentType": "no_equipment",
+      "requirements": [
+        []
+      ],
+      "previousIdLabel": "Push-up dinding",
+      "previousEnLabel": "Wall push-up",
+      "idLabel": "Push-Up Dinding (Tanpa Alat)",
+      "enLabel": "Wall Push-Up (No Equipment)"
+    },
+    {
+      "mode": "calisthenics",
+      "id": "wide_pushup",
+      "equipmentType": "no_equipment",
+      "requirements": [
+        []
+      ],
+      "previousIdLabel": "Push-up tangan lebar",
+      "previousEnLabel": "Wide push-up",
+      "idLabel": "Push-Up Tangan Lebar (Tanpa Alat)",
+      "enLabel": "Wide Push-Up (No Equipment)"
+    },
+    {
+      "mode": "gym",
+      "id": "alternating_dumbbell_bench_press",
+      "equipmentType": "dumbbell",
+      "requirements": [
+        [
+          "dumbbell",
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Alternating Dumbbell Bench Press",
+      "previousEnLabel": "Alternating Dumbbell Bench Press",
+      "idLabel": "Alternating Bench Press (Dumbbell)",
+      "enLabel": "Alternating Bench Press (Dumbbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "assisted_pull_up_machine",
+      "equipmentType": "machine",
+      "requirements": [
+        [
+          "assisted_pullup_machine"
+        ]
+      ],
+      "previousIdLabel": "Assisted Pull-Up Machine",
+      "previousEnLabel": "Assisted Pull-Up Machine",
+      "idLabel": "Assisted Pull-Up (Mesin)",
+      "enLabel": "Assisted Pull-Up (Machine)"
+    },
+    {
+      "mode": "gym",
+      "id": "back_squat",
+      "equipmentType": "barbell",
+      "requirements": [
+        [
+          "barbell",
+          "squat_rack"
+        ]
+      ],
+      "previousIdLabel": "Squat barbel belakang",
+      "previousEnLabel": "Barbell back squat",
+      "idLabel": "Squat Belakang (Barbel)",
+      "enLabel": "Back Squat (Barbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "barbell_floor_press",
+      "equipmentType": "barbell",
+      "requirements": [
+        [
+          "barbell"
+        ]
+      ],
+      "previousIdLabel": "Barbell Floor Press",
+      "previousEnLabel": "Barbell Floor Press",
+      "idLabel": "Floor Press (Barbel)",
+      "enLabel": "Floor Press (Barbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "barbell_pullover",
+      "equipmentType": "barbell",
+      "requirements": [
+        [
+          "barbell",
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Barbell Pullover",
+      "previousEnLabel": "Barbell Pullover",
+      "idLabel": "Pullover (Barbel)",
+      "enLabel": "Pullover (Barbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "barbell_row",
+      "equipmentType": "barbell",
+      "requirements": [
+        [
+          "barbell"
+        ]
+      ],
+      "previousIdLabel": "Row barbel",
+      "previousEnLabel": "Barbell row",
+      "idLabel": "Row (Barbel)",
+      "enLabel": "Row (Barbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "barbell_seal_row",
+      "equipmentType": "barbell",
+      "requirements": [
+        [
+          "barbell",
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Barbell Seal Row",
+      "previousEnLabel": "Barbell Seal Row",
+      "idLabel": "Seal Row (Barbel)",
+      "enLabel": "Seal Row (Barbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "bench_press",
+      "equipmentType": "barbell",
+      "requirements": [
+        [
+          "barbell",
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Bench press barbel",
+      "previousEnLabel": "Barbell bench press",
+      "idLabel": "Bench Press (Barbel)",
+      "enLabel": "Bench Press (Barbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "bent_over_dumbbell_row",
+      "equipmentType": "dumbbell",
+      "requirements": [
+        [
+          "dumbbell"
+        ]
+      ],
+      "previousIdLabel": "Bent-Over Dumbbell Row",
+      "previousEnLabel": "Bent-Over Dumbbell Row",
+      "idLabel": "Bent-Over Row (Dumbbell)",
+      "enLabel": "Bent-Over Row (Dumbbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "bulgarian_split_squat",
+      "equipmentType": "dumbbell",
+      "requirements": [
+        [
+          "dumbbell",
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Split squat Bulgaria",
+      "previousEnLabel": "Bulgarian split squat",
+      "idLabel": "Split Squat Bulgaria (Dumbbell)",
+      "enLabel": "Bulgarian Split Squat (Dumbbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "cable_lateral_raise",
+      "equipmentType": "cable",
+      "requirements": [
+        [
+          "cable_machine"
+        ]
+      ],
+      "previousIdLabel": "Cable Lateral Raise",
+      "previousEnLabel": "Cable Lateral Raise",
+      "idLabel": "Lateral Raise (Kabel)",
+      "enLabel": "Lateral Raise (Cable)"
+    },
+    {
+      "mode": "gym",
+      "id": "cable_triceps_pushdown",
+      "equipmentType": "cable",
+      "requirements": [
+        [
+          "cable_machine"
+        ]
+      ],
+      "previousIdLabel": "Cable Triceps Pushdown",
+      "previousEnLabel": "Cable Triceps Pushdown",
+      "idLabel": "Triceps Pushdown (Kabel)",
+      "enLabel": "Triceps Pushdown (Cable)"
+    },
+    {
+      "mode": "gym",
+      "id": "calf_raise",
+      "equipmentType": "dumbbell",
+      "requirements": [
+        [
+          "dumbbell"
+        ]
+      ],
+      "previousIdLabel": "Angkat tumit dumbbell",
+      "previousEnLabel": "Dumbbell calf raise",
+      "idLabel": "Angkat Tumit (Dumbbell)",
+      "enLabel": "Calf Raise (Dumbbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "chair_sit_to_stand",
+      "equipmentType": "chair",
+      "requirements": [
+        [
+          "chair"
+        ]
+      ],
+      "previousIdLabel": "Duduk-berdiri dari kursi",
+      "previousEnLabel": "Chair sit-to-stand",
+      "idLabel": "Duduk-Berdiri (Kursi)",
+      "enLabel": "Sit-to-Stand (Chair)"
+    },
+    {
+      "mode": "gym",
+      "id": "chest_press_plate_loaded",
+      "equipmentType": "plate",
+      "requirements": [
+        [
+          "plate_loaded_chest_press_machine"
+        ]
+      ],
+      "previousIdLabel": "Chest Press Plate Loaded",
+      "previousEnLabel": "Chest Press Plate Loaded",
+      "idLabel": "Chest Press (Plate-Loaded)",
+      "enLabel": "Chest Press (Plate-Loaded)"
+    },
+    {
+      "mode": "gym",
+      "id": "chest_supported_dumbbell_row",
+      "equipmentType": "dumbbell",
+      "requirements": [
+        [
+          "dumbbell",
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Chest-Supported Dumbbell Row",
+      "previousEnLabel": "Chest-Supported Dumbbell Row",
+      "idLabel": "Chest-Supported Row (Dumbbell)",
+      "enLabel": "Chest-Supported Row (Dumbbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "chest_supported_row_machine",
+      "equipmentType": "machine",
+      "requirements": [
+        [
+          "chest_supported_row_machine"
+        ]
+      ],
+      "previousIdLabel": "Chest-Supported Row Machine",
+      "previousEnLabel": "Chest-Supported Row Machine",
+      "idLabel": "Chest-Supported Row (Mesin)",
+      "enLabel": "Chest-Supported Row (Machine)"
+    },
+    {
+      "mode": "gym",
+      "id": "close_grip_lat_pulldown",
+      "equipmentType": "cable",
+      "requirements": [
+        [
+          "lat_pulldown_machine"
+        ]
+      ],
+      "previousIdLabel": "Close-Grip Lat Pulldown",
+      "previousEnLabel": "Close-Grip Lat Pulldown",
+      "idLabel": "Close-Grip Lat Pulldown (Kabel)",
+      "enLabel": "Close-Grip Lat Pulldown (Cable)"
+    },
+    {
+      "mode": "gym",
+      "id": "curl",
+      "equipmentType": "dumbbell",
+      "requirements": [
+        [
+          "dumbbell"
+        ]
+      ],
+      "previousIdLabel": "Dumbbell curl",
+      "previousEnLabel": "Dumbbell curl",
+      "idLabel": "Curl (Dumbbell)",
+      "enLabel": "Curl (Dumbbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "dead_bug",
+      "equipmentType": "no_equipment",
+      "requirements": [
+        []
+      ],
+      "previousIdLabel": "Dead bug",
+      "previousEnLabel": "Dead bug",
+      "idLabel": "Dead Bug (Tanpa Alat)",
+      "enLabel": "Dead Bug (No Equipment)"
+    },
+    {
+      "mode": "gym",
+      "id": "deadlift",
+      "equipmentType": "barbell",
+      "requirements": [
+        [
+          "barbell"
+        ]
+      ],
+      "previousIdLabel": "Deadlift barbel",
+      "previousEnLabel": "Barbell deadlift",
+      "idLabel": "Deadlift (Barbel)",
+      "enLabel": "Deadlift (Barbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "decline_barbell_bench_press",
+      "equipmentType": "barbell",
+      "requirements": [
+        [
+          "barbell",
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Decline Barbell Bench Press",
+      "previousEnLabel": "Decline Barbell Bench Press",
+      "idLabel": "Decline Bench Press (Barbel)",
+      "enLabel": "Decline Bench Press (Barbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "decline_chest_press_machine",
+      "equipmentType": "machine",
+      "requirements": [
+        [
+          "decline_chest_press_machine"
+        ]
+      ],
+      "previousIdLabel": "Decline Chest Press Machine",
+      "previousEnLabel": "Decline Chest Press Machine",
+      "idLabel": "Decline Chest Press (Mesin)",
+      "enLabel": "Decline Chest Press (Machine)"
+    },
+    {
+      "mode": "gym",
+      "id": "decline_chest_press_plate_loaded",
+      "equipmentType": "plate",
+      "requirements": [
+        [
+          "decline_plate_loaded_chest_press_machine"
+        ]
+      ],
+      "previousIdLabel": "Decline Chest Press Plate Loaded",
+      "previousEnLabel": "Decline Chest Press Plate Loaded",
+      "idLabel": "Decline Chest Press (Plate-Loaded)",
+      "enLabel": "Decline Chest Press (Plate-Loaded)"
+    },
+    {
+      "mode": "gym",
+      "id": "decline_dumbbell_bench_press",
+      "equipmentType": "dumbbell",
+      "requirements": [
+        [
+          "dumbbell",
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Decline Dumbbell Bench Press",
+      "previousEnLabel": "Decline Dumbbell Bench Press",
+      "idLabel": "Decline Bench Press (Dumbbell)",
+      "enLabel": "Decline Bench Press (Dumbbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "decline_dumbbell_fly",
+      "equipmentType": "dumbbell",
+      "requirements": [
+        [
+          "dumbbell",
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Decline Dumbbell Fly",
+      "previousEnLabel": "Decline Dumbbell Fly",
+      "idLabel": "Decline Fly (Dumbbell)",
+      "enLabel": "Decline Fly (Dumbbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "dumbbell_floor_fly",
+      "equipmentType": "dumbbell",
+      "requirements": [
+        [
+          "dumbbell"
+        ]
+      ],
+      "previousIdLabel": "Dumbbell Floor Fly",
+      "previousEnLabel": "Dumbbell Floor Fly",
+      "idLabel": "Floor Fly (Dumbbell)",
+      "enLabel": "Floor Fly (Dumbbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "dumbbell_fly",
+      "equipmentType": "dumbbell",
+      "requirements": [
+        [
+          "dumbbell",
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Fly dumbbell",
+      "previousEnLabel": "Dumbbell fly",
+      "idLabel": "Fly (Dumbbell)",
+      "enLabel": "Fly (Dumbbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "dumbbell_pullover",
+      "equipmentType": "dumbbell",
+      "requirements": [
+        [
+          "dumbbell",
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Dumbbell Pullover",
+      "previousEnLabel": "Dumbbell Pullover",
+      "idLabel": "Pullover (Dumbbell)",
+      "enLabel": "Pullover (Dumbbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "dumbbell_renegade_row",
+      "equipmentType": "dumbbell",
+      "requirements": [
+        [
+          "dumbbell"
+        ]
+      ],
+      "previousIdLabel": "Dumbbell Renegade Row",
+      "previousEnLabel": "Dumbbell Renegade Row",
+      "idLabel": "Renegade Row (Dumbbell)",
+      "enLabel": "Renegade Row (Dumbbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "dumbbell_seal_row",
+      "equipmentType": "dumbbell",
+      "requirements": [
+        [
+          "dumbbell",
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Dumbbell Seal Row",
+      "previousEnLabel": "Dumbbell Seal Row",
+      "idLabel": "Seal Row (Dumbbell)",
+      "enLabel": "Seal Row (Dumbbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "dumbbell_shoulder_press",
+      "equipmentType": "dumbbell",
+      "requirements": [
+        [
+          "dumbbell"
+        ]
+      ],
+      "previousIdLabel": "Press bahu dumbbell",
+      "previousEnLabel": "Dumbbell shoulder press",
+      "idLabel": "Press Bahu (Dumbbell)",
+      "enLabel": "Shoulder Press (Dumbbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "dumbbell_squeeze_press",
+      "equipmentType": "dumbbell",
+      "requirements": [
+        [
+          "dumbbell",
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Dumbbell Squeeze Press",
+      "previousEnLabel": "Dumbbell Squeeze Press",
+      "idLabel": "Squeeze Press (Dumbbell)",
+      "enLabel": "Squeeze Press (Dumbbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "face_pull",
+      "equipmentType": "cable",
+      "requirements": [
+        [
+          "cable_machine"
+        ]
+      ],
+      "previousIdLabel": "Face pull",
+      "previousEnLabel": "Face pull",
+      "idLabel": "Face Pull (Kabel)",
+      "enLabel": "Face Pull (Cable)"
+    },
+    {
+      "mode": "gym",
+      "id": "flat_bench_cable_chest_press",
+      "equipmentType": "cable",
+      "requirements": [
+        [
+          "cable_machine",
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Flat Bench Cable Chest Press",
+      "previousEnLabel": "Flat Bench Cable Chest Press",
+      "idLabel": "Flat Bench Chest Press (Kabel)",
+      "enLabel": "Flat Bench Chest Press (Cable)"
+    },
+    {
+      "mode": "gym",
+      "id": "flat_bench_cable_fly",
+      "equipmentType": "cable",
+      "requirements": [
+        [
+          "cable_machine",
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Flat Bench Cable Fly",
+      "previousEnLabel": "Flat Bench Cable Fly",
+      "idLabel": "Flat Bench Fly (Kabel)",
+      "enLabel": "Flat Bench Fly (Cable)"
+    },
+    {
+      "mode": "gym",
+      "id": "flat_dumbbell_bench_press",
+      "equipmentType": "dumbbell",
+      "requirements": [
+        [
+          "dumbbell",
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Flat Dumbbell Bench Press",
+      "previousEnLabel": "Flat Dumbbell Bench Press",
+      "idLabel": "Flat Bench Press (Dumbbell)",
+      "enLabel": "Flat Bench Press (Dumbbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "front_squat",
+      "equipmentType": "barbell",
+      "requirements": [
+        [
+          "barbell",
+          "squat_rack"
+        ]
+      ],
+      "previousIdLabel": "Squat barbel depan",
+      "previousEnLabel": "Barbell front squat",
+      "idLabel": "Squat Depan (Barbel)",
+      "enLabel": "Front Squat (Barbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "hammer_curl",
+      "equipmentType": "dumbbell",
+      "requirements": [
+        [
+          "dumbbell"
+        ]
+      ],
+      "previousIdLabel": "Hammer curl",
+      "previousEnLabel": "Hammer curl",
+      "idLabel": "Hammer Curl (Dumbbell)",
+      "enLabel": "Hammer Curl (Dumbbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "high_iso_lateral_row_plate_loaded",
+      "equipmentType": "plate",
+      "requirements": [
+        [
+          "high_iso_lateral_row_plate_loaded_machine"
+        ]
+      ],
+      "previousIdLabel": "High Iso Lateral Row Plate Loaded",
+      "previousEnLabel": "High Iso Lateral Row Plate Loaded",
+      "idLabel": "High Iso Lateral Row (Plate-Loaded)",
+      "enLabel": "High Iso Lateral Row (Plate-Loaded)"
+    },
+    {
+      "mode": "gym",
+      "id": "high_row_machine",
+      "equipmentType": "machine",
+      "requirements": [
+        [
+          "high_row_machine"
+        ]
+      ],
+      "previousIdLabel": "High Row Machine",
+      "previousEnLabel": "High Row Machine",
+      "idLabel": "High Row (Mesin)",
+      "enLabel": "High Row (Machine)"
+    },
+    {
+      "mode": "gym",
+      "id": "high_to_low_cable_fly",
+      "equipmentType": "cable",
+      "requirements": [
+        [
+          "cable_machine"
+        ]
+      ],
+      "previousIdLabel": "High-to-Low Cable Fly",
+      "previousEnLabel": "High-to-Low Cable Fly",
+      "idLabel": "High-To-Low Fly (Kabel)",
+      "enLabel": "High-To-Low Fly (Cable)"
+    },
+    {
+      "mode": "gym",
+      "id": "hip_thrust",
+      "equipmentType": "barbell",
+      "requirements": [
+        [
+          "barbell",
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Hip thrust barbel",
+      "previousEnLabel": "Barbell hip thrust",
+      "idLabel": "Hip Thrust (Barbel)",
+      "enLabel": "Hip Thrust (Barbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "incline_barbell_bench_press",
+      "equipmentType": "barbell",
+      "requirements": [
+        [
+          "barbell",
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Incline Barbell Bench Press",
+      "previousEnLabel": "Incline Barbell Bench Press",
+      "idLabel": "Incline Bench Press (Barbel)",
+      "enLabel": "Incline Bench Press (Barbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "incline_bench_cable_chest_press",
+      "equipmentType": "cable",
+      "requirements": [
+        [
+          "cable_machine",
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Incline Bench Cable Chest Press",
+      "previousEnLabel": "Incline Bench Cable Chest Press",
+      "idLabel": "Incline Bench Chest Press (Kabel)",
+      "enLabel": "Incline Bench Chest Press (Cable)"
+    },
+    {
+      "mode": "gym",
+      "id": "incline_bench_cable_fly",
+      "equipmentType": "cable",
+      "requirements": [
+        [
+          "cable_machine",
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Incline Bench Cable Fly",
+      "previousEnLabel": "Incline Bench Cable Fly",
+      "idLabel": "Incline Bench Fly (Kabel)",
+      "enLabel": "Incline Bench Fly (Cable)"
+    },
+    {
+      "mode": "gym",
+      "id": "incline_bench_dumbbell_row",
+      "equipmentType": "dumbbell",
+      "requirements": [
+        [
+          "dumbbell",
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Incline Bench Dumbbell Row",
+      "previousEnLabel": "Incline Bench Dumbbell Row",
+      "idLabel": "Incline Bench Row (Dumbbell)",
+      "enLabel": "Incline Bench Row (Dumbbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "incline_chest_press_machine",
+      "equipmentType": "machine",
+      "requirements": [
+        [
+          "incline_chest_press_machine"
+        ]
+      ],
+      "previousIdLabel": "Incline Chest Press Machine",
+      "previousEnLabel": "Incline Chest Press Machine",
+      "idLabel": "Incline Chest Press (Mesin)",
+      "enLabel": "Incline Chest Press (Machine)"
+    },
+    {
+      "mode": "gym",
+      "id": "incline_chest_press_plate_loaded",
+      "equipmentType": "plate",
+      "requirements": [
+        [
+          "incline_plate_loaded_chest_press_machine"
+        ]
+      ],
+      "previousIdLabel": "Incline Chest Press Plate Loaded",
+      "previousEnLabel": "Incline Chest Press Plate Loaded",
+      "idLabel": "Incline Chest Press (Plate-Loaded)",
+      "enLabel": "Incline Chest Press (Plate-Loaded)"
+    },
+    {
+      "mode": "gym",
+      "id": "incline_dumbbell_fly",
+      "equipmentType": "dumbbell",
+      "requirements": [
+        [
+          "dumbbell",
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Incline Dumbbell Fly",
+      "previousEnLabel": "Incline Dumbbell Fly",
+      "idLabel": "Incline Fly (Dumbbell)",
+      "enLabel": "Incline Fly (Dumbbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "incline_dumbbell_press",
+      "equipmentType": "dumbbell",
+      "requirements": [
+        [
+          "dumbbell",
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Press dumbbell incline",
+      "previousEnLabel": "Incline dumbbell press",
+      "idLabel": "Press Incline (Dumbbell)",
+      "enLabel": "Incline Press (Dumbbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "iso_lateral_row_machine",
+      "equipmentType": "machine",
+      "requirements": [
+        [
+          "iso_lateral_row_machine"
+        ]
+      ],
+      "previousIdLabel": "Iso-Lateral Row Machine",
+      "previousEnLabel": "Iso-Lateral Row Machine",
+      "idLabel": "Iso-Lateral Row (Mesin)",
+      "enLabel": "Iso-Lateral Row (Machine)"
+    },
+    {
+      "mode": "gym",
+      "id": "iso_lateral_row_plate_loaded",
+      "equipmentType": "plate",
+      "requirements": [
+        [
+          "iso_lateral_row_plate_loaded_machine"
+        ]
+      ],
+      "previousIdLabel": "Iso Lateral Row Plate Loaded",
+      "previousEnLabel": "Iso Lateral Row Plate Loaded",
+      "idLabel": "Iso Lateral Row (Plate-Loaded)",
+      "enLabel": "Iso Lateral Row (Plate-Loaded)"
+    },
+    {
+      "mode": "gym",
+      "id": "landmine_single_arm_row",
+      "equipmentType": "barbell",
+      "requirements": [
+        [
+          "barbell",
+          "landmine"
+        ]
+      ],
+      "previousIdLabel": "Landmine Single-Arm Row",
+      "previousEnLabel": "Landmine Single-Arm Row",
+      "idLabel": "Landmine Single-Arm Row (Barbel)",
+      "enLabel": "Landmine Single-Arm Row (Barbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "lat_pulldown",
+      "equipmentType": "cable",
+      "requirements": [
+        [
+          "lat_pulldown_machine"
+        ]
+      ],
+      "previousIdLabel": "Lat pulldown",
+      "previousEnLabel": "Lat pulldown",
+      "idLabel": "Lat Pulldown (Kabel)",
+      "enLabel": "Lat Pulldown (Cable)"
+    },
+    {
+      "mode": "gym",
+      "id": "lat_pulldown_cable_machine",
+      "equipmentType": "cable",
+      "requirements": [
+        [
+          "lat_pulldown_machine"
+        ]
+      ],
+      "previousIdLabel": "Lat Pulldown Cable Machine",
+      "previousEnLabel": "Lat Pulldown Cable Machine",
+      "idLabel": "Lat Pulldown (Kabel)",
+      "enLabel": "Lat Pulldown (Cable)"
+    },
+    {
+      "mode": "gym",
+      "id": "lat_pulldown_machine",
+      "equipmentType": "machine",
+      "requirements": [
+        [
+          "lat_pulldown_standard_machine"
+        ]
+      ],
+      "previousIdLabel": "Lat Pulldown Machine",
+      "previousEnLabel": "Lat Pulldown Machine",
+      "idLabel": "Lat Pulldown (Mesin)",
+      "enLabel": "Lat Pulldown (Machine)"
+    },
+    {
+      "mode": "gym",
+      "id": "lat_pulldown_plate_loaded",
+      "equipmentType": "plate",
+      "requirements": [
+        [
+          "lat_pulldown_plate_loaded_machine"
+        ]
+      ],
+      "previousIdLabel": "Lat Pulldown Plate Loaded",
+      "previousEnLabel": "Lat Pulldown Plate Loaded",
+      "idLabel": "Lat Pulldown (Plate-Loaded)",
+      "enLabel": "Lat Pulldown (Plate-Loaded)"
+    },
+    {
+      "mode": "gym",
+      "id": "leg_curl",
+      "equipmentType": "machine",
+      "requirements": [
+        [
+          "leg_curl_machine"
+        ]
+      ],
+      "previousIdLabel": "Curl paha",
+      "previousEnLabel": "Leg curl",
+      "idLabel": "Curl Paha (Mesin)",
+      "enLabel": "Leg Curl (Machine)"
+    },
+    {
+      "mode": "gym",
+      "id": "leg_extension",
+      "equipmentType": "machine",
+      "requirements": [
+        [
+          "leg_extension_machine"
+        ]
+      ],
+      "previousIdLabel": "Ekstensi paha",
+      "previousEnLabel": "Leg extension",
+      "idLabel": "Ekstensi Paha (Mesin)",
+      "enLabel": "Leg Extension (Machine)"
+    },
+    {
+      "mode": "gym",
+      "id": "leg_press",
+      "equipmentType": "machine",
+      "requirements": [
+        [
+          "leg_press_machine"
+        ]
+      ],
+      "previousIdLabel": "Leg press",
+      "previousEnLabel": "Leg press",
+      "idLabel": "Leg Press (Mesin)",
+      "enLabel": "Leg Press (Machine)"
+    },
+    {
+      "mode": "gym",
+      "id": "low_row_machine",
+      "equipmentType": "machine",
+      "requirements": [
+        [
+          "low_row_machine"
+        ]
+      ],
+      "previousIdLabel": "Low Row Machine",
+      "previousEnLabel": "Low Row Machine",
+      "idLabel": "Low Row (Mesin)",
+      "enLabel": "Low Row (Machine)"
+    },
+    {
+      "mode": "gym",
+      "id": "low_to_high_cable_fly",
+      "equipmentType": "cable",
+      "requirements": [
+        [
+          "cable_machine"
+        ]
+      ],
+      "previousIdLabel": "Low-to-High Cable Fly",
+      "previousEnLabel": "Low-to-High Cable Fly",
+      "idLabel": "Low-To-High Fly (Kabel)",
+      "enLabel": "Low-To-High Fly (Cable)"
+    },
+    {
+      "mode": "gym",
+      "id": "lunge",
+      "equipmentType": "no_equipment",
+      "requirements": [
+        []
+      ],
+      "previousIdLabel": "Reverse lunge",
+      "previousEnLabel": "Reverse lunge",
+      "idLabel": "Reverse Lunge (Tanpa Alat)",
+      "enLabel": "Reverse Lunge (No Equipment)"
+    },
+    {
+      "mode": "gym",
+      "id": "machine_lateral_raise",
+      "equipmentType": "machine",
+      "requirements": [
+        [
+          "lateral_raise_machine"
+        ]
+      ],
+      "previousIdLabel": "Machine Lateral Raise",
+      "previousEnLabel": "Machine Lateral Raise",
+      "idLabel": "Lateral Raise (Mesin)",
+      "enLabel": "Lateral Raise (Machine)"
+    },
+    {
+      "mode": "gym",
+      "id": "meadows_row",
+      "equipmentType": "barbell",
+      "requirements": [
+        [
+          "barbell",
+          "landmine"
+        ]
+      ],
+      "previousIdLabel": "Meadows Row",
+      "previousEnLabel": "Meadows Row",
+      "idLabel": "Meadows Row (Barbel)",
+      "enLabel": "Meadows Row (Barbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "neutral_grip_dumbbell_bench_press",
+      "equipmentType": "dumbbell",
+      "requirements": [
+        [
+          "dumbbell",
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Neutral-Grip Dumbbell Bench Press",
+      "previousEnLabel": "Neutral-Grip Dumbbell Bench Press",
+      "idLabel": "Neutral-Grip Bench Press (Dumbbell)",
+      "enLabel": "Neutral-Grip Bench Press (Dumbbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "neutral_grip_lat_pulldown",
+      "equipmentType": "cable",
+      "requirements": [
+        [
+          "lat_pulldown_machine"
+        ]
+      ],
+      "previousIdLabel": "Neutral-Grip Lat Pulldown",
+      "previousEnLabel": "Neutral-Grip Lat Pulldown",
+      "idLabel": "Neutral-Grip Lat Pulldown (Kabel)",
+      "enLabel": "Neutral-Grip Lat Pulldown (Cable)"
+    },
+    {
+      "mode": "gym",
+      "id": "overhead_cable_triceps_extension",
+      "equipmentType": "cable",
+      "requirements": [
+        [
+          "cable_machine"
+        ]
+      ],
+      "previousIdLabel": "Overhead Cable Triceps Extension",
+      "previousEnLabel": "Overhead Cable Triceps Extension",
+      "idLabel": "Overhead Triceps Extension (Kabel)",
+      "enLabel": "Overhead Triceps Extension (Cable)"
+    },
+    {
+      "mode": "gym",
+      "id": "overhead_press",
+      "equipmentType": "barbell",
+      "requirements": [
+        [
+          "barbell"
+        ]
+      ],
+      "previousIdLabel": "Press bahu barbel",
+      "previousEnLabel": "Barbell overhead press",
+      "idLabel": "Press Bahu (Barbel)",
+      "enLabel": "Overhead Press (Barbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "paused_barbell_bench_press",
+      "equipmentType": "barbell",
+      "requirements": [
+        [
+          "barbell",
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Paused Barbell Bench Press",
+      "previousEnLabel": "Paused Barbell Bench Press",
+      "idLabel": "Paused Bench Press (Barbel)",
+      "enLabel": "Paused Bench Press (Barbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "pec_deck_butterfly_machine",
+      "equipmentType": "machine",
+      "requirements": [
+        [
+          "pec_deck_machine"
+        ]
+      ],
+      "previousIdLabel": "Pec Deck / Butterfly Machine",
+      "previousEnLabel": "Pec Deck / Butterfly Machine",
+      "idLabel": "Pec Deck / Butterfly (Mesin)",
+      "enLabel": "Pec Deck / Butterfly (Machine)"
+    },
+    {
+      "mode": "gym",
+      "id": "pendlay_row",
+      "equipmentType": "barbell",
+      "requirements": [
+        [
+          "barbell"
+        ]
+      ],
+      "previousIdLabel": "Pendlay Row",
+      "previousEnLabel": "Pendlay Row",
+      "idLabel": "Pendlay Row (Barbel)",
+      "enLabel": "Pendlay Row (Barbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "plank",
+      "equipmentType": "no_equipment",
+      "requirements": [
+        []
+      ],
+      "previousIdLabel": "Plank lengan bawah",
+      "previousEnLabel": "Forearm plank",
+      "idLabel": "Plank Lengan Bawah (Tanpa Alat)",
+      "enLabel": "Forearm Plank (No Equipment)"
+    },
+    {
+      "mode": "gym",
+      "id": "plate_loaded_chest_supported_t_bar_row",
+      "equipmentType": "plate",
+      "requirements": [
+        [
+          "plate_loaded_chest_supported_t_bar_row_machine"
+        ]
+      ],
+      "previousIdLabel": "Plate-Loaded Chest-Supported T-Bar Row",
+      "previousEnLabel": "Plate-Loaded Chest-Supported T-Bar Row",
+      "idLabel": "Chest-Supported T-Bar Row (Plate-Loaded)",
+      "enLabel": "Chest-Supported T-Bar Row (Plate-Loaded)"
+    },
+    {
+      "mode": "gym",
+      "id": "plate_loaded_lateral_raise",
+      "equipmentType": "plate",
+      "requirements": [
+        [
+          "plate_loaded_lateral_raise_machine"
+        ]
+      ],
+      "previousIdLabel": "Plate-Loaded Lateral Raise",
+      "previousEnLabel": "Plate-Loaded Lateral Raise",
+      "idLabel": "Lateral Raise (Plate-Loaded)",
+      "enLabel": "Lateral Raise (Plate-Loaded)"
+    },
+    {
+      "mode": "gym",
+      "id": "plate_loaded_t_bar_row",
+      "equipmentType": "plate",
+      "requirements": [
+        [
+          "plate_loaded_t_bar_row_machine"
+        ]
+      ],
+      "previousIdLabel": "Plate-Loaded T-Bar Row",
+      "previousEnLabel": "Plate-Loaded T-Bar Row",
+      "idLabel": "T-Bar Row (Plate-Loaded)",
+      "enLabel": "T-Bar Row (Plate-Loaded)"
+    },
+    {
+      "mode": "gym",
+      "id": "press",
+      "equipmentType": "dumbbell",
+      "requirements": [
+        [
+          "dumbbell"
+        ]
+      ],
+      "previousIdLabel": "Dumbbell floor press",
+      "previousEnLabel": "Dumbbell floor press",
+      "idLabel": "Floor Press (Dumbbell)",
+      "enLabel": "Floor Press (Dumbbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "pullover_machine",
+      "equipmentType": "machine",
+      "requirements": [
+        [
+          "pullover_machine"
+        ]
+      ],
+      "previousIdLabel": "Pullover Machine",
+      "previousEnLabel": "Pullover Machine",
+      "idLabel": "Pullover (Mesin)",
+      "enLabel": "Pullover (Machine)"
+    },
+    {
+      "mode": "gym",
+      "id": "raise",
+      "equipmentType": "dumbbell",
+      "requirements": [
+        [
+          "dumbbell"
+        ]
+      ],
+      "previousIdLabel": "Dumbbell Lateral Raise",
+      "previousEnLabel": "Dumbbell Lateral Raise",
+      "idLabel": "Lateral Raise (Dumbbell)",
+      "enLabel": "Lateral Raise (Dumbbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "reverse_grip_lat_pulldown",
+      "equipmentType": "cable",
+      "requirements": [
+        [
+          "lat_pulldown_machine"
+        ]
+      ],
+      "previousIdLabel": "Reverse-Grip Lat Pulldown",
+      "previousEnLabel": "Reverse-Grip Lat Pulldown",
+      "idLabel": "Reverse-Grip Lat Pulldown (Kabel)",
+      "enLabel": "Reverse-Grip Lat Pulldown (Cable)"
+    },
+    {
+      "mode": "gym",
+      "id": "romanian_deadlift",
+      "equipmentType": "barbell",
+      "requirements": [
+        [
+          "barbell"
+        ]
+      ],
+      "previousIdLabel": "Deadlift Romania",
+      "previousEnLabel": "Romanian deadlift",
+      "idLabel": "Deadlift Romania (Barbel)",
+      "enLabel": "Romanian Deadlift (Barbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "row",
+      "equipmentType": "dumbbell",
+      "requirements": [
+        [
+          "dumbbell"
+        ]
+      ],
+      "previousIdLabel": "Dumbbell row",
+      "previousEnLabel": "Dumbbell row",
+      "idLabel": "Row (Dumbbell)",
+      "enLabel": "Row (Dumbbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "seated_cable_row",
+      "equipmentType": "cable",
+      "requirements": [
+        [
+          "cable_machine"
+        ]
+      ],
+      "previousIdLabel": "Row kabel duduk",
+      "previousEnLabel": "Seated cable row",
+      "idLabel": "Row Duduk (Kabel)",
+      "enLabel": "Seated Row (Cable)"
+    },
+    {
+      "mode": "gym",
+      "id": "seated_chest_press_machine",
+      "equipmentType": "machine",
+      "requirements": [
+        [
+          "chest_press_machine"
+        ]
+      ],
+      "previousIdLabel": "Seated Chest Press Machine",
+      "previousEnLabel": "Seated Chest Press Machine",
+      "idLabel": "Seated Chest Press (Mesin)",
+      "enLabel": "Seated Chest Press (Machine)"
+    },
+    {
+      "mode": "gym",
+      "id": "seated_chest_press_plate_loaded",
+      "equipmentType": "plate",
+      "requirements": [
+        [
+          "plate_loaded_chest_press_machine"
+        ]
+      ],
+      "previousIdLabel": "Seated Chest Press Plate Loaded",
+      "previousEnLabel": "Seated Chest Press Plate Loaded",
+      "idLabel": "Seated Chest Press (Plate-Loaded)",
+      "enLabel": "Seated Chest Press (Plate-Loaded)"
+    },
+    {
+      "mode": "gym",
+      "id": "seated_decline_chest_press_plate_loaded",
+      "equipmentType": "plate",
+      "requirements": [
+        [
+          "decline_plate_loaded_chest_press_machine"
+        ]
+      ],
+      "previousIdLabel": "Seated Decline Chest Press Plate Loaded",
+      "previousEnLabel": "Seated Decline Chest Press Plate Loaded",
+      "idLabel": "Seated Decline Chest Press (Plate-Loaded)",
+      "enLabel": "Seated Decline Chest Press (Plate-Loaded)"
+    },
+    {
+      "mode": "gym",
+      "id": "seated_incline_chest_press_plate_loaded",
+      "equipmentType": "plate",
+      "requirements": [
+        [
+          "incline_plate_loaded_chest_press_machine"
+        ]
+      ],
+      "previousIdLabel": "Seated Incline Chest Press Plate Loaded",
+      "previousEnLabel": "Seated Incline Chest Press Plate Loaded",
+      "idLabel": "Seated Incline Chest Press (Plate-Loaded)",
+      "enLabel": "Seated Incline Chest Press (Plate-Loaded)"
+    },
+    {
+      "mode": "gym",
+      "id": "seated_machine_lateral_raise",
+      "equipmentType": "machine",
+      "requirements": [
+        [
+          "lateral_raise_machine"
+        ]
+      ],
+      "previousIdLabel": "Seated Machine Lateral Raise",
+      "previousEnLabel": "Seated Machine Lateral Raise",
+      "idLabel": "Seated Lateral Raise (Mesin)",
+      "enLabel": "Seated Lateral Raise (Machine)"
+    },
+    {
+      "mode": "gym",
+      "id": "seated_plate_loaded_lateral_raise",
+      "equipmentType": "plate",
+      "requirements": [
+        [
+          "plate_loaded_lateral_raise_machine"
+        ]
+      ],
+      "previousIdLabel": "Seated Plate-Loaded Lateral Raise",
+      "previousEnLabel": "Seated Plate-Loaded Lateral Raise",
+      "idLabel": "Seated Lateral Raise (Plate-Loaded)",
+      "enLabel": "Seated Lateral Raise (Plate-Loaded)"
+    },
+    {
+      "mode": "gym",
+      "id": "single_arm_cable_chest_press",
+      "equipmentType": "cable",
+      "requirements": [
+        [
+          "cable_machine"
+        ]
+      ],
+      "previousIdLabel": "Single-Arm Cable Chest Press",
+      "previousEnLabel": "Single-Arm Cable Chest Press",
+      "idLabel": "Single-Arm Chest Press (Kabel)",
+      "enLabel": "Single-Arm Chest Press (Cable)"
+    },
+    {
+      "mode": "gym",
+      "id": "single_arm_cable_lateral_raise",
+      "equipmentType": "cable",
+      "requirements": [
+        [
+          "cable_machine"
+        ]
+      ],
+      "previousIdLabel": "Single-Arm Cable Lateral Raise",
+      "previousEnLabel": "Single-Arm Cable Lateral Raise",
+      "idLabel": "Single-Arm Lateral Raise (Kabel)",
+      "enLabel": "Single-Arm Lateral Raise (Cable)"
+    },
+    {
+      "mode": "gym",
+      "id": "single_arm_cable_row",
+      "equipmentType": "cable",
+      "requirements": [
+        [
+          "cable_machine"
+        ]
+      ],
+      "previousIdLabel": "Single-Arm Cable Row",
+      "previousEnLabel": "Single-Arm Cable Row",
+      "idLabel": "Single-Arm Row (Kabel)",
+      "enLabel": "Single-Arm Row (Cable)"
+    },
+    {
+      "mode": "gym",
+      "id": "single_arm_cable_triceps_pushdown",
+      "equipmentType": "cable",
+      "requirements": [
+        [
+          "cable_machine"
+        ]
+      ],
+      "previousIdLabel": "Single-Arm Cable Triceps Pushdown",
+      "previousEnLabel": "Single-Arm Cable Triceps Pushdown",
+      "idLabel": "Single-Arm Triceps Pushdown (Kabel)",
+      "enLabel": "Single-Arm Triceps Pushdown (Cable)"
+    },
+    {
+      "mode": "gym",
+      "id": "single_arm_dumbbell_bench_press",
+      "equipmentType": "dumbbell",
+      "requirements": [
+        [
+          "dumbbell",
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Single-Arm Dumbbell Bench Press",
+      "previousEnLabel": "Single-Arm Dumbbell Bench Press",
+      "idLabel": "Single-Arm Bench Press (Dumbbell)",
+      "enLabel": "Single-Arm Bench Press (Dumbbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "single_arm_dumbbell_lateral_raise",
+      "equipmentType": "dumbbell",
+      "requirements": [
+        [
+          "dumbbell"
+        ]
+      ],
+      "previousIdLabel": "Single-Arm Dumbbell Lateral Raise",
+      "previousEnLabel": "Single-Arm Dumbbell Lateral Raise",
+      "idLabel": "Single-Arm Lateral Raise (Dumbbell)",
+      "enLabel": "Single-Arm Lateral Raise (Dumbbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "single_arm_lat_pulldown",
+      "equipmentType": "cable",
+      "requirements": [
+        [
+          "lat_pulldown_machine"
+        ]
+      ],
+      "previousIdLabel": "Single-Arm Lat Pulldown",
+      "previousEnLabel": "Single-Arm Lat Pulldown",
+      "idLabel": "Single-Arm Lat Pulldown (Kabel)",
+      "enLabel": "Single-Arm Lat Pulldown (Cable)"
+    },
+    {
+      "mode": "gym",
+      "id": "single_arm_overhead_cable_triceps_extension",
+      "equipmentType": "cable",
+      "requirements": [
+        [
+          "cable_machine"
+        ]
+      ],
+      "previousIdLabel": "Single-Arm Overhead Cable Triceps Extension",
+      "previousEnLabel": "Single-Arm Overhead Cable Triceps Extension",
+      "idLabel": "Single-Arm Overhead Triceps Extension (Kabel)",
+      "enLabel": "Single-Arm Overhead Triceps Extension (Cable)"
+    },
+    {
+      "mode": "gym",
+      "id": "smith_machine_bench_press",
+      "equipmentType": "smith_machine",
+      "requirements": [
+        [
+          "smith_machine",
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Smith Machine Bench Press",
+      "previousEnLabel": "Smith Machine Bench Press",
+      "idLabel": "Bench Press (Mesin Smith)",
+      "enLabel": "Bench Press (Smith Machine)"
+    },
+    {
+      "mode": "gym",
+      "id": "smith_machine_decline_bench_press",
+      "equipmentType": "smith_machine",
+      "requirements": [
+        [
+          "smith_machine",
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Smith Machine Decline Bench Press",
+      "previousEnLabel": "Smith Machine Decline Bench Press",
+      "idLabel": "Decline Bench Press (Mesin Smith)",
+      "enLabel": "Decline Bench Press (Smith Machine)"
+    },
+    {
+      "mode": "gym",
+      "id": "smith_machine_incline_bench_press",
+      "equipmentType": "smith_machine",
+      "requirements": [
+        [
+          "smith_machine",
+          "bench"
+        ]
+      ],
+      "previousIdLabel": "Smith Machine Incline Bench Press",
+      "previousEnLabel": "Smith Machine Incline Bench Press",
+      "idLabel": "Incline Bench Press (Mesin Smith)",
+      "enLabel": "Incline Bench Press (Smith Machine)"
+    },
+    {
+      "mode": "gym",
+      "id": "squat",
+      "equipmentType": "dumbbell",
+      "requirements": [
+        [
+          "dumbbell"
+        ]
+      ],
+      "previousIdLabel": "Goblet squat",
+      "previousEnLabel": "Goblet squat",
+      "idLabel": "Goblet Squat (Dumbbell)",
+      "enLabel": "Goblet Squat (Dumbbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "standing_cable_chest_press",
+      "equipmentType": "cable",
+      "requirements": [
+        [
+          "cable_machine"
+        ]
+      ],
+      "previousIdLabel": "Standing Cable Chest Press",
+      "previousEnLabel": "Standing Cable Chest Press",
+      "idLabel": "Standing Chest Press (Kabel)",
+      "enLabel": "Standing Chest Press (Cable)"
+    },
+    {
+      "mode": "gym",
+      "id": "standing_cable_fly",
+      "equipmentType": "cable",
+      "requirements": [
+        [
+          "cable_machine"
+        ]
+      ],
+      "previousIdLabel": "Standing Cable Fly",
+      "previousEnLabel": "Standing Cable Fly",
+      "idLabel": "Standing Fly (Kabel)",
+      "enLabel": "Standing Fly (Cable)"
+    },
+    {
+      "mode": "gym",
+      "id": "standing_cable_row",
+      "equipmentType": "cable",
+      "requirements": [
+        [
+          "cable_machine"
+        ]
+      ],
+      "previousIdLabel": "Standing Cable Row",
+      "previousEnLabel": "Standing Cable Row",
+      "idLabel": "Standing Row (Kabel)",
+      "enLabel": "Standing Row (Cable)"
+    },
+    {
+      "mode": "gym",
+      "id": "straight_arm_cable_pulldown",
+      "equipmentType": "cable",
+      "requirements": [
+        [
+          "cable_machine"
+        ]
+      ],
+      "previousIdLabel": "Straight-Arm Cable Pulldown",
+      "previousEnLabel": "Straight-Arm Cable Pulldown",
+      "idLabel": "Straight-Arm Pulldown (Kabel)",
+      "enLabel": "Straight-Arm Pulldown (Cable)"
+    },
+    {
+      "mode": "gym",
+      "id": "supported_reverse_lunge",
+      "equipmentType": "chair",
+      "requirements": [
+        [
+          "chair"
+        ]
+      ],
+      "previousIdLabel": "Reverse lunge dengan pegangan",
+      "previousEnLabel": "Supported reverse lunge",
+      "idLabel": "Reverse Lunge Dengan Pegangan (Kursi)",
+      "enLabel": "Supported Reverse Lunge (Chair)"
+    },
+    {
+      "mode": "gym",
+      "id": "t_bar_row",
+      "equipmentType": "barbell",
+      "requirements": [
+        [
+          "barbell",
+          "landmine"
+        ]
+      ],
+      "previousIdLabel": "T-Bar Row",
+      "previousEnLabel": "T-Bar Row",
+      "idLabel": "T-Bar Row (Barbel)",
+      "enLabel": "T-Bar Row (Barbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "triceps_extension",
+      "equipmentType": "dumbbell",
+      "requirements": [
+        [
+          "dumbbell"
+        ]
+      ],
+      "previousIdLabel": "Ekstensi trisep dumbbell",
+      "previousEnLabel": "Dumbbell triceps extension",
+      "idLabel": "Ekstensi Trisep (Dumbbell)",
+      "enLabel": "Triceps Extension (Dumbbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "underhand_barbell_row",
+      "equipmentType": "barbell",
+      "requirements": [
+        [
+          "barbell"
+        ]
+      ],
+      "previousIdLabel": "Underhand Barbell Row",
+      "previousEnLabel": "Underhand Barbell Row",
+      "idLabel": "Underhand Row (Barbel)",
+      "enLabel": "Underhand Row (Barbell)"
+    },
+    {
+      "mode": "gym",
+      "id": "underhand_seated_cable_row",
+      "equipmentType": "cable",
+      "requirements": [
+        [
+          "cable_machine"
+        ]
+      ],
+      "previousIdLabel": "Underhand Seated Cable Row",
+      "previousEnLabel": "Underhand Seated Cable Row",
+      "idLabel": "Underhand Seated Row (Kabel)",
+      "enLabel": "Underhand Seated Row (Cable)"
+    },
+    {
+      "mode": "gym",
+      "id": "wide_grip_lat_pulldown",
+      "equipmentType": "cable",
+      "requirements": [
+        [
+          "lat_pulldown_machine"
+        ]
+      ],
+      "previousIdLabel": "Wide-Grip Lat Pulldown",
+      "previousEnLabel": "Wide-Grip Lat Pulldown",
+      "idLabel": "Wide-Grip Lat Pulldown (Kabel)",
+      "enLabel": "Wide-Grip Lat Pulldown (Cable)"
+    },
+    {
+      "mode": "gym",
+      "id": "wide_grip_seated_cable_row",
+      "equipmentType": "cable",
+      "requirements": [
+        [
+          "cable_machine"
+        ]
+      ],
+      "previousIdLabel": "Wide-Grip Seated Cable Row",
+      "previousEnLabel": "Wide-Grip Seated Cable Row",
+      "idLabel": "Wide-Grip Seated Row (Kabel)",
+      "enLabel": "Wide-Grip Seated Row (Cable)"
+    }
+  ]
+}

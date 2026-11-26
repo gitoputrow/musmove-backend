@@ -3,6 +3,7 @@ import { entityPayloadSchemas } from "@/src/modules/sync/dto";
 import { focusSchema, validateFocusPair } from "@/src/modules/programs/focus";
 import { sessionTimingSchema } from "@/src/modules/workouts/measurement";
 import { flattenWorkoutSetLog, workoutSetLogInputSchema } from "@/src/modules/workouts/set-log";
+import { runInputSchema } from "@/src/modules/workouts/run";
 
 export const versionSchema = z.string().max(19).regex(/^(0|[1-9][0-9]*)$/)
   .pipe(z.string().refine(v => BigInt(v) <= BigInt("9223372036854775807"), "Version exceeds the supported range"));
@@ -48,16 +49,29 @@ export const accountPatchSchema = z.object({
 });
 export const completedWorkoutSchema = z.object({
   id: idSchema,
-  source: z.enum(["custom", "recommended", "manual", "record"]),
+  source: z.enum(["custom", "recommended", "manual", "record", "run"]),
   programId: idSchema.optional(),
-  mode: z.enum(["gym", "calisthenics"]).optional(),
+  mode: z.enum(["gym", "calisthenics", "running"]).optional(),
   exerciseSnapshot: entityPayloadSchemas.workout_session.shape.exerciseSnapshot,
   setLog: workoutSetLogInputSchema,
   startedAt: z.iso.datetime({ offset: true }), finishedAt: z.iso.datetime({ offset: true }), recordedOn: workoutDate,
   note: z.string().max(2000).nullable().optional(),
   newExercises: newExercisesSchema.optional(),
   sessionTiming: sessionTimingSchema.optional(),
+  run: runInputSchema.optional(),
 }).strict().superRefine((value, context) => {
+  if (value.source === "run" || value.mode === "running" || value.run !== undefined) {
+    // Running is its own session kind: no program, exercises or set logs.
+    if (value.source !== "run") context.addIssue({ code: "custom", path: ["source"], message: "Running sessions use source run" });
+    if (value.mode !== "running") context.addIssue({ code: "custom", path: ["mode"], message: "source run requires mode running" });
+    if (value.run === undefined) context.addIssue({ code: "custom", path: ["run"], message: "source run requires run" });
+    if (value.sessionTiming === undefined) context.addIssue({ code: "custom", path: ["sessionTiming"], message: "source run requires sessionTiming" });
+    if (value.programId !== undefined) context.addIssue({ code: "custom", path: ["programId"], message: "A run must omit programId" });
+    if (value.newExercises !== undefined) context.addIssue({ code: "custom", path: ["newExercises"], message: "A run must omit newExercises" });
+    if (value.exerciseSnapshot.length || value.setLog.length) context.addIssue({ code: "custom", message: "A run must send empty exerciseSnapshot and setLog" });
+    return;
+  }
+  if (value.exerciseSnapshot.length < 1) context.addIssue({ code: "custom", path: ["exerciseSnapshot"], message: "A workout requires 1–12 exercises" });
   const isManual = value.source === "manual" || value.source === "record";
   const grouped = value.setLog.some(e => "sets" in e);
   const explicit = value.exerciseSnapshot.some(e => e.mode !== undefined) || (!grouped && value.setLog.some(e => e.exerciseMode !== undefined));

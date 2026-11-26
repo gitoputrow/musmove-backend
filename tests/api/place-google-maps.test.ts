@@ -7,6 +7,7 @@ import { readMigrationFiles } from "drizzle-orm/migrator";
 import type { Database } from "../../src/db/client";
 import * as schema from "../../src/db/schema";
 import links from "../../src/db/data/place-google-maps-2026-11-14.json";
+import journal from "../../drizzle/meta/_journal.json";
 import { getPlaceCatalog } from "../../src/modules/places/service";
 import { placesQuerySchema } from "../../src/modules/places/query";
 import { GET } from "../../app/api/v1/catalog/places/route";
@@ -20,8 +21,10 @@ test("Maps migration updates all coordinate links without changing place attribu
   globals.musmovePool = { query() { throw new Error("Live database forbidden in isolated test"); } };
   try {
     const migrations = readMigrationFiles({ migrationsFolder: "drizzle" });
-    for (const migration of migrations.slice(0, -1)) await local.exec(migration.sql.join("\n"));
-    const migration = migrations.at(-1)!;
+    const timestamp = journal.entries.find(e => e.tag === "0037_place_google_maps_profiles")!.when;
+    const index = migrations.findIndex(m => m.folderMillis === timestamp); assert.ok(index > 0);
+    for (const migration of migrations.slice(0, index)) await local.exec(migration.sql.join("\n"));
+    const migration = migrations[index];
     assert.ok(migration.sql.join("\n").includes("$place_map_links$"));
     const db = drizzle(local, { schema });
     globals.musmoveDatabase = db as unknown as Database;

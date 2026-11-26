@@ -25,7 +25,18 @@ export const legacyResultMetricsSchema = z.object({
   version: z.literal("1"), ...resultMetricFields,
   energy: z.record(z.string(), z.unknown()).describe("Retired opaque energy snapshot. Historical reads only; ignore in UI. Never generated for new workouts."),
 }).strict();
-export const resultMetricsSchema = z.discriminatedUnion("version", [currentResultMetricsSchema, legacyResultMetricsSchema]);
+// Version3 is the running-session result. Pace/speed are server-computed from
+// distance and movingSeconds (gps) or the reported duration (manual past run).
+export const runResultMetricsSchema = z.object({
+  version: z.literal("3"), kind: z.literal("running"), duration: resultMetricFields.duration,
+  run: z.object({
+    distanceMeters: z.number().finite().min(1).max(200000), distanceSource: z.enum(["gps", "manual"]),
+    movingSeconds: z.number().int().min(1).max(43200).nullable(),
+    paceBasis: z.enum(["moving_seconds", "duration_seconds"]),
+    avgPaceSecondsPerKm: z.number().int().min(0), avgSpeedKmh: z.number().finite().min(0),
+  }).strict(),
+}).strict();
+export const resultMetricsSchema = z.discriminatedUnion("version", [currentResultMetricsSchema, legacyResultMetricsSchema, runResultMetricsSchema]);
 export function validPrescription(v: { trackingType?: string; reps: number | null; targetDurationSeconds?: number | null }) {
   return v.trackingType === "duration" ? v.reps === null && v.targetDurationSeconds != null : v.reps !== null && v.targetDurationSeconds == null;
 }

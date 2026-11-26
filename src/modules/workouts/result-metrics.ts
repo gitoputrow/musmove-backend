@@ -2,6 +2,7 @@ import type { z } from "zod";
 import type { WorkoutExercisePrescription, WorkoutSetLog } from "@/src/db/schema/types";
 import { badRequest } from "@/src/lib/api-error";
 import { muscleTargetsSchema, sessionTimingSchema } from "./measurement";
+import { runPace, type RunLog } from "./run";
 
 export function muscleCoverage(mode: string, exercises: WorkoutExercisePrescription[], logs: WorkoutSetLog[]) {
   const performed = exercises.filter(e => logs.some(l => l.completed && l.exerciseId === e.id && (l.exerciseMode ?? mode) === (e.mode ?? mode) && l.setNumber >= 1 && l.setNumber <= e.sets));
@@ -20,6 +21,18 @@ type MetricsInput = {
   source: string; startedAt: string; finishedAt: string;
   sessionTiming?: z.infer<typeof sessionTimingSchema>;
 };
+export function buildRunResultMetrics(input: MetricsInput, run: RunLog) {
+  const timing = input.sessionTiming;
+  if (!timing) throw badRequest("INVALID_SESSION_TIMING", "A run requires sessionTiming");
+  const seconds = timing.source === "timer" ? Math.floor((Date.parse(input.finishedAt) - Date.parse(input.startedAt)) / 1000) : timing.durationSeconds!;
+  if (seconds < 1 || seconds > 43200) throw badRequest("INVALID_SESSION_TIMING", "Session duration must be 1–43200 seconds");
+  if (run.movingSeconds !== null && run.movingSeconds > seconds) throw badRequest("INCONSISTENT_RUN_DURATION", "movingSeconds must not exceed the session duration");
+  const basis = run.movingSeconds ?? seconds;
+  return { version: "3" as const, kind: "running" as const,
+    duration: { seconds, source: timing.source, reason: null, meaning: "elapsed_including_rest" as const, verification: "client_reported" as const },
+    run: { distanceMeters: run.distanceMeters, distanceSource: run.distanceSource, movingSeconds: run.movingSeconds,
+      paceBasis: run.movingSeconds === null ? "duration_seconds" as const : "moving_seconds" as const, ...runPace(run.distanceMeters, basis) } };
+}
 export function buildResultMetrics(input: MetricsInput, mode: string, exercises: WorkoutExercisePrescription[], logs: WorkoutSetLog[]) {
   let seconds: number | null = null;
   if (input.sessionTiming) {
